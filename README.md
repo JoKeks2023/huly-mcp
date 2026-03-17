@@ -35,9 +35,9 @@ Connects **Claude Desktop** (and any [MCP](https://modelcontextprotocol.io)-comp
 | | `create_component` | Create a new component with optional lead |
 | **Documents** | `list_teamspaces` | List document teamspaces |
 | | `list_documents` | List documents in a teamspace |
-| | `get_document` | Get document metadata + content (see [Document content](#document-content)) |
+| | `get_document` | Get document metadata + content |
 | | `create_document` | Create a new document in a teamspace |
-| | `update_document` | Set document content from Markdown — renders Mermaid diagrams natively (see [Document content](#document-content)) |
+| | `update_document` | Write Markdown content to a document — Mermaid diagrams render natively |
 | **Search** | `search_issues` | Full-text search across all issues |
 
 ---
@@ -93,6 +93,7 @@ Restart Claude Desktop after saving.
 > Then use `"command": "node", "args": ["/absolute/path/to/huly-mcp/dist/index.js"]` in your config.
 
 ---
+
 <img width="932" height="401" alt="image" src="https://github.com/user-attachments/assets/0f9d9a74-ca1e-4884-bd6a-918c0fb8ddbd" />
 
 ## Example Prompts
@@ -120,37 +121,20 @@ Restart Claude Desktop after saving.
 
 **Time tracking:**
 - *"Log 2.5 hours on PROJ-42 for the database refactor"*
-- *"Log 1 hour on PROJ-55 — Fixed bug in login form"*
 
 **Documents:**
 - *"List all documents in the Engineering teamspace"*
 - *"Create a document called 'API Design' in the Engineering teamspace"*
-- *"Get the content of document abc123"*
-- *"Update document abc123 with this Markdown content: ..."*
-- *"Add a Mermaid flowchart to the EP1 document"*
+- *"Update the API Design document with this Markdown: ..."*
+- *"Add a Mermaid architecture diagram to the EP1 document"*
 
 ---
 
 ## Document Content
 
-Document content in Huly is stored in a collaborative editing layer (not inline in the database). `get_document` always returns full metadata. To also fetch and read the **text content**, set the optional `HULY_FRONT_URL` env var.
+### Reading: `get_document`
 
-### Writing document content with `update_document`
-
-`update_document` accepts a `documentId` and a `markdown` string and writes rich content directly to the document — no manual editing required. Supported Markdown elements:
-
-- Headings (`#`, `##`, `###`)
-- Paragraphs and inline **bold** / `code`
-- Fenced code blocks — ` ```mermaid ` blocks are stored using Huly's native Mermaid node type, so diagrams render as interactive visuals in the editor
-- Bullet lists
-- Pipe tables
-
-```
-update_document({
-  documentId: "abc123",
-  markdown: "# My Doc\n\n```mermaid\nflowchart TD\n  A --> B\n```"
-})
-```
+`get_document` always returns full metadata (title, teamspace, comments, snapshots). To also fetch and display the **text content**, set the optional `HULY_FRONT_URL` env var:
 
 ```json
 "env": {
@@ -162,7 +146,42 @@ update_document({
 
 For **self-hosted** Huly, set `HULY_FRONT_URL` to your own front service URL (e.g. `http://localhost:8083`).
 
-Without `HULY_FRONT_URL`, `get_document` still returns the title, teamspace, comments, snapshots count, and the blob reference ID.
+### Writing: `update_document`
+
+`update_document` accepts a `documentId` and a `markdown` string and writes rich structured content directly to the document — no manual editing required.
+
+**Supported Markdown:**
+
+| Element | Syntax |
+|---------|--------|
+| Headings | `#`, `##`, `###` |
+| Bold / inline code | `**bold**`, `` `code` `` |
+| Paragraphs | plain text |
+| Bullet lists | `- item` |
+| Pipe tables | `\| col \| col \|` |
+| Code blocks | ` ```lang ` |
+| **Mermaid diagrams** | ` ```mermaid ` — stored as Huly's native `mermaid` node type so diagrams render as interactive visuals in the editor |
+
+**Example:**
+
+```
+update_document({
+  documentId: "abc123",
+  markdown: `# Service Flow\n\n` +
+    `## Architecture\n\n` +
+    "```mermaid\n" +
+    "flowchart TD\n" +
+    "  A([User]) --> B[Browse Catalogue]\n" +
+    "  B --> C[Pay via Razorpay]\n" +
+    "  C --> D[Order Confirmed]\n" +
+    "```\n\n" +
+    "## Business Rules\n\n" +
+    "- Payment required before confirmation\n" +
+    "- All orders synced to HIS\n"
+})
+```
+
+The Mermaid block renders as a live interactive diagram in Huly's document editor — not as a code block.
 
 ---
 
@@ -227,6 +246,24 @@ HULY_FRONT_URL=https://your-huly-instance.com
 - **Lazy init** — connects on the first tool call so auth errors surface clearly in Claude
 - **Dual auth** — OTP token (works for Google/GitHub SSO) or email + password
 - **Stdio transport** — standard MCP transport compatible with Claude Desktop and any MCP client
+
+---
+
+## Changelog
+
+### v0.5.0 — Document Writing + Bug Fixes
+- **New: `update_document`** — write Markdown to any Huly document programmatically; `\`\`\`mermaid` blocks use Huly's native node type and render as interactive diagrams
+- **Fix: `IssueStatus` queries** — statuses are stored globally in Huly (`core:space:Model`), not per-project; removed incorrect space filter that caused *"no statuses found"* errors on `create_issue`, `update_issue`, and `list_issues`
+- **Fix: `create_project`** — sets `members: [currentUser]` so newly created projects are immediately visible in the Huly UI
+
+### v0.4.0
+- `log_time`, `list_comments`, component/milestone assignment on `update_issue`
+
+### v0.3.1
+- `get_document`, `create_document`
+
+### v0.3.0
+- `create_project`, `create_milestone`, assignee support on issues
 
 ---
 
