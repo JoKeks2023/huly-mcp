@@ -25,7 +25,7 @@ export const getProject = wrapToolHandler<z.infer<typeof GetProjectSchema>>(asyn
   const project = await client.findOne(tracker.class.Project, { identifier: args.identifier })
   if (project == null) throw new Error(`Project '${args.identifier}' not found.`)
 
-  const statuses = await client.findAll(tracker.class.IssueStatus, { space: project._id })
+  const statuses = await client.findAll(tracker.class.IssueStatus, {})
   const statusList = statuses.map((s) => `  - ${s.name}`).join('\n')
 
   return [
@@ -64,7 +64,7 @@ export const createProject = wrapToolHandler<z.infer<typeof CreateProjectSchema>
       defaultTimeReportDay: 'CurrentWorkDay' as any,
       defaultIssueStatus: undefined as any,
       type: projectType._id,
-      members: [],
+      members: [client.user],
       archived: false,
       private: false
     } as any,

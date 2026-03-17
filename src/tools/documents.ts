@@ -4,7 +4,7 @@ import { getFirstRank } from '@hcengineering/document'
 import { getConnection, getWorkspaceInfo } from '../connection'
 import { wrapToolHandler } from '../utils/errors'
 import type { z } from 'zod'
-import type { ListDocumentsSchema, GetDocumentSchema, CreateDocumentSchema } from '../schemas'
+import type { ListDocumentsSchema, GetDocumentSchema, CreateDocumentSchema, UpdateDocumentSchema } from '../schemas'
 import type { Teamspace, Document } from '@hcengineering/document'
 
 export const listTeamspaces = wrapToolHandler<Record<string, never>>(async () => {
@@ -129,6 +129,189 @@ export const createDocument = wrapToolHandler<z.infer<typeof CreateDocumentSchem
 
   return `✅ Document **"${args.title}"** created (id: \`${docId}\`) in teamspace "${teamspace.name}".\nOpen it in Huly to add content via the editor.`
 })
+
+const DATALAKE_URL = 'https://dl-eu.huly.app'
+
+export const updateDocument = wrapToolHandler<z.infer<typeof UpdateDocumentSchema>>(async (args) => {
+  const client = await getConnection()
+  const { wsToken, workspaceUuid } = await getWorkspaceInfo()
+
+  const doc = await client.findOne(document.class.Document, { _id: args.documentId as Ref<Document> })
+  if (doc == null) throw new Error(`Document '${args.documentId}' not found.`)
+
+  // Convert markdown to ProseMirror JSON
+  const prosemirror = markdownToProseMirror(args.markdown)
+  const content = JSON.stringify(prosemirror)
+
+  // Upload to datalake
+  const blobId = `${args.documentId}-content-${Date.now()}`
+  const form = new FormData()
+  form.append('file', new Blob([content], { type: 'application/json' }), blobId)
+
+  const uploadUrl = `${DATALAKE_URL}/upload/form-data/${workspaceUuid}`
+  const uploadRes = await fetch(uploadUrl, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${wsToken}` },
+    body: form
+  })
+
+  if (!uploadRes.ok) {
+    const body = await uploadRes.text().catch(() => '')
+    throw new Error(`Datalake upload failed (${uploadRes.status}): ${body}`)
+  }
+
+  const uploadJson: Array<{ key: string, id: string }> = await uploadRes.json()
+  const uploadedId = uploadJson[0]?.id ?? blobId
+
+  // Update document content ref
+  await client.updateDoc(document.class.Document, doc.space, doc._id, { content: uploadedId } as any)
+
+  return `✅ Document **"${doc.title}"** updated (blob: \`${uploadedId}\`).`
+})
+
+// ── Markdown → ProseMirror JSON ───────────────────────────────────────────────
+
+interface PMNode {
+  type: string
+  attrs?: Record<string, any>
+  content?: PMNode[]
+  marks?: Array<{ type: string, attrs?: Record<string, any> }>
+  text?: string
+}
+
+function markdownToProseMirror (md: string): PMNode {
+  const lines = md.split('\n')
+  const nodes: PMNode[] = []
+  let i = 0
+
+  while (i < lines.length) {
+    const line = lines[i]
+
+    // Fenced code block
+    if (line.startsWith('```')) {
+      const lang = line.slice(3).trim()
+      const codeLines: string[] = []
+      i++
+      while (i < lines.length && !lines[i].startsWith('```')) {
+        codeLines.push(lines[i])
+        i++
+      }
+      i++ // skip closing ```
+      // Use Huly's native 'mermaid' node type so diagrams render properly
+      const nodeType = lang === 'mermaid' ? 'mermaid' : 'codeBlock'
+      nodes.push({
+        type: nodeType,
+        attrs: { language: lang !== '' ? lang : null },
+        content: [{ type: 'text', text: codeLines.join('\n') }]
+      })
+      continue
+    }
+
+    // Heading
+    const headingMatch = line.match(/^(#{1,6})\s+(.+)$/)
+    if (headingMatch != null) {
+      nodes.push({
+        type: 'heading',
+        attrs: { level: headingMatch[1].length },
+        content: parseInline(headingMatch[2])
+      })
+      i++
+      continue
+    }
+
+    // Table (Markdown pipe table)
+    if (line.includes('|') && line.trim().startsWith('|')) {
+      const tableRows: string[][] = []
+      while (i < lines.length && lines[i].includes('|') && lines[i].trim().startsWith('|')) {
+        const row = lines[i].trim().replace(/^\||\|$/g, '').split('|').map((c) => c.trim())
+        // Skip separator rows like |---|---|
+        if (!row.every((c) => /^[-:]+$/.test(c))) {
+          tableRows.push(row)
+        }
+        i++
+      }
+      if (tableRows.length > 0) {
+        nodes.push(buildTable(tableRows))
+      }
+      continue
+    }
+
+    // Bullet list
+    if (/^(\s*[-*+])\s/.test(line)) {
+      const items: PMNode[] = []
+      while (i < lines.length && /^(\s*[-*+])\s/.test(lines[i])) {
+        const text = lines[i].replace(/^\s*[-*+]\s/, '')
+        items.push({
+          type: 'listItem',
+          content: [{ type: 'paragraph', content: parseInline(text) }]
+        })
+        i++
+      }
+      nodes.push({ type: 'bulletList', content: items })
+      continue
+    }
+
+    // Blank line → skip
+    if (line.trim() === '') {
+      i++
+      continue
+    }
+
+    // Default paragraph
+    nodes.push({ type: 'paragraph', content: parseInline(line) })
+    i++
+  }
+
+  if (nodes.length === 0) {
+    nodes.push({ type: 'paragraph', content: [] })
+  }
+
+  return { type: 'doc', content: nodes }
+}
+
+function parseInline (text: string): PMNode[] {
+  const nodes: PMNode[] = []
+  // Handle **bold**, `code`, plain text
+  const re = /\*\*(.+?)\*\*|`(.+?)`|([^`*]+)/g
+  let m: RegExpExecArray | null
+  while ((m = re.exec(text)) !== null) {
+    if (m[1] != null) {
+      nodes.push({ type: 'text', text: m[1], marks: [{ type: 'bold' }] })
+    } else if (m[2] != null) {
+      nodes.push({ type: 'text', text: m[2], marks: [{ type: 'code' }] })
+    } else if (m[3] != null && m[3].length > 0) {
+      nodes.push({ type: 'text', text: m[3] })
+    }
+  }
+  return nodes.length > 0 ? nodes : [{ type: 'text', text }]
+}
+
+function buildTable (rows: string[][]): PMNode {
+  const [headerRow, ...bodyRows] = rows
+  const tableRows: PMNode[] = []
+
+  if (headerRow != null) {
+    tableRows.push({
+      type: 'tableRow',
+      content: headerRow.map((cell) => ({
+        type: 'tableHeader',
+        content: [{ type: 'paragraph', content: parseInline(cell) }]
+      }))
+    })
+  }
+
+  for (const row of bodyRows) {
+    tableRows.push({
+      type: 'tableRow',
+      content: row.map((cell) => ({
+        type: 'tableCell',
+        content: [{ type: 'paragraph', content: parseInline(cell) }]
+      }))
+    })
+  }
+
+  return { type: 'table', content: tableRows }
+}
 
 // Helper: extract plain text from Huly's ProseMirror JSON markup
 function extractText (node: any): string {

@@ -140,3 +140,8 @@ export const LogTimeSchema = z.object({
   hours: z.number().positive().describe('Hours spent (e.g. 2.5)'),
   description: z.string().optional().describe('What was done (optional note)')
 })
+
+export const UpdateDocumentSchema = z.object({
+  documentId: z.string().describe('Document _id from list_documents or create_document'),
+  markdown: z.string().min(1).describe('Markdown content to set as the document body')
+})

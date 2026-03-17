@@ -6,7 +6,7 @@ Connects **Claude Desktop** (and any [MCP](https://modelcontextprotocol.io)-comp
 
 ---
 
-## Tools (31 total)
+## Tools (32 total)
 
 | Category | Tool | Description |
 |----------|------|-------------|
@@ -37,6 +37,7 @@ Connects **Claude Desktop** (and any [MCP](https://modelcontextprotocol.io)-comp
 | | `list_documents` | List documents in a teamspace |
 | | `get_document` | Get document metadata + content (see [Document content](#document-content)) |
 | | `create_document` | Create a new document in a teamspace |
+| | `update_document` | Set document content from Markdown — renders Mermaid diagrams natively (see [Document content](#document-content)) |
 | **Search** | `search_issues` | Full-text search across all issues |
 
 ---
@@ -125,12 +126,31 @@ Restart Claude Desktop after saving.
 - *"List all documents in the Engineering teamspace"*
 - *"Create a document called 'API Design' in the Engineering teamspace"*
 - *"Get the content of document abc123"*
+- *"Update document abc123 with this Markdown content: ..."*
+- *"Add a Mermaid flowchart to the EP1 document"*
 
 ---
 
 ## Document Content
 
-Document content in Huly is stored in a collaborative editing layer (not inline in the database). `get_document` always returns full metadata. To also fetch and read the **text content**, set the optional `HULY_FRONT_URL` env var:
+Document content in Huly is stored in a collaborative editing layer (not inline in the database). `get_document` always returns full metadata. To also fetch and read the **text content**, set the optional `HULY_FRONT_URL` env var.
+
+### Writing document content with `update_document`
+
+`update_document` accepts a `documentId` and a `markdown` string and writes rich content directly to the document — no manual editing required. Supported Markdown elements:
+
+- Headings (`#`, `##`, `###`)
+- Paragraphs and inline **bold** / `code`
+- Fenced code blocks — ` ```mermaid ` blocks are stored using Huly's native Mermaid node type, so diagrams render as interactive visuals in the editor
+- Bullet lists
+- Pipe tables
+
+```
+update_document({
+  documentId: "abc123",
+  markdown: "# My Doc\n\n```mermaid\nflowchart TD\n  A --> B\n```"
+})
+```
 
 ```json
 "env": {

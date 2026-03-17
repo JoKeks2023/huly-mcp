@@ -24,7 +24,7 @@ export const listIssues = wrapToolHandler<z.infer<typeof ListIssuesSchema>>(asyn
   const query: Record<string, unknown> = { space: project._id }
 
   if (args.status != null) {
-    const status = await client.findOne(tracker.class.IssueStatus, { space: project._id, name: args.status })
+    const status = await client.findOne(tracker.class.IssueStatus, { name: args.status })
     if (status == null) throw new Error(`Status '${args.status}' not found in project '${args.projectIdentifier}'.`)
     query.status = status._id
   }
@@ -42,7 +42,7 @@ export const listIssues = wrapToolHandler<z.infer<typeof ListIssuesSchema>>(asyn
   if (issues.length === 0) return `No issues found in project ${args.projectIdentifier}.`
 
   // Resolve all statuses in one call
-  const statuses = await client.findAll(tracker.class.IssueStatus, { space: project._id })
+  const statuses = await client.findAll(tracker.class.IssueStatus, {})
   const statusMap = new Map(statuses.map((s) => [s._id, s.name]))
 
   const lines = issues.map((issue) => {
@@ -92,7 +92,7 @@ export const createIssue = wrapToolHandler<z.infer<typeof CreateIssueSchema>>(as
   const identifier = `${project.identifier}-${issueNumber}`
 
   // 3. Resolve status
-  const statuses = await client.findAll(tracker.class.IssueStatus, { space: project._id })
+  const statuses = await client.findAll(tracker.class.IssueStatus, {})
   const status = args.statusName != null
     ? (statuses.find((s) => s.name === args.statusName) ?? statuses[0])
     : (project.defaultIssueStatus != null
@@ -176,7 +176,7 @@ export const updateIssue = wrapToolHandler<z.infer<typeof UpdateIssueSchema>>(as
   if (args.title != null) updates.title = args.title
 
   if (args.statusName != null) {
-    const status = await client.findOne(tracker.class.IssueStatus, { space: issue.space, name: args.statusName })
+    const status = await client.findOne(tracker.class.IssueStatus, { name: args.statusName })
     if (status == null) throw new Error(`Status '${args.statusName}' not found.`)
     updates.status = status._id
   }
