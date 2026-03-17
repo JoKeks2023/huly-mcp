@@ -92,6 +92,7 @@ Restart Claude Desktop after saving.
 > Then use `"command": "node", "args": ["/absolute/path/to/huly-mcp/dist/index.js"]` in your config.
 
 ---
+<img width="932" height="401" alt="image" src="https://github.com/user-attachments/assets/0f9d9a74-ca1e-4884-bd6a-918c0fb8ddbd" />
 
 ## Example Prompts
 
