@@ -53,8 +53,6 @@ Connects **Claude Desktop** (and any [MCP](https://modelcontextprotocol.io)-comp
 
 ## Quick Start
 
-### 1. Install via npx (easiest)
-
 ```bash
 npx huly-mcp-sdk setup
 ```
@@ -63,9 +61,15 @@ This runs the interactive setup wizard — sends a one-time code to your email (
 
 **Your workspace slug** is the part of your Huly URL after the domain: `huly.app/`**`myteam`** → slug is `myteam`.
 
-### 2. Configure Claude Desktop
+---
 
-Add this to your Claude Desktop config:
+## Compatible Clients
+
+The same MCP server works across all major AI coding tools. Pick your client:
+
+---
+
+### Claude Desktop
 
 - **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
 - **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
@@ -77,7 +81,7 @@ Add this to your Claude Desktop config:
       "command": "npx",
       "args": ["huly-mcp-sdk"],
       "env": {
-        "HULY_TOKEN": "paste-token-here",
+        "HULY_TOKEN": "your-token",
         "HULY_WORKSPACE": "your-workspace-slug"
       }
     }
@@ -87,12 +91,175 @@ Add this to your Claude Desktop config:
 
 Restart Claude Desktop after saving.
 
-> **Alternative (clone & build):**
+---
+
+### Claude Code (CLI)
+
+```bash
+claude mcp add huly -e HULY_TOKEN=your-token -e HULY_WORKSPACE=your-slug -- npx huly-mcp-sdk
+```
+
+Or scope it to a single project only:
+
+```bash
+claude mcp add huly --scope project -e HULY_TOKEN=your-token -e HULY_WORKSPACE=your-slug -- npx huly-mcp-sdk
+```
+
+Verify it's connected: `claude mcp list`
+
+---
+
+### Cursor
+
+Create or edit `~/.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "huly": {
+      "command": "npx",
+      "args": ["huly-mcp-sdk"],
+      "env": {
+        "HULY_TOKEN": "your-token",
+        "HULY_WORKSPACE": "your-workspace-slug"
+      }
+    }
+  }
+}
+```
+
+Restart Cursor. The tools appear in the Agent panel under MCP.
+
+---
+
+### Windsurf (Codeium)
+
+Create or edit `~/.codeium/windsurf/mcp_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "huly": {
+      "command": "npx",
+      "args": ["huly-mcp-sdk"],
+      "env": {
+        "HULY_TOKEN": "your-token",
+        "HULY_WORKSPACE": "your-workspace-slug"
+      }
+    }
+  }
+}
+```
+
+Restart Windsurf. MCP tools are available to the Cascade AI panel.
+
+---
+
+### VS Code — Cline extension
+
+1. Install the [Cline extension](https://marketplace.visualstudio.com/items?itemName=saoudrizwan.claude-dev)
+2. Open Cline settings → **MCP Servers** → **Edit MCP Settings**
+3. Add:
+
+```json
+{
+  "huly": {
+    "command": "npx",
+    "args": ["huly-mcp-sdk"],
+    "env": {
+      "HULY_TOKEN": "your-token",
+      "HULY_WORKSPACE": "your-workspace-slug"
+    }
+  }
+}
+```
+
+---
+
+### VS Code — Continue extension
+
+1. Install the [Continue extension](https://marketplace.visualstudio.com/items?itemName=Continue.continue)
+2. Edit `~/.continue/config.json` and add to the `mcpServers` array:
+
+```json
+{
+  "mcpServers": [
+    {
+      "name": "huly",
+      "command": "npx",
+      "args": ["huly-mcp-sdk"],
+      "env": {
+        "HULY_TOKEN": "your-token",
+        "HULY_WORKSPACE": "your-workspace-slug"
+      }
+    }
+  ]
+}
+```
+
+---
+
+### Zed
+
+Edit `~/.config/zed/settings.json` and add a `context_servers` entry:
+
+```json
+{
+  "context_servers": {
+    "huly": {
+      "command": {
+        "path": "npx",
+        "args": ["huly-mcp-sdk"],
+        "env": {
+          "HULY_TOKEN": "your-token",
+          "HULY_WORKSPACE": "your-workspace-slug"
+        }
+      }
+    }
+  }
+}
+```
+
+---
+
+### OpenAI Codex CLI
+
+Edit `~/.codex/config.json` and add to `mcpServers`:
+
+```json
+{
+  "mcpServers": {
+    "huly": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["huly-mcp-sdk"],
+      "env": {
+        "HULY_TOKEN": "your-token",
+        "HULY_WORKSPACE": "your-workspace-slug"
+      }
+    }
+  }
+}
+```
+
+---
+
+### Any other MCP-compatible client
+
+The server uses standard **stdio transport**. If your tool supports MCP, the config pattern is always the same:
+
+- **command:** `npx`
+- **args:** `["huly-mcp-sdk"]`
+- **env:** `HULY_TOKEN` + `HULY_WORKSPACE`
+
+Consult your tool's MCP documentation for the exact config file location.
+
+> **Alternative (avoid npx cold-start):** Clone and build once, then point directly at the compiled binary:
 > ```bash
 > git clone https://github.com/varaprasadreddy9676/huly-mcp.git
 > cd huly-mcp && npm install && npm run build
 > ```
-> Then use `"command": "node", "args": ["/absolute/path/to/huly-mcp/dist/index.js"]` in your config.
+> Replace `"command": "npx", "args": ["huly-mcp-sdk"]` with `"command": "node", "args": ["/absolute/path/to/huly-mcp/dist/index.js"]` in any config above.
 
 ---
 
