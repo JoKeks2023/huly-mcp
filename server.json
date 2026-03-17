@@ -1,42 +1,35 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.varaprasadreddy9676/huly-mcp",
-  "description": "MCP server for Huly — manage issues, projects, members and more via Claude.",
+  "description": "MCP server for Huly — manage projects, issues, milestones, components, and documents in your Huly workspace via natural language. Supports Claude Desktop, Claude Code, Cursor, Windsurf, Cline, Continue, and Zed.",
   "repository": {
     "url": "https://github.com/varaprasadreddy9676/huly-mcp",
-    "source": "github",
-    "id": "1179678827"
+    "source": "github"
   },
-  "version": "0.2.2",
+  "version_detail": {
+    "version": "0.5.3"
+  },
   "packages": [
     {
-      "registryType": "npm",
-      "identifier": "huly-mcp-sdk",
-      "version": "0.2.2",
-      "transport": {
-        "type": "stdio"
-      },
-      "environmentVariables": [
-        {
-          "name": "HULY_URL",
-          "description": "WebSocket URL of your Huly instance (e.g. wss://huly.io)",
-          "isRequired": true,
-          "isSecret": false,
-          "format": "string"
-        },
+      "registry_name": "npm",
+      "name": "huly-mcp-sdk",
+      "version": "0.5.3",
+      "runtime_hint": "npx",
+      "environment_variables": [
         {
           "name": "HULY_TOKEN",
-          "description": "Huly authentication token (from huly-mcp-setup)",
-          "isRequired": true,
-          "isSecret": true,
-          "format": "string"
+          "description": "Your Huly workspace token — get from huly.app DevTools → Application → Local Storage → token",
+          "required": true
         },
         {
           "name": "HULY_WORKSPACE",
-          "description": "Your Huly workspace slug",
-          "isRequired": true,
-          "isSecret": false,
-          "format": "string"
+          "description": "Your Huly workspace slug (the part after huly.app/ in your URL)",
+          "required": true
+        },
+        {
+          "name": "HULY_FRONT_URL",
+          "description": "Optional — set to https://front.huly.app to enable reading document content",
+          "required": false
         }
       ]
     }
