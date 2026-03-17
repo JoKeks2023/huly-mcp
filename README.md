@@ -65,7 +65,15 @@ This runs the interactive setup wizard — sends a one-time code to your email (
 
 ## Compatible Clients
 
-The same MCP server works across all major AI coding tools. Pick your client:
+The same MCP server works across all major AI coding tools. Pick your client.
+
+> **Auth note:** All config examples below use `HULY_TOKEN`. If you have issues with token expiry, use email + password instead — just replace the `env` block with:
+> ```json
+> "HULY_EMAIL": "your@email.com",
+> "HULY_PASSWORD": "yourpassword",
+> "HULY_WORKSPACE": "your-workspace-slug"
+> ```
+> See [Manual Auth](#manual-auth) for details on both options.
 
 ---
 
@@ -379,9 +387,19 @@ Required column: `title`. Optional: `priority` (Urgent/High/Medium/Low), `status
 
 ## Manual Auth
 
-Create a `.env` file in the project root:
+Create a `.env` file in the project root (or pass via `env` in your client config):
 
-**Option A — Token (recommended for all account types):**
+**Option A — Email + password (recommended):**
+
+Works if you have a password set on your Huly account (Profile → Security → Change password).
+
+```bash
+HULY_EMAIL=your@email.com
+HULY_PASSWORD=yourpassword
+HULY_WORKSPACE=your-workspace-slug
+```
+
+**Option B — Token:**
 
 ```bash
 HULY_WORKSPACE=your-workspace-slug
@@ -390,17 +408,7 @@ HULY_TOKEN=your-token-here
 
 To get a token: go to [huly.app](https://huly.app) → open browser DevTools → Application → Local Storage → `https://huly.app` → copy the `token` value.
 
-> Tokens expire after some time. If you get an auth error, run `npx huly-mcp-sdk setup` again or refresh the token from DevTools.
-
-**Option B — Email + password:**
-
-Only works if you have a password set on your account (Profile → Security → Change password).
-
-```bash
-HULY_EMAIL=your@email.com
-HULY_PASSWORD=yourpassword
-HULY_WORKSPACE=your-workspace-slug
-```
+> Tokens expire after some time. If you get an auth error, switch to email + password auth or refresh the token from DevTools.
 
 **Self-hosted Huly:**
 
