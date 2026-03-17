@@ -5,8 +5,9 @@ import { getConnection } from '../connection'
 import { wrapToolHandler } from '../utils/errors'
 import { formatDate } from '../utils/format'
 import type { z } from 'zod'
-import type { AddCommentSchema, ListCommentsSchema } from '../schemas'
-import { SortingOrder } from '@hcengineering/core'
+import type { AddCommentSchema, ListCommentsSchema, DeleteCommentSchema } from '../schemas'
+import { SortingOrder, type Ref } from '@hcengineering/core'
+import type { ChatMessage } from '@hcengineering/chunter'
 
 export const addComment = wrapToolHandler<z.infer<typeof AddCommentSchema>>(async (args) => {
   const client = await getConnection()
@@ -52,8 +53,31 @@ export const listComments = wrapToolHandler<z.infer<typeof ListCommentsSchema>>(
     const author = memberMap.get(comment.createdBy as unknown as any) ?? 'Unknown'
     const date = formatDate(comment.createdOn)
     const message = (comment.message as string) ?? ''
-    return `**${author}** @ ${date}:\n> ${message.split('\n').join('\n> ')}`
+    return `**${author}** @ ${date} (id: \`${comment._id}\`):\n> ${message.split('\n').join('\n> ')}`
   })
 
   return `## Comments on ${args.identifier} (${comments.length})\n\n${lines.join('\n\n')}`
+})
+
+export const deleteComment = wrapToolHandler<z.infer<typeof DeleteCommentSchema>>(async (args) => {
+  const client = await getConnection()
+  const issue = await client.findOne(tracker.class.Issue, { identifier: args.identifier })
+  if (issue == null) throw new Error(`Issue '${args.identifier}' not found.`)
+
+  const comment = await client.findOne(chunter.class.ChatMessage, {
+    _id: args.commentId as Ref<ChatMessage>,
+    attachedTo: issue._id
+  })
+  if (comment == null) throw new Error(`Comment '${args.commentId}' not found on ${args.identifier}.`)
+
+  await client.removeCollection(
+    chunter.class.ChatMessage,
+    issue.space,
+    comment._id,
+    issue._id,
+    tracker.class.Issue,
+    'comments'
+  )
+
+  return `✅ Comment \`${args.commentId}\` deleted from **${args.identifier}**.`
 })

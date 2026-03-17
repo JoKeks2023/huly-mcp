@@ -1,11 +1,11 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { listProjects, getProject, createProject } from './tools/projects'
 import { listIssues, getIssue, createIssue, updateIssue, deleteIssue } from './tools/issues'
-import { addComment, listComments } from './tools/comments'
+import { addComment, listComments, deleteComment } from './tools/comments'
 import { logTime } from './tools/log-time'
 import { listMembers } from './tools/members'
 import { listMilestones, createMilestone } from './tools/milestones'
-import { listTeamspaces, listDocuments, getDocument, createDocument, updateDocument } from './tools/documents'
+import { listTeamspaces, listDocuments, getDocument, createDocument, updateDocument, linkDocument } from './tools/documents'
 import { searchIssues } from './tools/search'
 import { listLabels, createLabel, addLabel, removeLabel } from './tools/labels'
 import { addRelation, addBlockedBy, setParent } from './tools/relations'
@@ -27,6 +27,8 @@ import {
   GetDocumentSchema,
   CreateDocumentSchema,
   UpdateDocumentSchema,
+  DeleteCommentSchema,
+  LinkDocumentSchema,
   SearchIssuesSchema,
   ListLabelsSchema,
   CreateLabelSchema,
@@ -56,7 +58,8 @@ export function createServer (): McpServer {
 
   // Comments
   server.tool('add_comment', 'Add a comment to an issue', AddCommentSchema.shape, addComment)
-  server.tool('list_comments', 'List all comments on an issue', ListCommentsSchema.shape, listComments)
+  server.tool('list_comments', 'List all comments on an issue (includes comment IDs for use with delete_comment)', ListCommentsSchema.shape, listComments)
+  server.tool('delete_comment', 'Delete a specific comment from an issue by its ID (get IDs from list_comments)', DeleteCommentSchema.shape, deleteComment)
 
   // Time tracking
   server.tool('log_time', 'Log hours spent on an issue', LogTimeSchema.shape, logTime)
@@ -89,6 +92,7 @@ export function createServer (): McpServer {
   server.tool('get_document', 'Get metadata and content of a document (content requires HULY_FRONT_URL env)', GetDocumentSchema.shape, getDocument)
   server.tool('create_document', 'Create a new document in a teamspace', CreateDocumentSchema.shape, createDocument)
   server.tool('update_document', 'Set or replace the content of a document from Markdown (supports headings, paragraphs, code blocks, tables, bullet lists)', UpdateDocumentSchema.shape, updateDocument)
+  server.tool('link_document', 'Link a Huly document to an issue — appears in the Relations panel on the issue', LinkDocumentSchema.shape, linkDocument)
 
   // Search
   server.tool('search_issues', 'Full-text search across all issues', SearchIssuesSchema.shape, searchIssues)

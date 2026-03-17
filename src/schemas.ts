@@ -145,3 +145,13 @@ export const UpdateDocumentSchema = z.object({
   documentId: z.string().describe('Document _id from list_documents or create_document'),
   markdown: z.string().min(1).describe('Markdown content to set as the document body')
 })
+
+export const DeleteCommentSchema = z.object({
+  identifier: z.string().describe('Issue identifier, e.g. "PROJ-123"'),
+  commentId: z.string().describe('Comment _id from list_comments')
+})
+
+export const LinkDocumentSchema = z.object({
+  identifier: z.string().describe('Issue identifier, e.g. "PROJ-123"'),
+  documentId: z.string().describe('Document _id from list_documents or create_document')
+})

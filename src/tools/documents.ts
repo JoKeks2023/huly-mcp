@@ -3,8 +3,9 @@ import { SortingOrder, generateId, type Ref } from '@hcengineering/core'
 import { getFirstRank } from '@hcengineering/document'
 import { getConnection, getWorkspaceInfo } from '../connection'
 import { wrapToolHandler } from '../utils/errors'
+import tracker from '@hcengineering/tracker'
 import type { z } from 'zod'
-import type { ListDocumentsSchema, GetDocumentSchema, CreateDocumentSchema, UpdateDocumentSchema } from '../schemas'
+import type { ListDocumentsSchema, GetDocumentSchema, CreateDocumentSchema, UpdateDocumentSchema, LinkDocumentSchema } from '../schemas'
 import type { Teamspace, Document } from '@hcengineering/document'
 
 export const listTeamspaces = wrapToolHandler<Record<string, never>>(async () => {
@@ -312,6 +313,27 @@ function buildTable (rows: string[][]): PMNode {
 
   return { type: 'table', content: tableRows }
 }
+
+export const linkDocument = wrapToolHandler<z.infer<typeof LinkDocumentSchema>>(async (args) => {
+  const client = await getConnection()
+
+  const issue = await client.findOne(tracker.class.Issue, { identifier: args.identifier })
+  if (issue == null) throw new Error(`Issue '${args.identifier}' not found.`)
+
+  const doc = await client.findOne(document.class.Document, { _id: args.documentId as Ref<Document> })
+  if (doc == null) throw new Error(`Document '${args.documentId}' not found.`)
+
+  const existing = (issue as any).relations ?? []
+  if (existing.some((r: any) => r._id === doc._id)) {
+    return `ℹ️ Document **"${doc.title}"** is already linked to **${args.identifier}**.`
+  }
+
+  await client.updateDoc(tracker.class.Issue, issue.space, issue._id, {
+    relations: [...existing, { _id: doc._id, _class: doc._class }]
+  } as any)
+
+  return `✅ Document **"${doc.title}"** linked to **${args.identifier}** — visible in the Relations panel.`
+})
 
 // Helper: extract plain text from Huly's ProseMirror JSON markup
 function extractText (node: any): string {

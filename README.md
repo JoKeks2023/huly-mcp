@@ -6,7 +6,7 @@ Connects **Claude Desktop** (and any [MCP](https://modelcontextprotocol.io)-comp
 
 ---
 
-## Tools (32 total)
+## Tools (34 total)
 
 | Category | Tool | Description |
 |----------|------|-------------|
@@ -19,7 +19,8 @@ Connects **Claude Desktop** (and any [MCP](https://modelcontextprotocol.io)-comp
 | | `update_issue` | Update title, status, priority, assignee, due date, component, milestone |
 | | `delete_issue` | Permanently delete an issue by identifier |
 | **Comments** | `add_comment` | Add a comment to an issue |
-| | `list_comments` | List all comments on an issue |
+| | `list_comments` | List all comments on an issue (includes IDs for `delete_comment`) |
+| | `delete_comment` | Delete a specific comment by ID |
 | **Time Tracking** | `log_time` | Log hours spent on an issue |
 | **Labels** | `list_labels` | List all labels with color + usage count |
 | | `create_label` | Create a new label with an optional hex color |
@@ -38,6 +39,7 @@ Connects **Claude Desktop** (and any [MCP](https://modelcontextprotocol.io)-comp
 | | `get_document` | Get document metadata + content |
 | | `create_document` | Create a new document in a teamspace |
 | | `update_document` | Write Markdown content to a document — Mermaid diagrams render natively |
+| | `link_document` | Link a document to an issue — appears in the Relations panel |
 | **Search** | `search_issues` | Full-text search across all issues |
 
 ---
@@ -127,6 +129,8 @@ Restart Claude Desktop after saving.
 - *"Create a document called 'API Design' in the Engineering teamspace"*
 - *"Update the API Design document with this Markdown: ..."*
 - *"Add a Mermaid architecture diagram to the EP1 document"*
+- *"Link document abc123 to issue PROJ-42"*
+- *"Delete the second comment on PROJ-15"*
 
 ---
 
@@ -250,6 +254,10 @@ HULY_FRONT_URL=https://your-huly-instance.com
 ---
 
 ## Changelog
+
+### v0.5.2 — delete_comment + link_document
+- **New: `delete_comment`** — delete a specific comment from an issue by ID; `list_comments` now includes comment IDs in its output
+- **New: `link_document`** — link a Huly document to an issue; the document appears in the Relations panel on the issue
 
 ### v0.5.0 — Document Writing + Bug Fixes
 - **New: `update_document`** — write Markdown to any Huly document programmatically; `\`\`\`mermaid` blocks use Huly's native node type and render as interactive diagrams
