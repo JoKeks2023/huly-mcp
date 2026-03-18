@@ -6,7 +6,7 @@ Connects **Claude Desktop** (and any [MCP](https://modelcontextprotocol.io)-comp
 
 ---
 
-## Tools (34 total)
+## Tools (35 total)
 
 | Category | Tool | Description |
 |----------|------|-------------|
@@ -35,6 +35,7 @@ Connects **Claude Desktop** (and any [MCP](https://modelcontextprotocol.io)-comp
 | **Components** | `list_components` | List components (sub-areas) in a project |
 | | `create_component` | Create a new component with optional lead |
 | **Documents** | `list_teamspaces` | List document teamspaces |
+| | `create_teamspace` | Create a new teamspace (top-level document folder) |
 | | `list_documents` | List documents in a teamspace |
 | | `get_document` | Get document metadata + content |
 | | `create_document` | Create a new document in a teamspace |
@@ -429,6 +430,9 @@ HULY_FRONT_URL=https://your-huly-instance.com
 ---
 
 ## Changelog
+
+### v0.5.5 — create_teamspace
+- **New: `create_teamspace`** — create a new document teamspace (top-level folder for organising documents by project or team)
 
 ### v0.5.2 — delete_comment + link_document
 - **New: `delete_comment`** — delete a specific comment from an issue by ID; `list_comments` now includes comment IDs in its output

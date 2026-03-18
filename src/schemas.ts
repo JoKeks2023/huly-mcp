@@ -75,6 +75,12 @@ export const CreateProjectSchema = z.object({
   description: z.string().optional().describe('Project description')
 })
 
+export const CreateTeamspaceSchema = z.object({
+  name: z.string().min(1).describe('Teamspace name'),
+  description: z.string().optional().describe('Optional description'),
+  isPrivate: z.boolean().default(false).describe('Whether the teamspace is private (default: false = visible to all members)')
+})
+
 export const ListDocumentsSchema = z.object({
   teamspaceId: z.string().describe('Teamspace _id from list_teamspaces')
 })

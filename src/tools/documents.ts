@@ -1,11 +1,11 @@
 import document from '@hcengineering/document'
-import { SortingOrder, generateId, type Ref } from '@hcengineering/core'
+import core, { SortingOrder, generateId, type Ref } from '@hcengineering/core'
 import { getFirstRank } from '@hcengineering/document'
 import { getConnection, getWorkspaceInfo } from '../connection'
 import { wrapToolHandler } from '../utils/errors'
 import tracker from '@hcengineering/tracker'
 import type { z } from 'zod'
-import type { ListDocumentsSchema, GetDocumentSchema, CreateDocumentSchema, UpdateDocumentSchema, LinkDocumentSchema } from '../schemas'
+import type { ListDocumentsSchema, GetDocumentSchema, CreateDocumentSchema, UpdateDocumentSchema, LinkDocumentSchema, CreateTeamspaceSchema } from '../schemas'
 import type { Teamspace, Document } from '@hcengineering/document'
 
 export const listTeamspaces = wrapToolHandler<Record<string, never>>(async () => {
@@ -19,6 +19,31 @@ export const listTeamspaces = wrapToolHandler<Record<string, never>>(async () =>
   )
 
   return `## Teamspaces (${teamspaces.length})\n\n${lines.join('\n')}`
+})
+
+export const createTeamspace = wrapToolHandler<z.infer<typeof CreateTeamspaceSchema>>(async (args) => {
+  const client = await getConnection()
+
+  const teamspaceId = generateId<Teamspace>()
+  await client.createDoc(
+    document.class.Teamspace,
+    core.space.Space,
+    {
+      name: args.name,
+      description: args.description ?? '',
+      private: args.isPrivate ?? false,
+      members: [client.user],
+      owners: [client.user],
+      autoJoin: false,
+      archived: false,
+      icon: undefined,
+      color: undefined,
+      type: document.spaceType.DefaultTeamspaceType
+    } as any,
+    teamspaceId
+  )
+
+  return `✅ Teamspace **"${args.name}"** created (id: \`${teamspaceId}\`).`
 })
 
 export const listDocuments = wrapToolHandler<z.infer<typeof ListDocumentsSchema>>(async (args) => {

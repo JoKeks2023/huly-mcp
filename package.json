@@ -1,6 +1,6 @@
 {
   "name": "huly-mcp-sdk",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "description": "MCP server for Huly — connect Claude Desktop to your Huly workspace via the native WebSocket SDK",
   "keywords": [
     "huly",
