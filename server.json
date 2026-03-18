@@ -6,12 +6,12 @@
     "url": "https://github.com/varaprasadreddy9676/huly-mcp",
     "source": "github"
   },
-  "version": "0.5.5",
+  "version": "0.5.6",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "huly-mcp-sdk",
-      "version": "0.5.5",
+      "version": "0.5.6",
       "transport": {
         "type": "stdio"
       },

@@ -75,6 +75,10 @@ export const CreateProjectSchema = z.object({
   description: z.string().optional().describe('Project description')
 })
 
+export const DeleteDocumentSchema = z.object({
+  documentId: z.string().describe('Document _id to delete (from list_documents)')
+})
+
 export const CreateTeamspaceSchema = z.object({
   name: z.string().min(1).describe('Teamspace name'),
   description: z.string().optional().describe('Optional description'),

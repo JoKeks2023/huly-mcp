@@ -5,7 +5,7 @@ import { addComment, listComments, deleteComment } from './tools/comments'
 import { logTime } from './tools/log-time'
 import { listMembers } from './tools/members'
 import { listMilestones, createMilestone } from './tools/milestones'
-import { listTeamspaces, createTeamspace, listDocuments, getDocument, createDocument, updateDocument, linkDocument } from './tools/documents'
+import { listTeamspaces, createTeamspace, listDocuments, getDocument, createDocument, deleteDocument, updateDocument, linkDocument } from './tools/documents'
 import { searchIssues } from './tools/search'
 import { listLabels, createLabel, addLabel, removeLabel } from './tools/labels'
 import { addRelation, addBlockedBy, setParent } from './tools/relations'
@@ -39,7 +39,8 @@ import {
   SetParentSchema,
   ListComponentsSchema,
   CreateComponentSchema,
-  CreateTeamspaceSchema
+  CreateTeamspaceSchema,
+  DeleteDocumentSchema
 } from './schemas'
 
 export function createServer (): McpServer {
@@ -93,6 +94,7 @@ export function createServer (): McpServer {
   server.tool('list_documents', 'List documents in a teamspace', ListDocumentsSchema.shape, listDocuments)
   server.tool('get_document', 'Get metadata and content of a document (content requires HULY_FRONT_URL env)', GetDocumentSchema.shape, getDocument)
   server.tool('create_document', 'Create a new document in a teamspace', CreateDocumentSchema.shape, createDocument)
+  server.tool('delete_document', 'Permanently delete a document by its ID', DeleteDocumentSchema.shape, deleteDocument)
   server.tool('update_document', 'Set or replace the content of a document from Markdown (supports headings, paragraphs, code blocks, tables, bullet lists)', UpdateDocumentSchema.shape, updateDocument)
   server.tool('link_document', 'Link a Huly document to an issue — appears in the Relations panel on the issue', LinkDocumentSchema.shape, linkDocument)
 

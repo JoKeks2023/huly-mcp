@@ -6,7 +6,7 @@ Connects **Claude Desktop** (and any [MCP](https://modelcontextprotocol.io)-comp
 
 ---
 
-## Tools (35 total)
+## Tools (36 total)
 
 | Category | Tool | Description |
 |----------|------|-------------|
@@ -37,6 +37,7 @@ Connects **Claude Desktop** (and any [MCP](https://modelcontextprotocol.io)-comp
 | **Documents** | `list_teamspaces` | List document teamspaces |
 | | `create_teamspace` | Create a new teamspace (top-level document folder) |
 | | `list_documents` | List documents in a teamspace |
+| | `delete_document` | Permanently delete a document by ID |
 | | `get_document` | Get document metadata + content |
 | | `create_document` | Create a new document in a teamspace |
 | | `update_document` | Write Markdown content to a document — Mermaid diagrams render natively |
@@ -430,6 +431,9 @@ HULY_FRONT_URL=https://your-huly-instance.com
 ---
 
 ## Changelog
+
+### v0.5.6 — delete_document
+- **New: `delete_document`** — permanently delete a document by ID
 
 ### v0.5.5 — create_teamspace
 - **New: `create_teamspace`** — create a new document teamspace (top-level folder for organising documents by project or team)

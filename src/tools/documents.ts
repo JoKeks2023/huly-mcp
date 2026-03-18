@@ -5,7 +5,7 @@ import { getConnection, getWorkspaceInfo } from '../connection'
 import { wrapToolHandler } from '../utils/errors'
 import tracker from '@hcengineering/tracker'
 import type { z } from 'zod'
-import type { ListDocumentsSchema, GetDocumentSchema, CreateDocumentSchema, UpdateDocumentSchema, LinkDocumentSchema, CreateTeamspaceSchema } from '../schemas'
+import type { ListDocumentsSchema, GetDocumentSchema, CreateDocumentSchema, UpdateDocumentSchema, LinkDocumentSchema, CreateTeamspaceSchema, DeleteDocumentSchema } from '../schemas'
 import type { Teamspace, Document } from '@hcengineering/document'
 
 export const listTeamspaces = wrapToolHandler<Record<string, never>>(async () => {
@@ -154,6 +154,16 @@ export const createDocument = wrapToolHandler<z.infer<typeof CreateDocumentSchem
   )
 
   return `✅ Document **"${args.title}"** created (id: \`${docId}\`) in teamspace "${teamspace.name}".\nOpen it in Huly to add content via the editor.`
+})
+
+export const deleteDocument = wrapToolHandler<z.infer<typeof DeleteDocumentSchema>>(async (args) => {
+  const client = await getConnection()
+  const doc = await client.findOne(document.class.Document, { _id: args.documentId as Ref<Document> })
+  if (doc == null) throw new Error(`Document '${args.documentId}' not found.`)
+
+  await client.removeDoc(document.class.Document, doc.space, doc._id)
+
+  return `✅ Document **"${doc.title}"** (\`${doc._id}\`) deleted.`
 })
 
 const DATALAKE_URL = 'https://dl-eu.huly.app'
