@@ -9,7 +9,7 @@
 
 services:
   huly-mcp:
-    image: ghcr.io/jokeks2023/huly-mcp-selfhost:latest
+    image: ghcr.io/jokeks2023/huly-mcp:latest
     # Uncomment to build from local source instead of the published image:
     # build: .
     restart: unless-stopped

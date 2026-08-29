@@ -115,7 +115,7 @@ npm run build
 For deployments where the MCP server needs to be reachable over the network (behind a reverse proxy, remote MCP clients, etc.) rather than launched locally per-client, a prebuilt image is published to GHCR on every push to `main`:
 
 ```bash
-docker pull ghcr.io/jokeks2023/huly-mcp-selfhost:latest
+docker pull ghcr.io/jokeks2023/huly-mcp:latest
 ```
 
 Or with Compose — copy `.env.example` to `.env`, fill in your credentials, then:
