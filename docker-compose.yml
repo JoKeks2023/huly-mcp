@@ -9,8 +9,9 @@
 
 services:
   huly-mcp:
-    image: ghcr.io/jokeks2023/huly-mcp:latest
-    # Uncomment to build from local source instead of the published image:
+    image: jokeks2023/huly-mcp:latest
+    # Also published to ghcr.io/jokeks2023/huly-mcp:latest (same image).
+    # Uncomment to build from local source instead of a published image:
     # build: .
     restart: unless-stopped
     env_file:
