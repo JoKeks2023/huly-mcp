@@ -13,6 +13,7 @@ import { listComponents, createComponent } from './tools/components'
 import { listChannels, createChannel, startDirectMessage, sendMessage, listMessages } from './tools/channels'
 import { attachFile, listAttachments, deleteAttachment } from './tools/attachments'
 import { listIssueStatuses, createIssueStatus } from './tools/statuses'
+import { listOrganizations, getOrganization, createOrganization, updateOrganization } from './tools/organizations'
 import {
   GetProjectSchema,
   CreateProjectSchema,
@@ -53,7 +54,11 @@ import {
   ListAttachmentsSchema,
   DeleteAttachmentSchema,
   ListIssueStatusesSchema,
-  CreateIssueStatusSchema
+  CreateIssueStatusSchema,
+  ListOrganizationsSchema,
+  GetOrganizationSchema,
+  CreateOrganizationSchema,
+  UpdateOrganizationSchema
 } from './schemas'
 
 export function createServer (): McpServer {
@@ -129,6 +134,12 @@ export function createServer (): McpServer {
   // Issue Statuses (custom workflow states)
   server.tool('list_issue_statuses', 'List all issue statuses (workflow states), grouped by phase', {}, listIssueStatuses)
   server.tool('create_issue_status', 'Create a new issue status — becomes available in every project immediately', CreateIssueStatusSchema.shape, createIssueStatus)
+
+  // Organizations (contacts/CRM)
+  server.tool('list_organizations', 'List all organizations (companies) in the workspace', {}, listOrganizations)
+  server.tool('get_organization', 'Get details of an organization, including description', GetOrganizationSchema.shape, getOrganization)
+  server.tool('create_organization', 'Create a new organization (company contact)', CreateOrganizationSchema.shape, createOrganization)
+  server.tool('update_organization', 'Set the description of an organization from Markdown', UpdateOrganizationSchema.shape, updateOrganization)
 
   return server
 }

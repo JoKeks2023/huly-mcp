@@ -223,3 +223,21 @@ export const CreateIssueStatusSchema = z.object({
   category: StatusCategoryEnum.describe('Which phase this status belongs to (determines grouping/color in the UI)'),
   color: z.string().optional().describe('Hex color, e.g. "#FF6B6B" (optional)')
 })
+
+// ── Organizations (contacts/CRM) ────────────────────────────────────────────
+
+export const ListOrganizationsSchema = z.object({})
+
+export const GetOrganizationSchema = z.object({
+  organizationId: z.string().describe('Organization _id from list_organizations')
+})
+
+export const CreateOrganizationSchema = z.object({
+  name: z.string().min(1).describe('Organization name'),
+  city: z.string().optional().describe('City (optional)')
+})
+
+export const UpdateOrganizationSchema = z.object({
+  organizationId: z.string().describe('Organization _id from list_organizations'),
+  description: z.string().describe('New description as Markdown (replaces existing content)')
+})
