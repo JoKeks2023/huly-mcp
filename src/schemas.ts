@@ -20,6 +20,7 @@ export const GetIssueSchema = z.object({
 export const CreateIssueSchema = z.object({
   projectIdentifier: z.string().describe('Project identifier, e.g. "PROJ"'),
   title: z.string().min(1).describe('Issue title'),
+  description: z.string().optional().describe('Issue description as Markdown (headings, bold, code, lists, tables, mermaid supported)'),
   priority: PriorityEnum.default('NoPriority').describe('Issue priority'),
   statusName: z.string().optional().describe('Status name (defaults to project default)'),
   dueDate: z.string().optional().describe('Due date as ISO 8601 string, e.g. "2026-04-01"')
@@ -32,6 +33,7 @@ export const DeleteIssueSchema = z.object({
 export const UpdateIssueSchema = z.object({
   identifier: z.string().describe('Issue identifier, e.g. "PROJ-123"'),
   title: z.string().optional().describe('New title'),
+  description: z.string().optional().describe('New description as Markdown (replaces existing content)'),
   statusName: z.string().optional().describe('New status name'),
   priority: PriorityEnum.optional().describe('New priority'),
   dueDate: z.string().nullable().optional().describe('New due date (ISO 8601) or null to clear'),

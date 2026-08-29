@@ -15,8 +15,8 @@ Connects **Claude Desktop** (and any [MCP](https://modelcontextprotocol.io)-comp
 | | `create_project` | Create a new tracker project with a unique identifier |
 | **Issues** | `list_issues` | List issues with optional status / priority filters |
 | | `get_issue` | Get full details of an issue (e.g. `PROJ-42`) |
-| | `create_issue` | Create a new issue |
-| | `update_issue` | Update title, status, priority, assignee, due date, component, milestone |
+| | `create_issue` | Create a new issue (with optional Markdown description) |
+| | `update_issue` | Update title, description, status, priority, assignee, due date, component, milestone |
 | | `delete_issue` | Permanently delete an issue by identifier |
 | **Comments** | `add_comment` | Add a comment to an issue |
 | | `list_comments` | List all comments on an issue (includes IDs for `delete_comment`) |
@@ -330,6 +330,15 @@ For **self-hosted** Huly, set `HULY_FRONT_URL` to your own front service URL (e.
 ### Writing: `update_document`
 
 `update_document` accepts a `documentId` and a `markdown` string and writes rich structured content directly to the document — no manual editing required.
+
+> **Self-hosted note:** Document content (and, as of this fork, issue descriptions —
+> see below) is stored as a `MarkupBlobRef` blob. Huly Cloud uploads these through a
+> dedicated "datalake" microservice at a fixed URL; `huly-selfhost` (v0.7.x) does not
+> run that service — blob storage goes through `front`'s own, older `/files` endpoint
+> instead. **If `HULY_FRONT_URL` is set, this fork uploads through that self-hosted
+> contract automatically; if it's unset, it falls back to Huly Cloud's datalake** (the
+> original, upstream behavior). No separate flag needed — `HULY_FRONT_URL` doubles as
+> the self-host/cloud switch for both reading and writing.
 
 **Supported Markdown:**
 

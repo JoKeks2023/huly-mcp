@@ -4,9 +4,11 @@ import contact from '@hcengineering/contact'
 import { SortingOrder, generateId, type Ref, type DocumentUpdate } from '@hcengineering/core'
 import type { Person } from '@hcengineering/contact'
 import { makeRank } from '@hcengineering/rank'
-import { getConnection } from '../connection'
+import { getConnection, getWorkspaceInfo } from '../connection'
 import { wrapToolHandler } from '../utils/errors'
 import { priorityLabel, formatDate } from '../utils/format'
+import { markdownToProseMirror, extractText } from '../utils/markdown'
+import { uploadMarkupBlob } from '../utils/storage'
 import type { z } from 'zod'
 import type {
   ListIssuesSchema,
@@ -61,7 +63,7 @@ export const getIssue = wrapToolHandler<z.infer<typeof GetIssueSchema>>(async (a
 
   const status = await client.findOne(tracker.class.IssueStatus, { _id: issue.status })
 
-  return [
+  const lines = [
     `## ${issue.identifier}: ${issue.title}`,
     `**Status:** ${status?.name ?? 'Unknown'}`,
     `**Priority:** ${priorityLabel(issue.priority)}`,
@@ -70,7 +72,34 @@ export const getIssue = wrapToolHandler<z.infer<typeof GetIssueSchema>>(async (a
     `**Sub-issues:** ${issue.subIssues ?? 0}`,
     `**Estimation:** ${issue.estimation > 0 ? `${issue.estimation}h` : 'None'}`,
     `**Reported time:** ${issue.reportedTime > 0 ? `${issue.reportedTime}h` : 'None'}`
-  ].join('\n')
+  ]
+
+  if (issue.description != null) {
+    const frontUrl = process.env.HULY_FRONT_URL
+    if (frontUrl != null && frontUrl !== '') {
+      const { wsToken, workspaceUuid } = await getWorkspaceInfo()
+      const blobUrl = `${frontUrl}/files?file=${encodeURIComponent(issue.description)}&workspace=${workspaceUuid}&token=${wsToken}`
+      try {
+        const res = await fetch(blobUrl)
+        if (res.ok) {
+          const text = await res.text()
+          try {
+            const extracted = extractText(JSON.parse(text))
+            if (extracted.length > 0) lines.push(`\n**Description:**\n${extracted}`)
+          } catch {
+            lines.push(`\n**Description (raw):**\n${text.substring(0, 2000)}`)
+          }
+        }
+      } catch {
+        lines.push(`\n**Description:** _(fetch failed — blob ref \`${issue.description}\`)_`)
+      }
+    } else {
+      lines.push(`\n**Description blob ref:** \`${issue.description}\``)
+      lines.push('_(Set HULY_FRONT_URL env var to fetch description content)_')
+    }
+  }
+
+  return lines.join('\n')
 })
 
 export const createIssue = wrapToolHandler<z.infer<typeof CreateIssueSchema>>(async (args) => {
@@ -114,6 +143,21 @@ export const createIssue = wrapToolHandler<z.infer<typeof CreateIssueSchema>>(as
 
   // 6. Create via addCollection (issues are AttachedDoc)
   const issueId = generateId<Issue>()
+
+  // Issue description is a MarkupBlobRef, same storage mechanism as document
+  // content — upload it the same way if provided.
+  let descriptionBlobId: string | null = null
+  if (args.description != null && args.description !== '') {
+    const { wsToken, workspaceUuid } = await getWorkspaceInfo()
+    const prosemirror = markdownToProseMirror(args.description)
+    descriptionBlobId = await uploadMarkupBlob(
+      wsToken,
+      workspaceUuid,
+      `${issueId}-description-${Date.now()}`,
+      JSON.stringify(prosemirror)
+    )
+  }
+
   await client.addCollection(
     tracker.class.Issue,
     project._id,
@@ -122,7 +166,7 @@ export const createIssue = wrapToolHandler<z.infer<typeof CreateIssueSchema>>(as
     'subIssues',
     {
       title: args.title,
-      description: null,
+      description: descriptionBlobId as any,
       status: status._id,
       priority: IssuePriority[args.priority as keyof typeof IssuePriority],
       number: issueNumber,
@@ -174,6 +218,18 @@ export const updateIssue = wrapToolHandler<z.infer<typeof UpdateIssueSchema>>(as
   const updates: DocumentUpdate<Issue> = {}
 
   if (args.title != null) updates.title = args.title
+
+  if (args.description != null && args.description !== '') {
+    const { wsToken, workspaceUuid } = await getWorkspaceInfo()
+    const prosemirror = markdownToProseMirror(args.description)
+    const descriptionBlobId = await uploadMarkupBlob(
+      wsToken,
+      workspaceUuid,
+      `${issue._id}-description-${Date.now()}`,
+      JSON.stringify(prosemirror)
+    )
+    updates.description = descriptionBlobId as any
+  }
 
   if (args.statusName != null) {
     const status = await client.findOne(tracker.class.IssueStatus, { name: args.statusName })
