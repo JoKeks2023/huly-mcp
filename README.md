@@ -1,5 +1,11 @@
 # huly-mcp-sdk (self-hosted fork)
 
+[![npm](https://img.shields.io/npm/v/huly-mcp-selfhost?label=npm)](https://www.npmjs.com/package/huly-mcp-selfhost)
+[![Docker Pulls](https://img.shields.io/docker/pulls/jokeks2023/huly-mcp)](https://hub.docker.com/r/jokeks2023/huly-mcp)
+[![Docker Image Size](https://img.shields.io/docker/image-size/jokeks2023/huly-mcp/latest)](https://hub.docker.com/r/jokeks2023/huly-mcp)
+[![Publish Docker image](https://github.com/JoKeks2023/huly-mcp/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/JoKeks2023/huly-mcp/actions/workflows/docker-publish.yml)
+[![License: EPL-2.0](https://img.shields.io/badge/license-EPL--2.0-blue)](LICENSE)
+
 > The most complete MCP server for [Huly](https://huly.app) — the open-source project management platform.
 
 Connects **Claude Desktop** (and any [MCP](https://modelcontextprotocol.io)-compatible client) directly to your Huly workspace. Manage projects, issues, milestones, components, documents, labels, chat, attachments, organizations, and more — all via natural language.
