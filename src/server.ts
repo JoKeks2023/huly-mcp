@@ -61,8 +61,42 @@ import {
   UpdateOrganizationSchema
 } from './schemas'
 
+const SERVER_INSTRUCTIONS = `
+This server manages a Huly workspace (issue tracker, docs, chat) — self-hosted or cloud.
+
+## Projects & issues
+- Projects are identified by a short ALL-CAPS key (e.g. "PROJ"), issues by "PROJ-123". Use list_projects
+  before create_project if you don't already know the target project's key.
+- get_issue returns full details including current status/priority — read it before update_issue rather
+  than guessing field values.
+- Epics are just issues: set_parent nests one issue under another to build an epic/sub-issue hierarchy.
+- Custom issue statuses (list_issue_statuses / create_issue_status) are workspace-global, not per-project —
+  check existing statuses before creating a near-duplicate.
+
+## Comments
+- list_comments returns comment IDs; delete_comment requires one of those IDs, not an issue identifier.
+
+## Chat
+- list_channels / list_messages read existing channels and DMs. start_direct_message matches 'member'
+  against person names (substring, case-insensitive) — pass a display name, not an email or account ID.
+
+## Documents
+- Documents live in teamspaces (list_teamspaces / create_teamspace first if none exist yet).
+- update_document replaces the full body — read the current content with get_document first if you need
+  to append or edit rather than overwrite.
+
+## Attachments
+- attach_file takes base64-encoded file content (contentBase64), not a URL or local path — read/encode
+  the file first. list_attachments before delete_attachment to get the attachment ID.
+
+## General
+- Prefer search_issues over list_issues when the user describes an issue by content rather than by project.
+- This is a fork with self-hosted fixes (document/description writes, chat, attachments, statuses,
+  organizations) not present upstream — see https://github.com/JoKeks2023/huly-mcp for the full tool list.
+`.trim()
+
 export function createServer (): McpServer {
-  const server = new McpServer({ name: 'huly-mcp-selfhost', version: '1.0.0' })
+  const server = new McpServer({ name: 'huly-mcp-selfhost', version: '1.0.0' }, { instructions: SERVER_INSTRUCTIONS })
 
   // Projects
   server.tool('list_projects', 'List all projects in the Huly workspace', {}, listProjects)
