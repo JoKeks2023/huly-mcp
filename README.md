@@ -6,7 +6,7 @@ Connects **Claude Desktop** (and any [MCP](https://modelcontextprotocol.io)-comp
 
 ---
 
-## Tools (36 total)
+## Tools (44 total)
 
 | Category | Tool | Description |
 |----------|------|-------------|
@@ -43,6 +43,14 @@ Connects **Claude Desktop** (and any [MCP](https://modelcontextprotocol.io)-comp
 | | `update_document` | Write Markdown content to a document — Mermaid diagrams render natively |
 | | `link_document` | Link a document to an issue — appears in the Relations panel |
 | **Search** | `search_issues` | Full-text search across all issues |
+| **Chat** | `list_channels` | List all channels in the workspace |
+| | `create_channel` | Create a new channel |
+| | `start_direct_message` | Start (or find) a 1:1 direct message with a workspace member |
+| | `send_message` | Send a message to a channel or direct message |
+| | `list_messages` | List messages in a channel or direct message |
+| **Attachments** | `attach_file` | Attach a file to an issue (base64-encoded content) |
+| | `list_attachments` | List files attached to an issue |
+| | `delete_attachment` | Delete a file attachment from an issue |
 
 ---
 

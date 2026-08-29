@@ -10,6 +10,8 @@ import { searchIssues } from './tools/search'
 import { listLabels, createLabel, addLabel, removeLabel } from './tools/labels'
 import { addRelation, addBlockedBy, setParent } from './tools/relations'
 import { listComponents, createComponent } from './tools/components'
+import { listChannels, createChannel, startDirectMessage, sendMessage, listMessages } from './tools/channels'
+import { attachFile, listAttachments, deleteAttachment } from './tools/attachments'
 import {
   GetProjectSchema,
   CreateProjectSchema,
@@ -40,7 +42,15 @@ import {
   ListComponentsSchema,
   CreateComponentSchema,
   CreateTeamspaceSchema,
-  DeleteDocumentSchema
+  DeleteDocumentSchema,
+  ListChannelsSchema,
+  CreateChannelSchema,
+  StartDirectMessageSchema,
+  SendMessageSchema,
+  ListMessagesSchema,
+  AttachFileSchema,
+  ListAttachmentsSchema,
+  DeleteAttachmentSchema
 } from './schemas'
 
 export function createServer (): McpServer {
@@ -100,6 +110,18 @@ export function createServer (): McpServer {
 
   // Search
   server.tool('search_issues', 'Full-text search across all issues', SearchIssuesSchema.shape, searchIssues)
+
+  // Chat (Channels & Direct Messages)
+  server.tool('list_channels', 'List all channels in the workspace', ListChannelsSchema.shape, listChannels)
+  server.tool('create_channel', 'Create a new channel', CreateChannelSchema.shape, createChannel)
+  server.tool('start_direct_message', 'Start (or find) a 1:1 direct message with a workspace member', StartDirectMessageSchema.shape, startDirectMessage)
+  server.tool('send_message', 'Send a message to a channel or direct message', SendMessageSchema.shape, sendMessage)
+  server.tool('list_messages', 'List messages in a channel or direct message', ListMessagesSchema.shape, listMessages)
+
+  // Attachments
+  server.tool('attach_file', 'Attach a file to an issue (base64-encoded content)', AttachFileSchema.shape, attachFile)
+  server.tool('list_attachments', 'List files attached to an issue', ListAttachmentsSchema.shape, listAttachments)
+  server.tool('delete_attachment', 'Delete a file attachment from an issue', DeleteAttachmentSchema.shape, deleteAttachment)
 
   return server
 }

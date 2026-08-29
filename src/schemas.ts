@@ -167,3 +167,47 @@ export const LinkDocumentSchema = z.object({
   identifier: z.string().describe('Issue identifier, e.g. "PROJ-123"'),
   documentId: z.string().describe('Document _id from list_documents or create_document')
 })
+
+// ── Chat (Channels & Direct Messages) ──────────────────────────────────────
+
+export const ListChannelsSchema = z.object({
+  includeArchived: z.boolean().default(false).describe('Include archived channels')
+})
+
+export const CreateChannelSchema = z.object({
+  name: z.string().min(1).describe('Channel name'),
+  topic: z.string().optional().describe('Optional channel topic/description'),
+  isPrivate: z.boolean().default(false).describe('Whether the channel is private (invite-only)')
+})
+
+export const StartDirectMessageSchema = z.object({
+  member: z.string().min(1).describe('Name (first/last/full) of the workspace member to message')
+})
+
+export const SendMessageSchema = z.object({
+  spaceId: z.string().describe('Channel or direct-message _id, from list_channels/create_channel/start_direct_message'),
+  message: z.string().min(1).describe('Message text')
+})
+
+export const ListMessagesSchema = z.object({
+  spaceId: z.string().describe('Channel or direct-message _id'),
+  limit: z.number().int().min(1).max(200).default(50).describe('Max messages to return')
+})
+
+// ── Attachments ─────────────────────────────────────────────────────────────
+
+export const AttachFileSchema = z.object({
+  identifier: z.string().describe('Issue identifier to attach the file to, e.g. "PROJ-123"'),
+  filename: z.string().min(1).describe('File name, e.g. "screenshot.png"'),
+  contentBase64: z.string().min(1).describe('File content, base64-encoded'),
+  mimeType: z.string().default('application/octet-stream').describe('MIME type, e.g. "image/png"')
+})
+
+export const ListAttachmentsSchema = z.object({
+  identifier: z.string().describe('Issue identifier, e.g. "PROJ-123"')
+})
+
+export const DeleteAttachmentSchema = z.object({
+  identifier: z.string().describe('Issue identifier, e.g. "PROJ-123"'),
+  attachmentId: z.string().describe('Attachment _id from list_attachments')
+})
