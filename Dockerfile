@@ -31,8 +31,7 @@ COPY --from=builder /app/dist ./dist
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 
-RUN useradd -m -u 1000 app
-USER app
+USER node
 
 EXPOSE 8000
 
