@@ -1,0 +1,48 @@
+name: Publish npm package to GitHub Packages
+
+# Mirrors the public npmjs.org release (huly-mcp-selfhost) into GitHub
+# Packages under the repo owner's scope, so it shows up in this repo's
+# "Packages" sidebar alongside the Docker image. GitHub Packages requires
+# scoped names (@owner/name) - the committed package.json stays unscoped
+# for the public npm registry, this job renames it just for this publish.
+
+on:
+  push:
+    branches: [main]
+    paths: ["package.json"]
+  workflow_dispatch: {}
+
+jobs:
+  publish-ghp:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://npm.pkg.github.com
+          scope: "@jokeks2023"
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Scope package name for GitHub Packages
+        run: npm pkg set name=@jokeks2023/huly-mcp-selfhost
+
+      - name: Publish
+        # Fails (409) if this version is already published - expected on
+        # repeat pushes that don't bump the version, not a real error.
+        continue-on-error: true
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
