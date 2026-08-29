@@ -12,7 +12,7 @@ Connects **Claude Desktop** (and any [MCP](https://modelcontextprotocol.io)-comp
 
 ## About this fork
 
-This is a fork of [varaprasadreddy9676/huly-mcp](https://github.com/varaprasadreddy9676/huly-mcp), built out for a **self-hosted** (`huly-selfhost`) deployment and extended well past the upstream tool set. **Not published to npm** — see [Installing this fork](#installing-this-fork) below.
+This is a fork of [varaprasadreddy9676/huly-mcp](https://github.com/varaprasadreddy9676/huly-mcp), built out for a **self-hosted** (`huly-selfhost`) deployment and extended well past the upstream tool set. Published separately as **[`huly-mcp-selfhost`](https://www.npmjs.com/package/huly-mcp-selfhost)** on npm and as a Docker image — `npx huly-mcp-sdk` still resolves to the *original* upstream package, not this one. See [Installing this fork](#installing-this-fork) below.
 
 **Fixed vs. upstream:**
 - **Self-hosted document/description writes.** Upstream's `update_document` (and, by extension, any issue description) is hardcoded against Huly Cloud's "datalake" microservice at `dl-eu.huly.app`, which `huly-selfhost` doesn't run. This fork auto-detects self-hosted deployments via `HULY_FRONT_URL` and uploads through `front`'s own `/files` contract instead — falls back to the original Cloud behavior when `HULY_FRONT_URL` is unset. See [`src/utils/storage.ts`](src/utils/storage.ts).
