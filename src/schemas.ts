@@ -211,3 +211,15 @@ export const DeleteAttachmentSchema = z.object({
   identifier: z.string().describe('Issue identifier, e.g. "PROJ-123"'),
   attachmentId: z.string().describe('Attachment _id from list_attachments')
 })
+
+// ── Issue Statuses (custom workflow states) ────────────────────────────────
+
+const StatusCategoryEnum = z.enum(['Backlog', 'Todo', 'InProgress', 'Done', 'Cancelled'])
+
+export const ListIssueStatusesSchema = z.object({})
+
+export const CreateIssueStatusSchema = z.object({
+  name: z.string().min(1).describe('Status name, e.g. "Waiting for review"'),
+  category: StatusCategoryEnum.describe('Which phase this status belongs to (determines grouping/color in the UI)'),
+  color: z.string().optional().describe('Hex color, e.g. "#FF6B6B" (optional)')
+})

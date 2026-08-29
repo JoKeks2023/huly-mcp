@@ -6,7 +6,7 @@ Connects **Claude Desktop** (and any [MCP](https://modelcontextprotocol.io)-comp
 
 ---
 
-## Tools (44 total)
+## Tools (46 total)
 
 | Category | Tool | Description |
 |----------|------|-------------|
@@ -51,6 +51,8 @@ Connects **Claude Desktop** (and any [MCP](https://modelcontextprotocol.io)-comp
 | **Attachments** | `attach_file` | Attach a file to an issue (base64-encoded content) |
 | | `list_attachments` | List files attached to an issue |
 | | `delete_attachment` | Delete a file attachment from an issue |
+| **Issue Statuses** | `list_issue_statuses` | List all issue statuses (workflow states), grouped by phase |
+| | `create_issue_status` | Create a new issue status — available in every project immediately |
 
 ---
 

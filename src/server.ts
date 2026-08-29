@@ -12,6 +12,7 @@ import { addRelation, addBlockedBy, setParent } from './tools/relations'
 import { listComponents, createComponent } from './tools/components'
 import { listChannels, createChannel, startDirectMessage, sendMessage, listMessages } from './tools/channels'
 import { attachFile, listAttachments, deleteAttachment } from './tools/attachments'
+import { listIssueStatuses, createIssueStatus } from './tools/statuses'
 import {
   GetProjectSchema,
   CreateProjectSchema,
@@ -50,7 +51,9 @@ import {
   ListMessagesSchema,
   AttachFileSchema,
   ListAttachmentsSchema,
-  DeleteAttachmentSchema
+  DeleteAttachmentSchema,
+  ListIssueStatusesSchema,
+  CreateIssueStatusSchema
 } from './schemas'
 
 export function createServer (): McpServer {
@@ -122,6 +125,10 @@ export function createServer (): McpServer {
   server.tool('attach_file', 'Attach a file to an issue (base64-encoded content)', AttachFileSchema.shape, attachFile)
   server.tool('list_attachments', 'List files attached to an issue', ListAttachmentsSchema.shape, listAttachments)
   server.tool('delete_attachment', 'Delete a file attachment from an issue', DeleteAttachmentSchema.shape, deleteAttachment)
+
+  // Issue Statuses (custom workflow states)
+  server.tool('list_issue_statuses', 'List all issue statuses (workflow states), grouped by phase', {}, listIssueStatuses)
+  server.tool('create_issue_status', 'Create a new issue status — becomes available in every project immediately', CreateIssueStatusSchema.shape, createIssueStatus)
 
   return server
 }
