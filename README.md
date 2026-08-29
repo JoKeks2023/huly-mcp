@@ -1,8 +1,24 @@
-# huly-mcp-sdk
+# huly-mcp-sdk (self-hosted fork)
 
 > The most complete MCP server for [Huly](https://huly.app) — the open-source project management platform.
 
-Connects **Claude Desktop** (and any [MCP](https://modelcontextprotocol.io)-compatible client) directly to your Huly workspace. Manage projects, issues, milestones, components, documents, labels, and more — all via natural language.
+Connects **Claude Desktop** (and any [MCP](https://modelcontextprotocol.io)-compatible client) directly to your Huly workspace. Manage projects, issues, milestones, components, documents, labels, chat, attachments, organizations, and more — all via natural language.
+
+## About this fork
+
+This is a fork of [varaprasadreddy9676/huly-mcp](https://github.com/varaprasadreddy9676/huly-mcp), built out for a **self-hosted** (`huly-selfhost`) deployment and extended well past the upstream tool set. **Not published to npm** — see [Installing this fork](#installing-this-fork) below.
+
+**Fixed vs. upstream:**
+- **Self-hosted document/description writes.** Upstream's `update_document` (and, by extension, any issue description) is hardcoded against Huly Cloud's "datalake" microservice at `dl-eu.huly.app`, which `huly-selfhost` doesn't run. This fork auto-detects self-hosted deployments via `HULY_FRONT_URL` and uploads through `front`'s own `/files` contract instead — falls back to the original Cloud behavior when `HULY_FRONT_URL` is unset. See [`src/utils/storage.ts`](src/utils/storage.ts).
+- **`description` on `create_issue`/`update_issue`.** Missing entirely upstream — issue descriptions are `MarkupBlobRef`s, same storage mechanism as document content, so this needed the same fix.
+
+**New tool categories** (upstream had 36 tools across Projects/Issues/Comments/Time/Labels/Relations/Members/Milestones/Components/Documents/Search; this fork adds 14 more):
+- **Chat** — `list_channels`, `create_channel`, `start_direct_message`, `send_message`, `list_messages`
+- **Attachments** — `attach_file`, `list_attachments`, `delete_attachment` (generic files on issues, any content type)
+- **Issue Statuses** — `list_issue_statuses`, `create_issue_status` (custom workflow states)
+- **Organizations** — `list_organizations`, `get_organization`, `create_organization`, `update_organization`
+
+**Investigated and deliberately not built:** Calendar (not a native event system in Huly — it's a Google Calendar sync bridge requiring infra this fork doesn't assume you're running) and Drive/HR/Recruiting/CRM-Leads/Board (blocked by an [upstream npm packaging bug](https://github.com/hcengineering/platform/issues/10881) — `@hcengineering/*` packages published `0.7.411`+ ship without their `types/` directory, and these modules have no earlier version to pin around it).
 
 ---
 
@@ -67,21 +83,31 @@ Connects **Claude Desktop** (and any [MCP](https://modelcontextprotocol.io)-comp
 
 ---
 
-## Quick Start
+## Installing this fork
+
+This fork isn't published to npm — `npx huly-mcp-sdk` (the upstream package) will **not** include anything in this README past "About this fork". Clone and build instead:
 
 ```bash
-npx huly-mcp-sdk setup
+git clone https://github.com/JoKeks2023/huly-mcp.git
+cd huly-mcp
+npm install
+npm run build
 ```
 
-This runs the interactive setup wizard — sends a one-time code to your email (works for Google/GitHub SSO accounts too) and writes your `.env` file automatically.
+Then in any client config below, replace `"command": "npx", "args": ["huly-mcp-sdk"]` with:
 
-**Your workspace slug** is the part of your Huly URL after the domain: `huly.app/`**`myteam`** → slug is `myteam`.
+```json
+"command": "node",
+"args": ["/absolute/path/to/huly-mcp/dist/index.js"]
+```
+
+**Your workspace slug** is the part of your Huly URL after the domain: `huly.app/`**`myteam`** → slug is `myteam` (self-hosted: the `url` field of your workspace, e.g. `https://your-instance.com/workbench/`**`myteam`**).
 
 ---
 
 ## Compatible Clients
 
-The same MCP server works across all major AI coding tools. Pick your client.
+The same MCP server works across all major AI coding tools. Pick your client, then swap the `npx`/`args` for the local build per [Installing this fork](#installing-this-fork) above.
 
 > **Auth note:** All config examples below use `HULY_TOKEN`. If you have issues with token expiry, use email + password instead — just replace the `env` block with:
 > ```json
@@ -272,18 +298,11 @@ Edit `~/.codex/config.json` and add to `mcpServers`:
 
 The server uses standard **stdio transport**. If your tool supports MCP, the config pattern is always the same:
 
-- **command:** `npx`
-- **args:** `["huly-mcp-sdk"]`
-- **env:** `HULY_TOKEN` + `HULY_WORKSPACE`
+- **command:** `node`
+- **args:** `["/absolute/path/to/huly-mcp/dist/index.js"]` (see [Installing this fork](#installing-this-fork))
+- **env:** `HULY_TOKEN` + `HULY_WORKSPACE` (or `HULY_EMAIL`/`HULY_PASSWORD`; self-hosted also needs `HULY_ACCOUNTS_URL` + `HULY_FRONT_URL`, see [Manual Auth](#manual-auth))
 
 Consult your tool's MCP documentation for the exact config file location.
-
-> **Alternative (avoid npx cold-start):** Clone and build once, then point directly at the compiled binary:
-> ```bash
-> git clone https://github.com/varaprasadreddy9676/huly-mcp.git
-> cd huly-mcp && npm install && npm run build
-> ```
-> Replace `"command": "npx", "args": ["huly-mcp-sdk"]` with `"command": "node", "args": ["/absolute/path/to/huly-mcp/dist/index.js"]` in any config above.
 
 ---
 
@@ -455,6 +474,15 @@ HULY_FRONT_URL=https://your-huly-instance.com
 
 ## Changelog
 
+### Fork — self-hosted support, chat, attachments, statuses, organizations
+- **Fix: self-hosted document/description writes** — auto-detects `huly-selfhost` via `HULY_FRONT_URL` and uploads through `front`'s `/files` contract instead of Huly Cloud's datalake, which self-hosted doesn't run
+- **New: `description` on `create_issue`/`update_issue`** — was missing entirely upstream
+- **New: Chat** — `list_channels`, `create_channel`, `start_direct_message`, `send_message`, `list_messages`
+- **New: Attachments** — `attach_file`, `list_attachments`, `delete_attachment`
+- **New: Issue Statuses** — `list_issue_statuses`, `create_issue_status`
+- **New: Organizations** — `list_organizations`, `get_organization`, `create_organization`, `update_organization`
+- See [About this fork](#about-this-fork) for details and what was investigated but not built
+
 ### v0.5.6 — delete_document
 - **New: `delete_document`** — permanently delete a document by ID
 
@@ -483,9 +511,9 @@ HULY_FRONT_URL=https://your-huly-instance.com
 
 ## Links
 
-- npm: https://www.npmjs.com/package/huly-mcp-sdk
-- GitHub: https://github.com/varaprasadreddy9676/huly-mcp
-- MCP Registry: https://registry.modelcontextprotocol.io (search "huly-mcp")
+- This fork: https://github.com/JoKeks2023/huly-mcp
+- Upstream: https://github.com/varaprasadreddy9676/huly-mcp ([npm](https://www.npmjs.com/package/huly-mcp-sdk), [MCP Registry](https://registry.modelcontextprotocol.io) — neither reflects this fork's changes)
+- Missing `.d.ts` in `@hcengineering/*` 0.7.411+: https://github.com/hcengineering/platform/issues/10881
 
 ---
 
