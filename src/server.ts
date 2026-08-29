@@ -62,7 +62,7 @@ import {
 } from './schemas'
 
 export function createServer (): McpServer {
-  const server = new McpServer({ name: 'huly-mcp', version: '0.4.0' })
+  const server = new McpServer({ name: 'huly-mcp-selfhost', version: '1.0.0' })
 
   // Projects
   server.tool('list_projects', 'List all projects in the Huly workspace', {}, listProjects)

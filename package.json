@@ -1,7 +1,7 @@
 {
-  "name": "huly-mcp-sdk",
-  "version": "0.5.6",
-  "description": "MCP server for Huly — connect Claude Desktop to your Huly workspace via the native WebSocket SDK",
+  "name": "huly-mcp-selfhost",
+  "version": "1.0.0",
+  "description": "MCP server for Huly (self-hosted + cloud) — connect Claude Desktop to your Huly workspace via the native WebSocket SDK. Fork of huly-mcp-sdk with self-hosted document/description support, chat, attachments, custom issue statuses, and organizations.",
   "keywords": [
     "huly",
     "mcp",
@@ -11,14 +11,17 @@
     "issue-tracker",
     "anthropic"
   ],
-  "homepage": "https://github.com/varaprasadreddy9676/huly-mcp#readme",
+  "homepage": "https://github.com/JoKeks2023/huly-mcp#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/varaprasadreddy9676/huly-mcp.git"
+    "url": "git+https://github.com/JoKeks2023/huly-mcp.git"
   },
-  "mcpName": "io.github.varaprasadreddy9676/huly-mcp",
+  "mcpName": "io.github.jokeks2023/huly-mcp-selfhost",
   "license": "EPL-2.0",
   "author": "SaiVaraprasad Medapati",
+  "contributors": [
+    "Joris Conrad (self-hosted fork: https://github.com/JoKeks2023/huly-mcp)"
+  ],
   "bin": {
     "huly-mcp": "dist/index.js",
     "huly-mcp-setup": "scripts/setup.js"

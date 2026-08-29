@@ -1,0 +1,21 @@
+# huly-mcp-selfhost as a network-reachable MCP server (HTTP/SSE via mcp-proxy).
+#
+# Copy .env.example to .env and fill in your Huly credentials first.
+#
+# Start:    docker compose up -d
+# Logs:     docker compose logs -f
+# Update:   docker compose pull && docker compose up -d   (if using the ghcr.io image)
+#       or: docker compose build --no-cache && docker compose up -d --force-recreate
+
+services:
+  huly-mcp:
+    image: ghcr.io/jokeks2023/huly-mcp-selfhost:latest
+    # Uncomment to build from local source instead of the published image:
+    # build: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    security_opt:
+      - no-new-privileges:true

@@ -85,7 +85,18 @@ This is a fork of [varaprasadreddy9676/huly-mcp](https://github.com/varaprasadre
 
 ## Installing this fork
 
-This fork isn't published to npm — `npx huly-mcp-sdk` (the upstream package) will **not** include anything in this README past "About this fork". Clone and build instead:
+This fork is published separately as **[`huly-mcp-selfhost`](https://www.npmjs.com/package/huly-mcp-selfhost)** — `npx huly-mcp-sdk` still resolves to the *original* upstream package, not this one. Three ways to run it:
+
+### npm / npx
+
+In any client config below, use `huly-mcp-selfhost` instead of `huly-mcp-sdk`:
+
+```json
+"command": "npx",
+"args": ["huly-mcp-selfhost"]
+```
+
+### Clone and build
 
 ```bash
 git clone https://github.com/JoKeks2023/huly-mcp.git
@@ -94,12 +105,28 @@ npm install
 npm run build
 ```
 
-Then in any client config below, replace `"command": "npx", "args": ["huly-mcp-sdk"]` with:
-
 ```json
 "command": "node",
 "args": ["/absolute/path/to/huly-mcp/dist/index.js"]
 ```
+
+### Docker (network-reachable server, not local stdio)
+
+For deployments where the MCP server needs to be reachable over the network (behind a reverse proxy, remote MCP clients, etc.) rather than launched locally per-client, a prebuilt image is published to GHCR on every push to `main`:
+
+```bash
+docker pull ghcr.io/jokeks2023/huly-mcp-selfhost:latest
+```
+
+Or with Compose — copy `.env.example` to `.env`, fill in your credentials, then:
+
+```bash
+docker compose up -d
+```
+
+The container wraps the server with [`mcp-proxy`](https://github.com/sparfenyuk/mcp-proxy) to expose it over HTTP/SSE at `:8000/sse`, since standard MCP stdio transport can't be reached over a network directly. See [`Dockerfile`](Dockerfile) / [`docker-compose.yml`](docker-compose.yml).
+
+---
 
 **Your workspace slug** is the part of your Huly URL after the domain: `huly.app/`**`myteam`** → slug is `myteam` (self-hosted: the `url` field of your workspace, e.g. `https://your-instance.com/workbench/`**`myteam`**).
 
