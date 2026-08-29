@@ -18,7 +18,7 @@ This is a fork of [varaprasadreddy9676/huly-mcp](https://github.com/varaprasadre
 - **Self-hosted document/description writes.** Upstream's `update_document` (and, by extension, any issue description) is hardcoded against Huly Cloud's "datalake" microservice at `dl-eu.huly.app`, which `huly-selfhost` doesn't run. This fork auto-detects self-hosted deployments via `HULY_FRONT_URL` and uploads through `front`'s own `/files` contract instead — falls back to the original Cloud behavior when `HULY_FRONT_URL` is unset. See [`src/utils/storage.ts`](src/utils/storage.ts).
 - **`description` on `create_issue`/`update_issue`.** Missing entirely upstream — issue descriptions are `MarkupBlobRef`s, same storage mechanism as document content, so this needed the same fix.
 
-**New tool categories** (upstream had 36 tools across Projects/Issues/Comments/Time/Labels/Relations/Members/Milestones/Components/Documents/Search; this fork adds 14 more):
+**New tool categories** (upstream had 33 tools across Projects/Issues/Comments/Time/Labels/Relations/Members/Milestones/Components/Documents/Search; this fork adds 14 more):
 - **Chat** — `list_channels`, `create_channel`, `start_direct_message`, `send_message`, `list_messages`
 - **Attachments** — `attach_file`, `list_attachments`, `delete_attachment` (generic files on issues, any content type)
 - **Issue Statuses** — `list_issue_statuses`, `create_issue_status` (custom workflow states)
@@ -28,7 +28,7 @@ This is a fork of [varaprasadreddy9676/huly-mcp](https://github.com/varaprasadre
 
 ---
 
-## Tools (50 total)
+## Tools (47 total)
 
 | Category | Tool | Description |
 |----------|------|-------------|
