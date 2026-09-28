@@ -7,11 +7,11 @@ import { markdownToProseMirror, extractText } from '../utils/markdown'
 import { uploadMarkupBlob } from '../utils/storage'
 import tracker from '@hcengineering/tracker'
 import type { z } from 'zod'
-import type { ListDocumentsSchema, GetDocumentSchema, CreateDocumentSchema, UpdateDocumentSchema, LinkDocumentSchema, CreateTeamspaceSchema, DeleteDocumentSchema } from '../schemas'
+import type { ListTeamspacesSchema, ListDocumentsSchema, GetDocumentSchema, CreateDocumentSchema, UpdateDocumentSchema, LinkDocumentSchema, CreateTeamspaceSchema, DeleteDocumentSchema } from '../schemas'
 import type { Teamspace, Document } from '@hcengineering/document'
 
-export const listTeamspaces = wrapToolHandler<Record<string, never>>(async () => {
-  const client = await getConnection()
+export const listTeamspaces = wrapToolHandler<z.infer<typeof ListTeamspacesSchema>>(async (args) => {
+  const client = await getConnection(args.workspace)
   const teamspaces = await client.findAll(document.class.Teamspace, {})
 
   if (teamspaces.length === 0) return 'No teamspaces found in this workspace.'
@@ -24,7 +24,7 @@ export const listTeamspaces = wrapToolHandler<Record<string, never>>(async () =>
 })
 
 export const createTeamspace = wrapToolHandler<z.infer<typeof CreateTeamspaceSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
 
   const teamspaceId = generateId<Teamspace>()
   await client.createDoc(
@@ -49,7 +49,7 @@ export const createTeamspace = wrapToolHandler<z.infer<typeof CreateTeamspaceSch
 })
 
 export const listDocuments = wrapToolHandler<z.infer<typeof ListDocumentsSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
   const docs = await client.findAll(
     document.class.Document,
     { space: args.teamspaceId as Ref<Teamspace> },
@@ -69,7 +69,7 @@ export const listDocuments = wrapToolHandler<z.infer<typeof ListDocumentsSchema>
 })
 
 export const getDocument = wrapToolHandler<z.infer<typeof GetDocumentSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
   const doc = await client.findOne(document.class.Document, { _id: args.documentId as Ref<Document> })
   if (doc == null) throw new Error(`Document '${args.documentId}' not found.`)
 
@@ -88,7 +88,7 @@ export const getDocument = wrapToolHandler<z.infer<typeof GetDocumentSchema>>(as
   if (doc.content != null) {
     const frontUrl = process.env.HULY_FRONT_URL
     if (frontUrl != null && frontUrl !== '') {
-      const { wsToken, workspaceUuid } = await getWorkspaceInfo()
+      const { wsToken, workspaceUuid } = await getWorkspaceInfo(args.workspace)
       const blobUrl = `${frontUrl}/files?file=${encodeURIComponent(doc.content)}&workspace=${workspaceUuid}&token=${wsToken}`
       lines.push(`\n**Content:** Available at blob ref \`${doc.content}\``)
       lines.push(`**Content URL:** ${blobUrl}`)
@@ -123,7 +123,7 @@ export const getDocument = wrapToolHandler<z.infer<typeof GetDocumentSchema>>(as
 })
 
 export const createDocument = wrapToolHandler<z.infer<typeof CreateDocumentSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
 
   const teamspace = await client.findOne(document.class.Teamspace, { _id: args.teamspaceId as Ref<Teamspace> })
   if (teamspace == null) throw new Error(`Teamspace '${args.teamspaceId}' not found.`)
@@ -159,7 +159,7 @@ export const createDocument = wrapToolHandler<z.infer<typeof CreateDocumentSchem
 })
 
 export const deleteDocument = wrapToolHandler<z.infer<typeof DeleteDocumentSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
   const doc = await client.findOne(document.class.Document, { _id: args.documentId as Ref<Document> })
   if (doc == null) throw new Error(`Document '${args.documentId}' not found.`)
 
@@ -169,8 +169,8 @@ export const deleteDocument = wrapToolHandler<z.infer<typeof DeleteDocumentSchem
 })
 
 export const updateDocument = wrapToolHandler<z.infer<typeof UpdateDocumentSchema>>(async (args) => {
-  const client = await getConnection()
-  const { wsToken, workspaceUuid } = await getWorkspaceInfo()
+  const client = await getConnection(args.workspace)
+  const { wsToken, workspaceUuid } = await getWorkspaceInfo(args.workspace)
 
   const doc = await client.findOne(document.class.Document, { _id: args.documentId as Ref<Document> })
   if (doc == null) throw new Error(`Document '${args.documentId}' not found.`)
@@ -189,7 +189,7 @@ export const updateDocument = wrapToolHandler<z.infer<typeof UpdateDocumentSchem
 })
 
 export const linkDocument = wrapToolHandler<z.infer<typeof LinkDocumentSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
 
   const issue = await client.findOne(tracker.class.Issue, { identifier: args.identifier })
   if (issue == null) throw new Error(`Issue '${args.identifier}' not found.`)

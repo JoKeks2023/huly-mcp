@@ -8,7 +8,7 @@ import type { z } from 'zod'
 import type { ListChannelsSchema, CreateChannelSchema, StartDirectMessageSchema, SendMessageSchema, ListMessagesSchema } from '../schemas'
 
 export const listChannels = wrapToolHandler<z.infer<typeof ListChannelsSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
   const query: Record<string, unknown> = {}
   if (!args.includeArchived) query.archived = false
 
@@ -22,7 +22,7 @@ export const listChannels = wrapToolHandler<z.infer<typeof ListChannelsSchema>>(
 })
 
 export const createChannel = wrapToolHandler<z.infer<typeof CreateChannelSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
 
   const existing = await client.findOne(chunter.class.Channel, { name: args.name })
   if (existing != null) return `ℹ️ Channel **#${args.name}** already exists (id: \`${existing._id}\`).`
@@ -49,7 +49,7 @@ export const createChannel = wrapToolHandler<z.infer<typeof CreateChannelSchema>
 })
 
 export const startDirectMessage = wrapToolHandler<z.infer<typeof StartDirectMessageSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
 
   const persons = await client.findAll(contact.class.Person, {})
   const match = persons.find((p) => (p.name ?? '').toLowerCase().includes(args.member.toLowerCase()))
@@ -98,7 +98,7 @@ async function resolveChatSpace (client: Awaited<ReturnType<typeof getConnection
 }
 
 export const sendMessage = wrapToolHandler<z.infer<typeof SendMessageSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
   const { space, spaceClass } = await resolveChatSpace(client, args.spaceId)
 
   await client.addCollection(
@@ -114,7 +114,7 @@ export const sendMessage = wrapToolHandler<z.infer<typeof SendMessageSchema>>(as
 })
 
 export const listMessages = wrapToolHandler<z.infer<typeof ListMessagesSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
   const { space } = await resolveChatSpace(client, args.spaceId)
 
   const messages = await client.findAll(

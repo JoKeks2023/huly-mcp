@@ -8,7 +8,7 @@ import type { z } from 'zod'
 import type { ListComponentsSchema, CreateComponentSchema } from '../schemas'
 
 export const listComponents = wrapToolHandler<z.infer<typeof ListComponentsSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
   const project = await client.findOne(tracker.class.Project, { identifier: args.projectIdentifier })
   if (project == null) throw new Error(`Project '${args.projectIdentifier}' not found.`)
 
@@ -33,7 +33,7 @@ export const listComponents = wrapToolHandler<z.infer<typeof ListComponentsSchem
 })
 
 export const createComponent = wrapToolHandler<z.infer<typeof CreateComponentSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
   const project = await client.findOne(tracker.class.Project, { identifier: args.projectIdentifier })
   if (project == null) throw new Error(`Project '${args.projectIdentifier}' not found.`)
 

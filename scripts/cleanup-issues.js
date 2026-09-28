@@ -6,12 +6,13 @@
  *   node scripts/cleanup-issues.js <project> <start> <end> [--confirm]
  *
  * Example (dry run — shows what would be deleted):
- *   node scripts/cleanup-issues.js VISIO 59 68
+ *   node scripts/cleanup-issues.js VISIO 59 68 --workspace=myteam
  *
  * Example (actually delete):
- *   node scripts/cleanup-issues.js VISIO 59 68 --confirm
+ *   node scripts/cleanup-issues.js VISIO 59 68 --workspace=myteam --confirm
  *
- * Auth is read from .env (HULY_TOKEN + HULY_WORKSPACE, or HULY_EMAIL + HULY_PASSWORD).
+ * Auth is read from .env (HULY_TOKEN, or HULY_EMAIL + HULY_PASSWORD). The target
+ * workspace is required: --workspace=<slug> (or HULY_WORKSPACE).
  */
 
 'use strict'
@@ -26,6 +27,14 @@ if (fs.existsSync(envPath)) {
     const m = line.match(/^([^#=\s]+)\s*=\s*(.*)$/)
     if (m) process.env[m[1]] = m[2].trim()
   }
+}
+
+// Target workspace (these scripts write data, so it must be explicit):
+// --workspace=<slug|name|id>, or HULY_WORKSPACE as a fallback.
+const workspace = process.argv.find(a => a.startsWith('--workspace='))?.slice('--workspace='.length) || process.env.HULY_WORKSPACE
+if (!workspace) {
+  console.error('❌  No workspace given. Pass --workspace=<slug> (see list_workspaces / npm run setup).')
+  process.exit(1)
 }
 
 // Load compiled modules
@@ -44,8 +53,8 @@ const positional = args.filter(a => !a.startsWith('--'))
 
 const [projectIdentifier, startStr, endStr] = positional
 if (!projectIdentifier || !startStr || !endStr) {
-  console.error('Usage: node scripts/cleanup-issues.js <project> <start> <end> [--confirm]')
-  console.error('Example: node scripts/cleanup-issues.js VISIO 59 68 --confirm')
+  console.error('Usage: node scripts/cleanup-issues.js <project> <start> <end> --workspace=<slug> [--confirm]')
+  console.error('Example: node scripts/cleanup-issues.js VISIO 59 68 --workspace=myteam --confirm')
   process.exit(1)
 }
 
@@ -68,7 +77,7 @@ async function main () {
   console.log(`    Mode:     ${confirm ? '⚠️  DELETING for real' : '👁  DRY RUN (pass --confirm to delete)'}\n`)
 
   console.log('🔌  Connecting to Huly...')
-  const client = await getConnection()
+  const client = await getConnection(workspace)
   console.log('✅  Connected.\n')
 
   // Find all issues in the range

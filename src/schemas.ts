@@ -1,12 +1,35 @@
 import { z } from 'zod'
 
+// Every tool names its workspace. Entity IDs (issue identifiers, document IDs, …)
+// are only unique within a workspace, so the workspace is part of their identity.
+// Mutations always require it; reads may omit it only when exactly one
+// workspace is available.
+const WorkspaceArg = z.string().min(1).describe('Target workspace (slug, name or ID from list_workspaces). Required for every change.')
+const ReadWorkspaceArg = z.string().min(1).optional().describe('Workspace (slug, name or ID from list_workspaces). May be omitted only if exactly one workspace is available.')
+
 const PriorityEnum = z.enum(['NoPriority', 'Urgent', 'High', 'Medium', 'Low'])
 
+export const ListWorkspacesSchema = z.object({})
+
+export const ListProjectsSchema = z.object({
+  workspace: ReadWorkspaceArg
+})
+
+export const ListMembersSchema = z.object({
+  workspace: ReadWorkspaceArg
+})
+
+export const ListTeamspacesSchema = z.object({
+  workspace: ReadWorkspaceArg
+})
+
 export const GetProjectSchema = z.object({
+  workspace: ReadWorkspaceArg,
   identifier: z.string().describe('Project identifier, e.g. "PROJ"')
 })
 
 export const ListIssuesSchema = z.object({
+  workspace: ReadWorkspaceArg,
   projectIdentifier: z.string().describe('Project identifier, e.g. "PROJ"'),
   status: z.string().optional().describe('Filter by status name, e.g. "In Progress"'),
   priority: PriorityEnum.optional().describe('Filter by priority'),
@@ -14,10 +37,12 @@ export const ListIssuesSchema = z.object({
 })
 
 export const GetIssueSchema = z.object({
+  workspace: ReadWorkspaceArg,
   identifier: z.string().describe('Issue identifier, e.g. "PROJ-123"')
 })
 
 export const CreateIssueSchema = z.object({
+  workspace: WorkspaceArg,
   projectIdentifier: z.string().describe('Project identifier, e.g. "PROJ"'),
   title: z.string().min(1).describe('Issue title'),
   description: z.string().optional().describe('Issue description as Markdown (headings, bold, code, lists, tables, mermaid supported)'),
@@ -27,10 +52,12 @@ export const CreateIssueSchema = z.object({
 })
 
 export const DeleteIssueSchema = z.object({
+  workspace: WorkspaceArg,
   identifier: z.string().describe('Issue identifier to delete, e.g. "PROJ-123"')
 })
 
 export const UpdateIssueSchema = z.object({
+  workspace: WorkspaceArg,
   identifier: z.string().describe('Issue identifier, e.g. "PROJ-123"'),
   title: z.string().optional().describe('New title'),
   description: z.string().optional().describe('New description as Markdown (replaces existing content)'),
@@ -43,17 +70,20 @@ export const UpdateIssueSchema = z.object({
 })
 
 export const AddCommentSchema = z.object({
+  workspace: WorkspaceArg,
   identifier: z.string().describe('Issue identifier, e.g. "PROJ-123"'),
   message: z.string().min(1).describe('Comment text')
 })
 
 export const ListMilestonesSchema = z.object({
+  workspace: ReadWorkspaceArg,
   projectIdentifier: z.string().describe('Project identifier, e.g. "PROJ"')
 })
 
 const MilestoneStatusEnum = z.enum(['Planned', 'InProgress', 'Completed', 'Canceled'])
 
 export const CreateMilestoneSchema = z.object({
+  workspace: WorkspaceArg,
   projectIdentifier: z.string().describe('Project identifier, e.g. "PROJ"'),
   label: z.string().min(1).describe('Milestone name'),
   targetDate: z.string().describe('Target date as ISO 8601 string, e.g. "2026-06-01"'),
@@ -61,10 +91,12 @@ export const CreateMilestoneSchema = z.object({
 })
 
 export const ListComponentsSchema = z.object({
+  workspace: ReadWorkspaceArg,
   projectIdentifier: z.string().describe('Project identifier, e.g. "PROJ"')
 })
 
 export const CreateComponentSchema = z.object({
+  workspace: WorkspaceArg,
   projectIdentifier: z.string().describe('Project identifier, e.g. "PROJ"'),
   label: z.string().min(1).describe('Component name'),
   description: z.string().optional().describe('Component description'),
@@ -72,98 +104,117 @@ export const CreateComponentSchema = z.object({
 })
 
 export const CreateProjectSchema = z.object({
+  workspace: WorkspaceArg,
   name: z.string().min(1).describe('Project name, e.g. "My Project"'),
   identifier: z.string().min(1).max(5).regex(/^[A-Z]+$/).describe('Short ALL-CAPS identifier, e.g. "MYPROJ"'),
   description: z.string().optional().describe('Project description')
 })
 
 export const DeleteDocumentSchema = z.object({
+  workspace: WorkspaceArg,
   documentId: z.string().describe('Document _id to delete (from list_documents)')
 })
 
 export const CreateTeamspaceSchema = z.object({
+  workspace: WorkspaceArg,
   name: z.string().min(1).describe('Teamspace name'),
   description: z.string().optional().describe('Optional description'),
   isPrivate: z.boolean().default(false).describe('Whether the teamspace is private (default: false = visible to all members)')
 })
 
 export const ListDocumentsSchema = z.object({
+  workspace: ReadWorkspaceArg,
   teamspaceId: z.string().describe('Teamspace _id from list_teamspaces')
 })
 
 export const GetDocumentSchema = z.object({
+  workspace: ReadWorkspaceArg,
   documentId: z.string().describe('Document _id from list_documents')
 })
 
 export const CreateDocumentSchema = z.object({
+  workspace: WorkspaceArg,
   teamspaceId: z.string().describe('Teamspace _id from list_teamspaces'),
   title: z.string().min(1).describe('Document title'),
   parentId: z.string().optional().describe('Parent document _id (for nested docs); omit for top-level')
 })
 
 export const SearchIssuesSchema = z.object({
+  workspace: ReadWorkspaceArg,
   query: z.string().min(1).describe('Search query'),
   limit: z.number().int().min(1).max(50).default(20).describe('Max results')
 })
 
 // ── Labels ────────────────────────────────────────────────────────────────────
 export const ListLabelsSchema = z.object({
+  workspace: ReadWorkspaceArg,
   projectIdentifier: z.string().optional().describe('Optional project filter (currently returns all workspace labels)')
 })
 
 export const CreateLabelSchema = z.object({
+  workspace: WorkspaceArg,
   title: z.string().min(1).describe('Label name'),
   color: z.string().optional().describe('Hex color, e.g. "#FF6B6B" (optional)')
 })
 
 export const AddLabelSchema = z.object({
+  workspace: WorkspaceArg,
   identifier: z.string().describe('Issue identifier, e.g. "PROJ-123"'),
   labelName: z.string().min(1).describe('Label name to add (auto-created if it does not exist)')
 })
 
 export const RemoveLabelSchema = z.object({
+  workspace: WorkspaceArg,
   identifier: z.string().describe('Issue identifier, e.g. "PROJ-123"'),
   labelName: z.string().min(1).describe('Label name to remove')
 })
 
 // ── Relations ─────────────────────────────────────────────────────────────────
 export const AddRelationSchema = z.object({
+  workspace: WorkspaceArg,
   identifier: z.string().describe('Issue identifier, e.g. "PROJ-123"'),
   relatedTo: z.string().describe('Related issue identifier, e.g. "PROJ-456"')
 })
 
 export const AddBlockedBySchema = z.object({
+  workspace: WorkspaceArg,
   identifier: z.string().describe('Issue that is blocked, e.g. "PROJ-123"'),
   blockedBy: z.string().describe('Issue that blocks it, e.g. "PROJ-100"')
 })
 
 export const SetParentSchema = z.object({
+  workspace: WorkspaceArg,
   identifier: z.string().describe('Child issue identifier, e.g. "PROJ-123"'),
   parentIdentifier: z.string().nullable().optional().describe('Parent issue identifier, or null to clear parent')
 })
 
 export const ListCommentsSchema = z.object({
+  workspace: ReadWorkspaceArg,
   identifier: z.string().describe('Issue identifier, e.g. "PROJ-123"'),
   limit: z.number().int().min(1).max(100).default(20).describe('Max comments to return')
 })
 
 export const LogTimeSchema = z.object({
+  workspace: WorkspaceArg,
   identifier: z.string().describe('Issue identifier, e.g. "PROJ-123"'),
   hours: z.number().positive().describe('Hours spent (e.g. 2.5)'),
   description: z.string().optional().describe('What was done (optional note)')
 })
 
 export const UpdateDocumentSchema = z.object({
+  workspace: WorkspaceArg,
   documentId: z.string().describe('Document _id from list_documents or create_document'),
   markdown: z.string().min(1).describe('Markdown content to set as the document body')
 })
 
 export const DeleteCommentSchema = z.object({
+  workspace: WorkspaceArg,
   identifier: z.string().describe('Issue identifier, e.g. "PROJ-123"'),
   commentId: z.string().describe('Comment _id from list_comments')
 })
 
 export const LinkDocumentSchema = z.object({
+  workspace: WorkspaceArg,
   identifier: z.string().describe('Issue identifier, e.g. "PROJ-123"'),
   documentId: z.string().describe('Document _id from list_documents or create_document')
 })
@@ -171,25 +222,30 @@ export const LinkDocumentSchema = z.object({
 // ── Chat (Channels & Direct Messages) ──────────────────────────────────────
 
 export const ListChannelsSchema = z.object({
+  workspace: ReadWorkspaceArg,
   includeArchived: z.boolean().default(false).describe('Include archived channels')
 })
 
 export const CreateChannelSchema = z.object({
+  workspace: WorkspaceArg,
   name: z.string().min(1).describe('Channel name'),
   topic: z.string().optional().describe('Optional channel topic/description'),
   isPrivate: z.boolean().default(false).describe('Whether the channel is private (invite-only)')
 })
 
 export const StartDirectMessageSchema = z.object({
+  workspace: WorkspaceArg,
   member: z.string().min(1).describe('Name (first/last/full) of the workspace member to message')
 })
 
 export const SendMessageSchema = z.object({
+  workspace: WorkspaceArg,
   spaceId: z.string().describe('Channel or direct-message _id, from list_channels/create_channel/start_direct_message'),
   message: z.string().min(1).describe('Message text')
 })
 
 export const ListMessagesSchema = z.object({
+  workspace: ReadWorkspaceArg,
   spaceId: z.string().describe('Channel or direct-message _id'),
   limit: z.number().int().min(1).max(200).default(50).describe('Max messages to return')
 })
@@ -197,6 +253,7 @@ export const ListMessagesSchema = z.object({
 // ── Attachments ─────────────────────────────────────────────────────────────
 
 export const AttachFileSchema = z.object({
+  workspace: WorkspaceArg,
   identifier: z.string().describe('Issue identifier to attach the file to, e.g. "PROJ-123"'),
   filename: z.string().min(1).describe('File name, e.g. "screenshot.png"'),
   contentBase64: z.string().min(1).describe('File content, base64-encoded'),
@@ -204,10 +261,12 @@ export const AttachFileSchema = z.object({
 })
 
 export const ListAttachmentsSchema = z.object({
+  workspace: ReadWorkspaceArg,
   identifier: z.string().describe('Issue identifier, e.g. "PROJ-123"')
 })
 
 export const DeleteAttachmentSchema = z.object({
+  workspace: WorkspaceArg,
   identifier: z.string().describe('Issue identifier, e.g. "PROJ-123"'),
   attachmentId: z.string().describe('Attachment _id from list_attachments')
 })
@@ -216,9 +275,12 @@ export const DeleteAttachmentSchema = z.object({
 
 const StatusCategoryEnum = z.enum(['Backlog', 'Todo', 'InProgress', 'Done', 'Cancelled'])
 
-export const ListIssueStatusesSchema = z.object({})
+export const ListIssueStatusesSchema = z.object({
+  workspace: ReadWorkspaceArg
+})
 
 export const CreateIssueStatusSchema = z.object({
+  workspace: WorkspaceArg,
   name: z.string().min(1).describe('Status name, e.g. "Waiting for review"'),
   category: StatusCategoryEnum.describe('Which phase this status belongs to (determines grouping/color in the UI)'),
   color: z.string().optional().describe('Hex color, e.g. "#FF6B6B" (optional)')
@@ -226,18 +288,23 @@ export const CreateIssueStatusSchema = z.object({
 
 // ── Organizations (contacts/CRM) ────────────────────────────────────────────
 
-export const ListOrganizationsSchema = z.object({})
+export const ListOrganizationsSchema = z.object({
+  workspace: ReadWorkspaceArg
+})
 
 export const GetOrganizationSchema = z.object({
+  workspace: ReadWorkspaceArg,
   organizationId: z.string().describe('Organization _id from list_organizations')
 })
 
 export const CreateOrganizationSchema = z.object({
+  workspace: WorkspaceArg,
   name: z.string().min(1).describe('Organization name'),
   city: z.string().optional().describe('City (optional)')
 })
 
 export const UpdateOrganizationSchema = z.object({
+  workspace: WorkspaceArg,
   organizationId: z.string().describe('Organization _id from list_organizations'),
   description: z.string().describe('New description as Markdown (replaces existing content)')
 })

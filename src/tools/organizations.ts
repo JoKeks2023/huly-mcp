@@ -7,8 +7,8 @@ import { uploadMarkupBlob } from '../utils/storage'
 import type { z } from 'zod'
 import type { ListOrganizationsSchema, GetOrganizationSchema, CreateOrganizationSchema, UpdateOrganizationSchema } from '../schemas'
 
-export const listOrganizations = wrapToolHandler<z.infer<typeof ListOrganizationsSchema>>(async () => {
-  const client = await getConnection()
+export const listOrganizations = wrapToolHandler<z.infer<typeof ListOrganizationsSchema>>(async (args) => {
+  const client = await getConnection(args.workspace)
   const orgs = await client.findAll(contact.class.Organization, {})
   if (orgs.length === 0) return 'No organizations found in this workspace.'
 
@@ -17,7 +17,7 @@ export const listOrganizations = wrapToolHandler<z.infer<typeof ListOrganization
 })
 
 export const getOrganization = wrapToolHandler<z.infer<typeof GetOrganizationSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
   const org = await client.findOne(contact.class.Organization, { _id: args.organizationId as Ref<Organization> })
   if (org == null) throw new Error(`Organization '${args.organizationId}' not found.`)
 
@@ -28,7 +28,7 @@ export const getOrganization = wrapToolHandler<z.infer<typeof GetOrganizationSch
   if (org.description != null) {
     const frontUrl = process.env.HULY_FRONT_URL
     if (frontUrl != null && frontUrl !== '') {
-      const { wsToken, workspaceUuid } = await getWorkspaceInfo()
+      const { wsToken, workspaceUuid } = await getWorkspaceInfo(args.workspace)
       const blobUrl = `${frontUrl}/files?file=${encodeURIComponent(org.description)}&workspace=${workspaceUuid}&token=${wsToken}`
       try {
         const res = await fetch(blobUrl)
@@ -53,7 +53,7 @@ export const getOrganization = wrapToolHandler<z.infer<typeof GetOrganizationSch
 })
 
 export const createOrganization = wrapToolHandler<z.infer<typeof CreateOrganizationSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
 
   const existing = await client.findOne(contact.class.Organization, { name: args.name })
   if (existing != null) return `ℹ️ Organization **"${args.name}"** already exists (id: \`${existing._id}\`).`
@@ -76,8 +76,8 @@ export const createOrganization = wrapToolHandler<z.infer<typeof CreateOrganizat
 })
 
 export const updateOrganization = wrapToolHandler<z.infer<typeof UpdateOrganizationSchema>>(async (args) => {
-  const client = await getConnection()
-  const { wsToken, workspaceUuid } = await getWorkspaceInfo()
+  const client = await getConnection(args.workspace)
+  const { wsToken, workspaceUuid } = await getWorkspaceInfo(args.workspace)
 
   const org = await client.findOne(contact.class.Organization, { _id: args.organizationId as Ref<Organization> })
   if (org == null) throw new Error(`Organization '${args.organizationId}' not found.`)

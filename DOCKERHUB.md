@@ -1,6 +1,6 @@
 # huly-mcp
 
-MCP server for [Huly](https://huly.app) (self-hosted + cloud) — connects Claude Desktop and any [MCP](https://modelcontextprotocol.io)-compatible client to your Huly workspace. 50 tools: issues, projects, milestones, components, documents, labels, chat (channels/DMs), file attachments, custom issue statuses, organizations, and more.
+MCP server for [Huly](https://huly.app) (self-hosted + cloud) — connects Claude Desktop and any [MCP](https://modelcontextprotocol.io)-compatible client to your Huly workspaces. 48 tools: workspace discovery (one account, several workspaces), issues, projects, milestones, components, documents, labels, chat (channels/DMs), file attachments, custom issue statuses, organizations, and more.
 
 Fork of [huly-mcp-sdk](https://github.com/varaprasadreddy9676/huly-mcp) with fixes for **self-hosted** (`huly-selfhost`) deployments — upstream's document/description writes are hardcoded against Huly Cloud's infrastructure and silently fail on self-hosted instances.
 
@@ -14,17 +14,15 @@ This image wraps the MCP server with [`mcp-proxy`](https://github.com/sparfenyuk
 
 ```bash
 docker run --rm -p 8000:8000 \
-  -e HULY_WORKSPACE=myteam \
   -e HULY_EMAIL=you@example.com \
   -e HULY_PASSWORD=yourpassword \
   jokeks2023/huly-mcp
 ```
 
-Self-hosted Huly also needs `HULY_ACCOUNTS_URL` and `HULY_FRONT_URL`:
+The server discovers every workspace the account can access; tools take a `workspace` argument (see `list_workspaces`). Self-hosted Huly also needs `HULY_ACCOUNTS_URL` (login + discovery) and `HULY_FRONT_URL` (document content + file uploads):
 
 ```bash
 docker run --rm -p 8000:8000 \
-  -e HULY_WORKSPACE=myteam \
   -e HULY_EMAIL=you@example.com \
   -e HULY_PASSWORD=yourpassword \
   -e HULY_ACCOUNTS_URL=https://your-huly-instance.com/_accounts \

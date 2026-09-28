@@ -17,8 +17,8 @@ const CATEGORY_MAP: Record<string, { ref: any, label: string }> = {
   Cancelled: { ref: task.statusCategory.Lost, label: 'Cancelled' }
 }
 
-export const listIssueStatuses = wrapToolHandler<z.infer<typeof ListIssueStatusesSchema>>(async () => {
-  const client = await getConnection()
+export const listIssueStatuses = wrapToolHandler<z.infer<typeof ListIssueStatusesSchema>>(async (args) => {
+  const client = await getConnection(args.workspace)
   const statuses = await client.findAll(tracker.class.IssueStatus, {})
   if (statuses.length === 0) return 'No issue statuses found.'
 
@@ -40,7 +40,7 @@ export const listIssueStatuses = wrapToolHandler<z.infer<typeof ListIssueStatuse
 })
 
 export const createIssueStatus = wrapToolHandler<z.infer<typeof CreateIssueStatusSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
 
   const existing = await client.findOne(tracker.class.IssueStatus, { name: args.name })
   if (existing != null) return `ℹ️ Status **"${args.name}"** already exists (id: \`${existing._id}\`).`

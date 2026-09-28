@@ -7,7 +7,7 @@ import type { z } from 'zod'
 import type { AddRelationSchema, AddBlockedBySchema, SetParentSchema } from '../schemas'
 
 export const addRelation = wrapToolHandler<z.infer<typeof AddRelationSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
 
   const issueA = await client.findOne(tracker.class.Issue, { identifier: args.identifier })
   if (issueA == null) throw new Error(`Issue '${args.identifier}' not found.`)
@@ -35,7 +35,7 @@ export const addRelation = wrapToolHandler<z.infer<typeof AddRelationSchema>>(as
 })
 
 export const addBlockedBy = wrapToolHandler<z.infer<typeof AddBlockedBySchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
 
   const issue = await client.findOne(tracker.class.Issue, { identifier: args.identifier })
   if (issue == null) throw new Error(`Issue '${args.identifier}' not found.`)
@@ -58,7 +58,7 @@ export const addBlockedBy = wrapToolHandler<z.infer<typeof AddBlockedBySchema>>(
 })
 
 export const setParent = wrapToolHandler<z.infer<typeof SetParentSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
 
   const child = await client.findOne(tracker.class.Issue, { identifier: args.identifier })
   if (child == null) throw new Error(`Issue '${args.identifier}' not found.`)

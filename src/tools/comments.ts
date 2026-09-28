@@ -10,7 +10,7 @@ import { SortingOrder, type Ref } from '@hcengineering/core'
 import type { ChatMessage } from '@hcengineering/chunter'
 
 export const addComment = wrapToolHandler<z.infer<typeof AddCommentSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
   const issue = await client.findOne(tracker.class.Issue, { identifier: args.identifier })
   if (issue == null) throw new Error(`Issue '${args.identifier}' not found.`)
 
@@ -27,7 +27,7 @@ export const addComment = wrapToolHandler<z.infer<typeof AddCommentSchema>>(asyn
 })
 
 export const listComments = wrapToolHandler<z.infer<typeof ListCommentsSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
   const issue = await client.findOne(tracker.class.Issue, { identifier: args.identifier })
   if (issue == null) throw new Error(`Issue '${args.identifier}' not found.`)
 
@@ -60,7 +60,7 @@ export const listComments = wrapToolHandler<z.infer<typeof ListCommentsSchema>>(
 })
 
 export const deleteComment = wrapToolHandler<z.infer<typeof DeleteCommentSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
   const issue = await client.findOne(tracker.class.Issue, { identifier: args.identifier })
   if (issue == null) throw new Error(`Issue '${args.identifier}' not found.`)
 

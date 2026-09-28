@@ -13,7 +13,7 @@ import type {
 } from '../schemas'
 
 export const listLabels = wrapToolHandler<z.infer<typeof ListLabelsSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
 
   const query = args.projectIdentifier != null
     ? { targetClass: tracker.class.Issue }
@@ -32,7 +32,7 @@ export const listLabels = wrapToolHandler<z.infer<typeof ListLabelsSchema>>(asyn
 })
 
 export const createLabel = wrapToolHandler<z.infer<typeof CreateLabelSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
 
   // Check if label already exists
   const existing = await client.findOne(tags.class.TagElement, {
@@ -67,7 +67,7 @@ export const createLabel = wrapToolHandler<z.infer<typeof CreateLabelSchema>>(as
 })
 
 export const addLabel = wrapToolHandler<z.infer<typeof AddLabelSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
 
   // Find issue
   const issue = await client.findOne(tracker.class.Issue, { identifier: args.identifier })
@@ -129,7 +129,7 @@ export const addLabel = wrapToolHandler<z.infer<typeof AddLabelSchema>>(async (a
 })
 
 export const removeLabel = wrapToolHandler<z.infer<typeof RemoveLabelSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
 
   const issue = await client.findOne(tracker.class.Issue, { identifier: args.identifier })
   if (issue == null) throw new Error(`Issue '${args.identifier}' not found.`)

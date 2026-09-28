@@ -19,6 +19,14 @@ if (fs.existsSync(envPath)) {
   }
 }
 
+// Target workspace (these scripts write data, so it must be explicit):
+// --workspace=<slug|name|id>, or HULY_WORKSPACE as a fallback.
+const workspace = process.argv.find(a => a.startsWith('--workspace='))?.slice('--workspace='.length) || process.env.HULY_WORKSPACE
+if (!workspace) {
+  console.error('❌  No workspace given. Pass --workspace=<slug> (see list_workspaces / npm run setup).')
+  process.exit(1)
+}
+
 const distDir = path.join(__dirname, '..', 'dist')
 const { getConnection, closeConnection } = require(path.join(distDir, 'connection'))
 const tracker = require('@hcengineering/tracker')
@@ -42,9 +50,9 @@ function print (text) { console.log(`    ${text}`) }
 
 async function main () {
   console.log(`\n${BOLD}🚀  huly-mcp-sdk live demo${RESET}`)
-  console.log(`    Workspace: ${process.env.HULY_WORKSPACE}\n`)
+  console.log(`    Workspace: ${workspace}\n`)
 
-  const client = await getConnection()
+  const client = await getConnection(workspace)
   ok('Connected to Huly')
 
   // ── 1. List projects ──────────────────────────────────────────────────────

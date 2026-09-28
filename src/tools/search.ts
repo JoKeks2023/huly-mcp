@@ -6,7 +6,7 @@ import type { z } from 'zod'
 import type { SearchIssuesSchema } from '../schemas'
 
 export const searchIssues = wrapToolHandler<z.infer<typeof SearchIssuesSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
 
   const result = await client.searchFulltext(
     { query: args.query, classes: [tracker.class.Issue] },

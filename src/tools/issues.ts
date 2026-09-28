@@ -19,7 +19,7 @@ import type {
 } from '../schemas'
 
 export const listIssues = wrapToolHandler<z.infer<typeof ListIssuesSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
   const project = await client.findOne(tracker.class.Project, { identifier: args.projectIdentifier })
   if (project == null) throw new Error(`Project '${args.projectIdentifier}' not found.`)
 
@@ -57,7 +57,7 @@ export const listIssues = wrapToolHandler<z.infer<typeof ListIssuesSchema>>(asyn
 })
 
 export const getIssue = wrapToolHandler<z.infer<typeof GetIssueSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
   const issue = await client.findOne(tracker.class.Issue, { identifier: args.identifier })
   if (issue == null) throw new Error(`Issue '${args.identifier}' not found.`)
 
@@ -77,7 +77,7 @@ export const getIssue = wrapToolHandler<z.infer<typeof GetIssueSchema>>(async (a
   if (issue.description != null) {
     const frontUrl = process.env.HULY_FRONT_URL
     if (frontUrl != null && frontUrl !== '') {
-      const { wsToken, workspaceUuid } = await getWorkspaceInfo()
+      const { wsToken, workspaceUuid } = await getWorkspaceInfo(args.workspace)
       const blobUrl = `${frontUrl}/files?file=${encodeURIComponent(issue.description)}&workspace=${workspaceUuid}&token=${wsToken}`
       try {
         const res = await fetch(blobUrl)
@@ -103,7 +103,7 @@ export const getIssue = wrapToolHandler<z.infer<typeof GetIssueSchema>>(async (a
 })
 
 export const createIssue = wrapToolHandler<z.infer<typeof CreateIssueSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
 
   // 1. Find project
   const project = await client.findOne(tracker.class.Project, { identifier: args.projectIdentifier })
@@ -148,7 +148,7 @@ export const createIssue = wrapToolHandler<z.infer<typeof CreateIssueSchema>>(as
   // content — upload it the same way if provided.
   let descriptionBlobId: string | null = null
   if (args.description != null && args.description !== '') {
-    const { wsToken, workspaceUuid } = await getWorkspaceInfo()
+    const { wsToken, workspaceUuid } = await getWorkspaceInfo(args.workspace)
     const prosemirror = markdownToProseMirror(args.description)
     descriptionBlobId = await uploadMarkupBlob(
       wsToken,
@@ -194,7 +194,7 @@ export const createIssue = wrapToolHandler<z.infer<typeof CreateIssueSchema>>(as
 })
 
 export const deleteIssue = wrapToolHandler<z.infer<typeof DeleteIssueSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
   const issue = await client.findOne(tracker.class.Issue, { identifier: args.identifier })
   if (issue == null) throw new Error(`Issue '${args.identifier}' not found.`)
 
@@ -211,7 +211,7 @@ export const deleteIssue = wrapToolHandler<z.infer<typeof DeleteIssueSchema>>(as
 })
 
 export const updateIssue = wrapToolHandler<z.infer<typeof UpdateIssueSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
   const issue = await client.findOne(tracker.class.Issue, { identifier: args.identifier })
   if (issue == null) throw new Error(`Issue '${args.identifier}' not found.`)
 
@@ -220,7 +220,7 @@ export const updateIssue = wrapToolHandler<z.infer<typeof UpdateIssueSchema>>(as
   if (args.title != null) updates.title = args.title
 
   if (args.description != null && args.description !== '') {
-    const { wsToken, workspaceUuid } = await getWorkspaceInfo()
+    const { wsToken, workspaceUuid } = await getWorkspaceInfo(args.workspace)
     const prosemirror = markdownToProseMirror(args.description)
     const descriptionBlobId = await uploadMarkupBlob(
       wsToken,

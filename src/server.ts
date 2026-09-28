@@ -14,7 +14,12 @@ import { listChannels, createChannel, startDirectMessage, sendMessage, listMessa
 import { attachFile, listAttachments, deleteAttachment } from './tools/attachments'
 import { listIssueStatuses, createIssueStatus } from './tools/statuses'
 import { listOrganizations, getOrganization, createOrganization, updateOrganization } from './tools/organizations'
+import { listWorkspaces } from './tools/workspaces'
 import {
+  ListWorkspacesSchema,
+  ListProjectsSchema,
+  ListMembersSchema,
+  ListTeamspacesSchema,
   GetProjectSchema,
   CreateProjectSchema,
   ListIssuesSchema,
@@ -62,7 +67,17 @@ import {
 } from './schemas'
 
 const SERVER_INSTRUCTIONS = `
-This server manages a Huly workspace (issue tracker, docs, chat) — self-hosted or cloud.
+This server manages Huly workspaces (issue tracker, docs, chat) — self-hosted or cloud. One account can
+have access to several workspaces.
+
+## Workspaces
+- Call list_workspaces first. Every other tool takes a 'workspace' argument (slug, name or id).
+- Every change (create/update/delete/add/remove/log/send/attach/link) REQUIRES 'workspace'. Never guess it —
+  if the user hasn't made the target workspace clear, ask.
+- Read tools may omit 'workspace' only when exactly one workspace is available; otherwise they fail and list
+  the options.
+- IDs are only unique within a workspace: "PROJ-123" or a document/comment id from one workspace means
+  nothing in another. Always pass the same 'workspace' you got the id from.
 
 ## Projects & issues
 - Projects are identified by a short ALL-CAPS key (e.g. "PROJ"), issues by "PROJ-123". Use list_projects
@@ -98,8 +113,11 @@ This server manages a Huly workspace (issue tracker, docs, chat) — self-hosted
 export function createServer (): McpServer {
   const server = new McpServer({ name: 'huly-mcp-selfhost', version: '1.0.0' }, { instructions: SERVER_INSTRUCTIONS })
 
+  // Workspaces
+  server.tool('list_workspaces', 'List all Huly workspaces this account can access (name, slug, id)', ListWorkspacesSchema.shape, listWorkspaces)
+
   // Projects
-  server.tool('list_projects', 'List all projects in the Huly workspace', {}, listProjects)
+  server.tool('list_projects', 'List all projects in a Huly workspace', ListProjectsSchema.shape, listProjects)
   server.tool('get_project', 'Get a project by its identifier (e.g. "PROJ")', GetProjectSchema.shape, getProject)
   server.tool('create_project', 'Create a new tracker project with a unique ALL-CAPS identifier', CreateProjectSchema.shape, createProject)
 
@@ -130,7 +148,7 @@ export function createServer (): McpServer {
   server.tool('set_parent', 'Set or clear the parent (epic) of an issue', SetParentSchema.shape, setParent)
 
   // Members
-  server.tool('list_members', 'List all members in the workspace', {}, listMembers)
+  server.tool('list_members', 'List all members in the workspace', ListMembersSchema.shape, listMembers)
 
   // Milestones
   server.tool('list_milestones', 'List milestones for a project', ListMilestonesSchema.shape, listMilestones)
@@ -141,7 +159,7 @@ export function createServer (): McpServer {
   server.tool('create_component', 'Create a new component in a project', CreateComponentSchema.shape, createComponent)
 
   // Documents
-  server.tool('list_teamspaces', 'List all document teamspaces in the workspace', {}, listTeamspaces)
+  server.tool('list_teamspaces', 'List all document teamspaces in the workspace', ListTeamspacesSchema.shape, listTeamspaces)
   server.tool('create_teamspace', 'Create a new document teamspace (a top-level folder for documents)', CreateTeamspaceSchema.shape, createTeamspace)
   server.tool('list_documents', 'List documents in a teamspace', ListDocumentsSchema.shape, listDocuments)
   server.tool('get_document', 'Get metadata and content of a document (content requires HULY_FRONT_URL env)', GetDocumentSchema.shape, getDocument)
@@ -166,11 +184,11 @@ export function createServer (): McpServer {
   server.tool('delete_attachment', 'Delete a file attachment from an issue', DeleteAttachmentSchema.shape, deleteAttachment)
 
   // Issue Statuses (custom workflow states)
-  server.tool('list_issue_statuses', 'List all issue statuses (workflow states), grouped by phase', {}, listIssueStatuses)
+  server.tool('list_issue_statuses', 'List all issue statuses (workflow states), grouped by phase', ListIssueStatusesSchema.shape, listIssueStatuses)
   server.tool('create_issue_status', 'Create a new issue status — becomes available in every project immediately', CreateIssueStatusSchema.shape, createIssueStatus)
 
   // Organizations (contacts/CRM)
-  server.tool('list_organizations', 'List all organizations (companies) in the workspace', {}, listOrganizations)
+  server.tool('list_organizations', 'List all organizations (companies) in the workspace', ListOrganizationsSchema.shape, listOrganizations)
   server.tool('get_organization', 'Get details of an organization, including description', GetOrganizationSchema.shape, getOrganization)
   server.tool('create_organization', 'Create a new organization (company contact)', CreateOrganizationSchema.shape, createOrganization)
   server.tool('update_organization', 'Set the description of an organization from Markdown', UpdateOrganizationSchema.shape, updateOrganization)
