@@ -89,12 +89,14 @@ export const getDocument = wrapToolHandler<z.infer<typeof GetDocumentSchema>>(as
     const frontUrl = process.env.HULY_FRONT_URL
     if (frontUrl != null && frontUrl !== '') {
       const { wsToken, workspaceUuid } = await getWorkspaceInfo(args.workspace)
-      const blobUrl = `${frontUrl}/files?file=${encodeURIComponent(doc.content)}&workspace=${workspaceUuid}&token=${wsToken}`
+      // Never put the workspace token in the URL — it would end up in the tool result and
+      // in proxy/access logs. front's /files accepts it as a Bearer header (same as uploads).
+      const contentUrl = `${frontUrl}/files?file=${encodeURIComponent(doc.content)}&workspace=${workspaceUuid}`
       lines.push(`\n**Content:** Available at blob ref \`${doc.content}\``)
-      lines.push(`**Content URL:** ${blobUrl}`)
+      lines.push(`**Content URL:** ${contentUrl} _(requires a workspace token as Bearer header)_`)
       // Try to fetch content
       try {
-        const res = await fetch(blobUrl)
+        const res = await fetch(contentUrl, { headers: { Authorization: `Bearer ${wsToken}` } })
         if (res.ok) {
           const text = await res.text()
           // Huly stores content as JSON markup — extract plain text if possible

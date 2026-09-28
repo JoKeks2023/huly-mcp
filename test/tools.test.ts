@@ -2,10 +2,12 @@ import { test, beforeEach, afterEach } from 'node:test'
 import assert from 'node:assert/strict'
 import tracker from '@hcengineering/tracker'
 import contact from '@hcengineering/contact'
+import document from '@hcengineering/document'
 import { setConnectionManager } from '../src/connection'
 import { createServer } from '../src/server'
 import { listProjects } from '../src/tools/projects'
 import { getIssue, updateIssue } from '../src/tools/issues'
+import { getDocument } from '../src/tools/documents'
 import { logTime } from '../src/tools/log-time'
 import { createMilestone } from '../src/tools/milestones'
 import { listMembers } from '../src/tools/members'
@@ -31,7 +33,8 @@ function workspaceData (label: string): FakeDoc[] {
       reportedTime: 0,
       description: `blob-${label}`
     },
-    { _id: 'member-1', _class: contact.class.Member, name: `${label} me` }
+    { _id: 'member-1', _class: contact.class.Member, name: `${label} me` },
+    { _id: 'doc-1', _class: document.class.Document, space: 'ts-1', title: `${label} doc`, content: `content-${label}` }
   ]
 }
 
@@ -170,4 +173,43 @@ test('every registered tool except list_workspaces accepts workspace', () => {
   for (const name of mutationTools) {
     assert.equal(tools[name].inputSchema.shape.workspace.isOptional(), false, `${name}.workspace must be required`)
   }
+})
+
+test('get_document never exposes the workspace token, but still loads content with it', async () => {
+  process.env.HULY_FRONT_URL = 'https://front.example'
+  const requests: Array<{ url: string, headers: Record<string, string> }> = []
+  globalThis.fetch = (async (url: string, init?: RequestInit) => {
+    requests.push({ url: String(url), headers: { ...(init?.headers as Record<string, string>) } })
+    const authorized = (init?.headers as Record<string, string> | undefined)?.Authorization === 'Bearer ws-token-avms'
+    const body = JSON.stringify({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Secret-free body' }] }] })
+    return authorized ? new Response(body, { status: 200 }) : new Response('', { status: 401 })
+  }) as typeof fetch
+
+  const out = text(await getDocument({ workspace: 'avms', documentId: 'doc-1' }))
+
+  // Content is still fetched and rendered…
+  assert.match(out, /\*\*Content:\*\*\nSecret-free body/)
+  // …via one request carrying the token only in the Authorization header of the right workspace.
+  assert.equal(requests.length, 1)
+  assert.equal(requests[0].headers.Authorization, 'Bearer ws-token-avms')
+  assert.match(requests[0].url, /file=content-AVMS/)
+  assert.match(requests[0].url, new RegExp(`workspace=${AVMS.uuid}`))
+  assert.doesNotMatch(requests[0].url, /token/i)
+  // The tool result never contains a token, in any form.
+  assert.doesNotMatch(out, /token=/i)
+  assert.ok(!out.includes('ws-token-avms'), 'tool result contains the workspace token')
+  assert.ok(!out.includes('ws-token-jokeks2023'), 'tool result contains another workspace token')
+})
+
+test('get_document without a successful fetch still leaks no token', async () => {
+  process.env.HULY_FRONT_URL = 'https://front.example'
+  globalThis.fetch = (async () => new Response('', { status: 401 })) as unknown as typeof fetch
+  const out = text(await getDocument({ workspace: 'jokeks2023', documentId: 'doc-1' }))
+  assert.match(out, /Content URL:\*\* https:\/\/front\.example\/files\?file=content-Personal&workspace=/)
+  assert.doesNotMatch(out, /token=/i)
+  assert.ok(!out.includes('ws-token-'), 'tool result contains a workspace token')
+
+  globalThis.fetch = (async () => { throw new Error('network down') }) as unknown as typeof fetch
+  const failed = text(await getDocument({ workspace: 'jokeks2023', documentId: 'doc-1' }))
+  assert.ok(!failed.includes('ws-token-'), 'tool result contains a workspace token')
 })
