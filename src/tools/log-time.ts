@@ -8,7 +8,7 @@ import type { LogTimeSchema } from '../schemas'
 import { generateId } from '@hcengineering/core'
 
 export const logTime = wrapToolHandler<z.infer<typeof LogTimeSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
   const issue = await client.findOne(tracker.class.Issue, { identifier: args.identifier })
   if (issue == null) throw new Error(`Issue '${args.identifier}' not found.`)
 

@@ -14,8 +14,8 @@ function base64ToBlob (base64: string, mimeType: string): Blob {
 }
 
 export const attachFile = wrapToolHandler<z.infer<typeof AttachFileSchema>>(async (args) => {
-  const client = await getConnection()
-  const { wsToken, workspaceUuid } = await getWorkspaceInfo()
+  const client = await getConnection(args.workspace)
+  const { wsToken, workspaceUuid } = await getWorkspaceInfo(args.workspace)
 
   const issue = await client.findOne(tracker.class.Issue, { identifier: args.identifier })
   if (issue == null) throw new Error(`Issue '${args.identifier}' not found.`)
@@ -45,7 +45,7 @@ export const attachFile = wrapToolHandler<z.infer<typeof AttachFileSchema>>(asyn
 })
 
 export const listAttachments = wrapToolHandler<z.infer<typeof ListAttachmentsSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
   const issue = await client.findOne(tracker.class.Issue, { identifier: args.identifier })
   if (issue == null) throw new Error(`Issue '${args.identifier}' not found.`)
 
@@ -59,8 +59,8 @@ export const listAttachments = wrapToolHandler<z.infer<typeof ListAttachmentsSch
 })
 
 export const deleteAttachment = wrapToolHandler<z.infer<typeof DeleteAttachmentSchema>>(async (args) => {
-  const client = await getConnection()
-  const { wsToken, workspaceUuid } = await getWorkspaceInfo()
+  const client = await getConnection(args.workspace)
+  const { wsToken, workspaceUuid } = await getWorkspaceInfo(args.workspace)
 
   const issue = await client.findOne(tracker.class.Issue, { identifier: args.identifier })
   if (issue == null) throw new Error(`Issue '${args.identifier}' not found.`)

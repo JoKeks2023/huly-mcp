@@ -1,4 +1,4 @@
-# huly-mcp-sdk (self-hosted fork)
+# huly-mcp-selfhost
 
 [![npm](https://img.shields.io/npm/v/huly-mcp-selfhost?label=npm)](https://www.npmjs.com/package/huly-mcp-selfhost)
 [![Docker Pulls](https://img.shields.io/docker/pulls/jokeks2023/huly-mcp)](https://hub.docker.com/r/jokeks2023/huly-mcp)
@@ -8,17 +8,20 @@
 
 > The most complete MCP server for [Huly](https://huly.app) — the open-source project management platform.
 
-Connects **Claude Desktop** (and any [MCP](https://modelcontextprotocol.io)-compatible client) directly to your Huly workspace. Manage projects, issues, milestones, components, documents, labels, chat, attachments, organizations, and more — all via natural language.
+Connects **Claude Desktop** (and any [MCP](https://modelcontextprotocol.io)-compatible client) directly to your Huly workspaces — one account, as many workspaces as it can access. Manage projects, issues, milestones, components, documents, labels, chat, attachments, organizations, and more — all via natural language.
 
 ## About this fork
 
-This is a fork of [varaprasadreddy9676/huly-mcp](https://github.com/varaprasadreddy9676/huly-mcp), built out for a **self-hosted** (`huly-selfhost`) deployment and extended well past the upstream tool set. Published separately as **[`huly-mcp-selfhost`](https://www.npmjs.com/package/huly-mcp-selfhost)** on npm and as a Docker image — `npx huly-mcp-sdk` still resolves to the *original* upstream package, not this one. See [Installing this fork](#installing-this-fork) below.
+This is a fork of [varaprasadreddy9676/huly-mcp](https://github.com/varaprasadreddy9676/huly-mcp), built out for a **self-hosted** (`huly-selfhost`) deployment and extended well past the upstream tool set. Published separately as **[`huly-mcp-selfhost`](https://www.npmjs.com/package/huly-mcp-selfhost)** on npm and as a Docker image — `huly-mcp-sdk` on npm is the *original* upstream package, not this one. See [Installing this fork](#installing-this-fork) below.
 
 **Fixed vs. upstream:**
 - **Self-hosted document/description writes.** Upstream's `update_document` (and, by extension, any issue description) is hardcoded against Huly Cloud's "datalake" microservice at `dl-eu.huly.app`, which `huly-selfhost` doesn't run. This fork auto-detects self-hosted deployments via `HULY_FRONT_URL` and uploads through `front`'s own `/files` contract instead — falls back to the original Cloud behavior when `HULY_FRONT_URL` is unset. See [`src/utils/storage.ts`](src/utils/storage.ts).
 - **`description` on `create_issue`/`update_issue`.** Missing entirely upstream — issue descriptions are `MarkupBlobRef`s, same storage mechanism as document content, so this needed the same fix.
 
-**New tool categories** (upstream had 33 tools across Projects/Issues/Comments/Time/Labels/Relations/Members/Milestones/Components/Documents/Search; this fork adds 14 more):
+**Multi-workspace:** one login, all workspaces of the account — see [Workspaces](#workspaces-one-account-several-workspaces).
+
+**New tool categories** (upstream had 33 tools across Projects/Issues/Comments/Time/Labels/Relations/Members/Milestones/Components/Documents/Search; this fork adds 15 more):
+- **Workspaces** — `list_workspaces`
 - **Chat** — `list_channels`, `create_channel`, `start_direct_message`, `send_message`, `list_messages`
 - **Attachments** — `attach_file`, `list_attachments`, `delete_attachment` (generic files on issues, any content type)
 - **Issue Statuses** — `list_issue_statuses`, `create_issue_status` (custom workflow states)
@@ -28,11 +31,14 @@ This is a fork of [varaprasadreddy9676/huly-mcp](https://github.com/varaprasadre
 
 ---
 
-## Tools (47 total)
+## Tools (48 total)
+
+All tools except `list_workspaces` take a `workspace` argument — required for every change, optional for reads when only one workspace is available.
 
 | Category | Tool | Description |
 |----------|------|-------------|
-| **Projects** | `list_projects` | List all projects in the workspace |
+| **Workspaces** | `list_workspaces` | List the workspaces this account can access (name, slug, id) |
+| **Projects** | `list_projects` | List all projects in a workspace |
 | | `get_project` | Get project details + available statuses |
 | | `create_project` | Create a new tracker project with a unique identifier |
 | **Issues** | `list_issues` | List issues with optional status / priority filters |
@@ -64,7 +70,7 @@ This is a fork of [varaprasadreddy9676/huly-mcp](https://github.com/varaprasadre
 | | `create_document` | Create a new document in a teamspace |
 | | `update_document` | Write Markdown content to a document — Mermaid diagrams render natively |
 | | `link_document` | Link a document to an issue — appears in the Relations panel |
-| **Search** | `search_issues` | Full-text search across all issues |
+| **Search** | `search_issues` | Full-text search across all issues of a workspace |
 | **Chat** | `list_channels` | List all channels in the workspace |
 | | `create_channel` | Create a new channel |
 | | `start_direct_message` | Start (or find) a 1:1 direct message with a workspace member |
@@ -91,16 +97,16 @@ This is a fork of [varaprasadreddy9676/huly-mcp](https://github.com/varaprasadre
 
 ## Installing this fork
 
-This fork is published separately as **[`huly-mcp-selfhost`](https://www.npmjs.com/package/huly-mcp-selfhost)** — `npx huly-mcp-sdk` still resolves to the *original* upstream package, not this one. Three ways to run it:
+This fork is published separately as **[`huly-mcp-selfhost`](https://www.npmjs.com/package/huly-mcp-selfhost)** (`huly-mcp-sdk` is the upstream package). Three ways to run it:
 
 ### npm / npx
 
-In any client config below, use `huly-mcp-selfhost` instead of `huly-mcp-sdk`:
-
 ```json
 "command": "npx",
-"args": ["huly-mcp-selfhost"]
+"args": ["-y", "huly-mcp-selfhost"]
 ```
+
+Every client example below uses this form.
 
 ### Clone and build
 
@@ -125,7 +131,7 @@ docker pull jokeks2023/huly-mcp:latest
 # also mirrored at ghcr.io/jokeks2023/huly-mcp:latest
 ```
 
-Or with Compose — copy `.env.example` to `.env`, fill in your credentials, then:
+Or with Compose — copy `.env.example` to `.env`, fill in your credentials (no workspace needed), then:
 
 ```bash
 docker compose up -d
@@ -135,21 +141,41 @@ The container wraps the server with [`mcp-proxy`](https://github.com/sparfenyuk/
 
 ---
 
-**Your workspace slug** is the part of your Huly URL after the domain: `huly.app/`**`myteam`** → slug is `myteam` (self-hosted: the `url` field of your workspace, e.g. `https://your-instance.com/workbench/`**`myteam`**).
+## Workspaces (one account, several workspaces)
+
+A single Huly account can belong to several workspaces — e.g. a personal one and a team one. This server logs in **once** with your account credentials and discovers every workspace that account can access via the account service (`getUserWorkspaces()`). You **don't configure a workspace** in the environment.
+
+- **`list_workspaces`** returns name, slug and id of every available workspace.
+- **Every other tool takes a `workspace` argument** — the slug, the name or the id (case-insensitive):
+  `list_projects(workspace="jokeks2023")`, `get_issue(workspace="avms", identifier="PROJ-1")`, `log_time(workspace="jokeks2023", identifier="WEB-12", hours=2)`.
+- **Changes always require `workspace`.** Every tool that creates, updates, deletes, links, sends, attaches or logs something has `workspace` as a required argument — the server never falls back to an implicit, default or "last used" workspace for a write.
+- **Reads may omit `workspace` only if exactly one workspace is available.** With several, the call fails and lists the options.
+- **IDs are per workspace.** `PROJ-1`, a document id or a comment id identifies something only together with its workspace — the same id can exist in two workspaces. Pass the same `workspace` you got the id from.
+- Each workspace gets its own lazily opened, cached WebSocket connection with its own workspace token (via `selectWorkspace()`), so workspaces never share state.
+
+**Workspace slug:** the part of the Huly URL after the domain: `huly.app/workbench/`**`myteam`** → `myteam`. You don't need to look it up — `list_workspaces` (or `npm run setup`) prints it.
+
+**Legacy `HULY_WORKSPACE`:** still honoured, but only as an optional *restriction*: if set, this server exposes just that one workspace (as before). Leave it unset to use all workspaces.
+
+---
+
+## Configuration
+
+| Variable | Required | Purpose |
+|----------|----------|---------|
+| `HULY_EMAIL` + `HULY_PASSWORD` | one auth option | Account login (needs a password set on your Huly account) |
+| `HULY_TOKEN` | one auth option | Account token for SSO accounts (Google/GitHub) — get it with `npm run setup` |
+| `HULY_ACCOUNTS_URL` | self-hosted only | Account service — login and workspace discovery. Default `https://account.huly.app`. Self-hosted: your instance's accounts URL, e.g. `https://huly.example.com/_accounts` |
+| `HULY_FRONT_URL` | self-hosted (optional on Cloud) | Front service — document/description content and file uploads. Not involved in login or workspace discovery. Self-hosted: e.g. `https://huly.example.com` |
+| `HULY_WORKSPACE` | no (legacy) | Restrict the server to a single workspace |
 
 ---
 
 ## Compatible Clients
 
-The same MCP server works across all major AI coding tools. Pick your client, then swap the `npx`/`args` for the local build per [Installing this fork](#installing-this-fork) above.
+The same MCP server works across all major AI coding tools. All examples use **email + password** and the npm package via `npx`; for SSO accounts replace the two credentials with `"HULY_TOKEN": "your-token"` (see [Authentication](#authentication)). To run a local build instead, replace `npx` + args with `node` + `["/absolute/path/to/huly-mcp/dist/index.js"]`.
 
-> **Auth note:** All config examples below use `HULY_TOKEN`. If you have issues with token expiry, use email + password instead — just replace the `env` block with:
-> ```json
-> "HULY_EMAIL": "your@email.com",
-> "HULY_PASSWORD": "yourpassword",
-> "HULY_WORKSPACE": "your-workspace-slug"
-> ```
-> See [Manual Auth](#manual-auth) for details on both options.
+**Self-hosted:** add `HULY_ACCOUNTS_URL` and `HULY_FRONT_URL` to every `env` block below.
 
 ---
 
@@ -163,10 +189,10 @@ The same MCP server works across all major AI coding tools. Pick your client, th
   "mcpServers": {
     "huly": {
       "command": "npx",
-      "args": ["huly-mcp-sdk"],
+      "args": ["-y", "huly-mcp-selfhost"],
       "env": {
-        "HULY_TOKEN": "your-token",
-        "HULY_WORKSPACE": "your-workspace-slug"
+        "HULY_EMAIL": "you@example.com",
+        "HULY_PASSWORD": "your-password"
       }
     }
   }
@@ -180,43 +206,40 @@ Restart Claude Desktop after saving.
 ### Claude Code (CLI)
 
 ```bash
-claude mcp add huly -e HULY_TOKEN=your-token -e HULY_WORKSPACE=your-slug -- npx huly-mcp-sdk
+claude mcp add huly \
+  -e HULY_EMAIL=you@example.com \
+  -e HULY_PASSWORD=your-password \
+  -- npx -y huly-mcp-selfhost
 ```
 
-Or scope it to a single project only:
-
-```bash
-claude mcp add huly --scope project -e HULY_TOKEN=your-token -e HULY_WORKSPACE=your-slug -- npx huly-mcp-sdk
-```
-
-Verify it's connected: `claude mcp list`
+Add `--scope project` (writes `.mcp.json`, shared with the repo — don't commit secrets) or `--scope user` (all your projects) after `add huly`. Verify with `claude mcp list`.
 
 ---
 
 ### Cursor
 
-Create or edit `~/.cursor/mcp.json`:
+Create or edit `~/.cursor/mcp.json` (or `.cursor/mcp.json` in a project):
 
 ```json
 {
   "mcpServers": {
     "huly": {
       "command": "npx",
-      "args": ["huly-mcp-sdk"],
+      "args": ["-y", "huly-mcp-selfhost"],
       "env": {
-        "HULY_TOKEN": "your-token",
-        "HULY_WORKSPACE": "your-workspace-slug"
+        "HULY_EMAIL": "you@example.com",
+        "HULY_PASSWORD": "your-password"
       }
     }
   }
 }
 ```
 
-Restart Cursor. The tools appear in the Agent panel under MCP.
+The tools appear in the Agent panel under MCP.
 
 ---
 
-### Windsurf (Codeium)
+### Windsurf
 
 Create or edit `~/.codeium/windsurf/mcp_config.json`:
 
@@ -225,79 +248,72 @@ Create or edit `~/.codeium/windsurf/mcp_config.json`:
   "mcpServers": {
     "huly": {
       "command": "npx",
-      "args": ["huly-mcp-sdk"],
+      "args": ["-y", "huly-mcp-selfhost"],
       "env": {
-        "HULY_TOKEN": "your-token",
-        "HULY_WORKSPACE": "your-workspace-slug"
+        "HULY_EMAIL": "you@example.com",
+        "HULY_PASSWORD": "your-password"
       }
     }
   }
 }
 ```
 
-Restart Windsurf. MCP tools are available to the Cascade AI panel.
+Refresh the MCP servers in the Cascade panel.
 
 ---
 
-### VS Code — Cline extension
+### VS Code — Cline
 
-1. Install the [Cline extension](https://marketplace.visualstudio.com/items?itemName=saoudrizwan.claude-dev)
-2. Open Cline settings → **MCP Servers** → **Edit MCP Settings**
-3. Add:
+Cline → **MCP Servers** → **Installed** → **Configure MCP Servers** (opens `cline_mcp_settings.json`):
 
 ```json
 {
-  "huly": {
-    "command": "npx",
-    "args": ["huly-mcp-sdk"],
-    "env": {
-      "HULY_TOKEN": "your-token",
-      "HULY_WORKSPACE": "your-workspace-slug"
-    }
-  }
-}
-```
-
----
-
-### VS Code — Continue extension
-
-1. Install the [Continue extension](https://marketplace.visualstudio.com/items?itemName=Continue.continue)
-2. Edit `~/.continue/config.json` and add to the `mcpServers` array:
-
-```json
-{
-  "mcpServers": [
-    {
-      "name": "huly",
+  "mcpServers": {
+    "huly": {
       "command": "npx",
-      "args": ["huly-mcp-sdk"],
+      "args": ["-y", "huly-mcp-selfhost"],
       "env": {
-        "HULY_TOKEN": "your-token",
-        "HULY_WORKSPACE": "your-workspace-slug"
-      }
+        "HULY_EMAIL": "you@example.com",
+        "HULY_PASSWORD": "your-password"
+      },
+      "disabled": false
     }
-  ]
+  }
 }
+```
+
+---
+
+### VS Code / JetBrains — Continue
+
+Add to `~/.continue/config.yaml` (MCP tools are available in Agent mode):
+
+```yaml
+mcpServers:
+  - name: huly
+    command: npx
+    args: ["-y", "huly-mcp-selfhost"]
+    env:
+      HULY_EMAIL: you@example.com
+      HULY_PASSWORD: your-password
 ```
 
 ---
 
 ### Zed
 
-Edit `~/.config/zed/settings.json` and add a `context_servers` entry:
+Add to `~/.config/zed/settings.json`:
 
 ```json
 {
   "context_servers": {
     "huly": {
-      "command": {
-        "path": "npx",
-        "args": ["huly-mcp-sdk"],
-        "env": {
-          "HULY_TOKEN": "your-token",
-          "HULY_WORKSPACE": "your-workspace-slug"
-        }
+      "source": "custom",
+      "command": "npx",
+      "args": ["-y", "huly-mcp-selfhost"],
+      "env": {
+        "HULY_EMAIL": "you@example.com",
+        "HULY_PASSWORD": "your-password"
       }
     }
   }
@@ -308,41 +324,38 @@ Edit `~/.config/zed/settings.json` and add a `context_servers` entry:
 
 ### OpenAI Codex CLI
 
-Edit `~/.codex/config.json` and add to `mcpServers`:
+Add to `~/.codex/config.toml`:
 
-```json
-{
-  "mcpServers": {
-    "huly": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["huly-mcp-sdk"],
-      "env": {
-        "HULY_TOKEN": "your-token",
-        "HULY_WORKSPACE": "your-workspace-slug"
-      }
-    }
-  }
-}
+```toml
+[mcp_servers.huly]
+command = "npx"
+args = ["-y", "huly-mcp-selfhost"]
+env = { HULY_EMAIL = "you@example.com", HULY_PASSWORD = "your-password" }
 ```
+
+or: `codex mcp add huly --env HULY_EMAIL=you@example.com --env HULY_PASSWORD=your-password -- npx -y huly-mcp-selfhost`
 
 ---
 
 ### Any other MCP-compatible client
 
-The server uses standard **stdio transport**. If your tool supports MCP, the config pattern is always the same:
+The server uses standard **stdio transport**:
 
-- **command:** `node`
-- **args:** `["/absolute/path/to/huly-mcp/dist/index.js"]` (see [Installing this fork](#installing-this-fork))
-- **env:** `HULY_TOKEN` + `HULY_WORKSPACE` (or `HULY_EMAIL`/`HULY_PASSWORD`; self-hosted also needs `HULY_ACCOUNTS_URL` + `HULY_FRONT_URL`, see [Manual Auth](#manual-auth))
+- **command:** `npx` with args `["-y", "huly-mcp-selfhost"]`, or `node` with `["/absolute/path/to/huly-mcp/dist/index.js"]`
+- **env:** `HULY_EMAIL` + `HULY_PASSWORD` (or `HULY_TOKEN`); self-hosted also `HULY_ACCOUNTS_URL` + `HULY_FRONT_URL` — see [Configuration](#configuration)
 
-Consult your tool's MCP documentation for the exact config file location.
+For network access (HTTP/SSE) use the [Docker image](#docker-network-reachable-server-not-local-stdio).
 
 ---
 
 <img width="932" height="401" alt="image" src="https://github.com/user-attachments/assets/0f9d9a74-ca1e-4884-bd6a-918c0fb8ddbd" />
 
 ## Example Prompts
+
+**Workspaces:**
+- *"Which Huly workspaces do I have?"*
+- *"List the projects in my AVMS workspace"*
+- *"In the jokeks2023 workspace, log 2 hours on WEB-12"*
 
 **Projects & issues:**
 - *"Create a new project called 'Mobile App' with identifier MOBILE"*
@@ -386,11 +399,13 @@ Consult your tool's MCP documentation for the exact config file location.
 
 ```json
 "env": {
-  "HULY_TOKEN": "...",
-  "HULY_WORKSPACE": "myteam",
+  "HULY_EMAIL": "...",
+  "HULY_PASSWORD": "...",
   "HULY_FRONT_URL": "https://front.huly.app"
 }
 ```
+
+`HULY_FRONT_URL` only serves document/description content and file uploads — each request uses the token of the workspace named in the tool call. It plays no part in login or workspace discovery (that is `HULY_ACCOUNTS_URL`).
 
 For **self-hosted** Huly, set `HULY_FRONT_URL` to your own front service URL (e.g. `http://localhost:8083`).
 
@@ -447,8 +462,11 @@ The Mermaid block renders as a live interactive diagram in Huly's document edito
 Import many issues at once from a CSV file — useful for migrating from other tools:
 
 ```bash
-node scripts/import-csv.js tasks.csv PROJ
+npm run build
+node scripts/import-csv.js tasks.csv PROJ --workspace=myteam
 ```
+
+The target workspace is required (`--workspace=<slug>`, or `HULY_WORKSPACE` as a fallback), since the script writes data. Credentials come from the environment as for the server.
 
 **CSV format:**
 
@@ -463,9 +481,9 @@ Required column: `title`. Optional: `priority` (Urgent/High/Medium/Low), `status
 
 ---
 
-## Manual Auth
+## Authentication
 
-Create a `.env` file in the project root (or pass via `env` in your client config):
+Create a `.env` file in the project root (or pass via `env` in your client config). No workspace is needed in either option.
 
 **Option A — Email + password (recommended):**
 
@@ -474,39 +492,68 @@ Works if you have a password set on your Huly account (Profile → Security → 
 ```bash
 HULY_EMAIL=your@email.com
 HULY_PASSWORD=yourpassword
-HULY_WORKSPACE=your-workspace-slug
 ```
 
-**Option B — Token:**
+**Option B — Token (SSO accounts: Google/GitHub):**
 
 ```bash
-HULY_WORKSPACE=your-workspace-slug
+npm run setup
+```
+
+The wizard sends a one-time code to your email, saves the resulting account token as `HULY_TOKEN` in `.env`, and lists the workspaces the account can access (a discovery test).
+
+```bash
 HULY_TOKEN=your-token-here
 ```
 
-To get a token: go to [huly.app](https://huly.app) → open browser DevTools → Application → Local Storage → `https://huly.app` → copy the `token` value.
+A token copied from the browser (DevTools → Application → Local Storage → `token`) also works, but may be scoped to the single workspace open in that tab. If the account service refuses to list workspaces for such a token, the server falls back to that one workspace. Use `npm run setup` for full multi-workspace discovery.
 
-> Tokens expire after some time. If you get an auth error, switch to email + password auth or refresh the token from DevTools.
+> Tokens expire after some time. If you get an auth error, run `npm run setup` again or switch to email + password.
 
 **Self-hosted Huly:**
 
 ```bash
-HULY_ACCOUNTS_URL=https://your-huly-instance.com/account
-HULY_FRONT_URL=https://your-huly-instance.com
+HULY_ACCOUNTS_URL=https://your-huly-instance.com/_accounts   # login + workspace discovery
+HULY_FRONT_URL=https://your-huly-instance.com                # document content + file uploads
 ```
 
 ---
 
 ## Architecture
 
-- **Single long-lived WebSocket connection** — connects once per process via `@hcengineering/server-client`, not per tool call (model load takes 1–3 s, so this keeps tools fast)
-- **Lazy init** — connects on the first tool call so auth errors surface clearly in Claude
-- **Dual auth** — OTP token (works for Google/GitHub SSO) or email + password
-- **Stdio transport** — standard MCP transport compatible with Claude Desktop and any MCP client
+```text
+HULY_EMAIL + HULY_PASSWORD  (or HULY_TOKEN)
+          ↓
+   account login (once)              account-level client: getUserWorkspaces(), selectWorkspace()
+          ↓
+   getUserWorkspaces()  → workspace discovery (cached)
+          ↓
+   WorkspaceConnectionManager
+     ├── workspace A: selectWorkspace(A) → endpoint + token → WebSocket (cached)
+     ├── workspace B: selectWorkspace(B) → endpoint + token → WebSocket (cached)
+     └── …                                workspace-level client (workspace token): getWorkspaceMembers()
+          ↓
+   MCP tools (each call names its workspace)
+```
+
+- **One login, many workspaces** — the account session is shared; each workspace gets its own long-lived connection via `@hcengineering/server-client` (model load takes 1–3 s, so connections are reused, not opened per call)
+- **Lazy** — nothing connects until the first tool call, and a workspace connects only when first used, so auth errors surface clearly in the client
+- **No current workspace** — there is no global or "last used" workspace; see [Workspaces](#workspaces-one-account-several-workspaces)
+- **Stdio transport** — standard MCP transport; the Docker image adds HTTP/SSE via `mcp-proxy`
+
+See [`src/connection.ts`](src/connection.ts).
 
 ---
 
 ## Changelog
+
+### Fork — multi-workspace
+- **New: multi-workspace support** — one account login, workspaces discovered via `getUserWorkspaces()`, one cached connection per workspace; `HULY_WORKSPACE` is no longer required (still honoured as an optional single-workspace restriction)
+- **New: `list_workspaces`**
+- **Changed: every tool takes `workspace`** — required for all tools that change data; reads may omit it only when exactly one workspace is available
+- **New: `huly-mcp-selfhost` bin alias** — `npx huly-mcp-selfhost` now starts the server directly
+- **Changed: `npm run setup`** no longer asks for a workspace; it lists the discovered workspaces instead
+- **Changed: `scripts/import-csv.js`, `cleanup-issues.js`, `demo.js`** need `--workspace=<slug>` (or `HULY_WORKSPACE`)
 
 ### Fork — self-hosted support, chat, attachments, statuses, organizations
 - **Fix: self-hosted document/description writes** — auto-detects `huly-selfhost` via `HULY_FRONT_URL` and uploads through `front`'s `/files` contract instead of Huly Cloud's datalake, which self-hosted doesn't run

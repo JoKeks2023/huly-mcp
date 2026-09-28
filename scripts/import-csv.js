@@ -29,14 +29,22 @@
  *     HULY_EMAIL=you@example.com
  *     HULY_PASSWORD=yourpassword
  *
- *   Always required:
- *     HULY_WORKSPACE=your-workspace-slug
+ *   Target workspace (required — one account can have several):
+ *     --workspace=your-workspace-slug   (or HULY_WORKSPACE=your-workspace-slug)
  */
 
 'use strict'
 
 const fs = require('fs')
 const path = require('path')
+
+// Target workspace (these scripts write data, so it must be explicit):
+// --workspace=<slug|name|id>, or HULY_WORKSPACE as a fallback.
+const workspace = process.argv.find(a => a.startsWith('--workspace='))?.slice('--workspace='.length) || process.env.HULY_WORKSPACE
+if (!workspace) {
+  console.error('❌  No workspace given. Pass --workspace=<slug> (see list_workspaces / npm run setup).')
+  process.exit(1)
+}
 
 // ── Load compiled huly-mcp modules ──────────────────────────────────────────
 const distDir = path.join(__dirname, '..', 'dist')
@@ -53,7 +61,7 @@ const { makeRank } = require('@hcengineering/rank')
 // ── Parse CLI args ────────────────────────────────────────────────────────────
 const [,, csvFile, projectIdentifier] = process.argv
 if (!csvFile || !projectIdentifier) {
-  console.error('Usage: node scripts/import-csv.js <csv-file> <project-identifier>')
+  console.error('Usage: node scripts/import-csv.js <csv-file> <project-identifier> --workspace=<slug>')
   process.exit(1)
 }
 if (!fs.existsSync(csvFile)) {
@@ -102,7 +110,7 @@ async function main () {
   console.log(`\n📋  Huly CSV Importer`)
   console.log(`    File:    ${csvFile}`)
   console.log(`    Project: ${projectIdentifier}`)
-  console.log(`    Workspace: ${process.env.HULY_WORKSPACE}\n`)
+  console.log(`    Workspace: ${workspace}\n`)
 
   // Parse CSV
   const rows = parseCsv(fs.readFileSync(csvFile, 'utf8'))
@@ -116,7 +124,7 @@ async function main () {
 
   // Connect to Huly
   console.log('🔌  Connecting to Huly...')
-  const client = await getConnection()
+  const client = await getConnection(workspace)
   console.log('✅  Connected.\n')
 
   // Find project

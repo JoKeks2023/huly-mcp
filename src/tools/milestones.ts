@@ -7,7 +7,7 @@ import type { z } from 'zod'
 import type { ListMilestonesSchema, CreateMilestoneSchema } from '../schemas'
 
 export const listMilestones = wrapToolHandler<z.infer<typeof ListMilestonesSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
   const project = await client.findOne(tracker.class.Project, { identifier: args.projectIdentifier })
   if (project == null) throw new Error(`Project '${args.projectIdentifier}' not found.`)
 
@@ -32,7 +32,7 @@ const MILESTONE_STATUS_MAP: Record<string, MilestoneStatus> = {
 }
 
 export const createMilestone = wrapToolHandler<z.infer<typeof CreateMilestoneSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
   const project = await client.findOne(tracker.class.Project, { identifier: args.projectIdentifier })
   if (project == null) throw new Error(`Project '${args.projectIdentifier}' not found.`)
 

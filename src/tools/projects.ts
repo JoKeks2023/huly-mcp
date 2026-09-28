@@ -6,10 +6,10 @@ import type { ProjectType } from '@hcengineering/task'
 import { getConnection } from '../connection'
 import { wrapToolHandler } from '../utils/errors'
 import type { z } from 'zod'
-import type { GetProjectSchema, CreateProjectSchema } from '../schemas'
+import type { ListProjectsSchema, GetProjectSchema, CreateProjectSchema } from '../schemas'
 
-export const listProjects = wrapToolHandler<Record<string, never>>(async () => {
-  const client = await getConnection()
+export const listProjects = wrapToolHandler<z.infer<typeof ListProjectsSchema>>(async (args) => {
+  const client = await getConnection(args.workspace)
   const projects = await client.findAll(tracker.class.Project, {})
 
   if (projects.length === 0) return 'No projects found in this workspace.'
@@ -21,7 +21,7 @@ export const listProjects = wrapToolHandler<Record<string, never>>(async () => {
 })
 
 export const getProject = wrapToolHandler<z.infer<typeof GetProjectSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
   const project = await client.findOne(tracker.class.Project, { identifier: args.identifier })
   if (project == null) throw new Error(`Project '${args.identifier}' not found.`)
 
@@ -38,7 +38,7 @@ export const getProject = wrapToolHandler<z.infer<typeof GetProjectSchema>>(asyn
 })
 
 export const createProject = wrapToolHandler<z.infer<typeof CreateProjectSchema>>(async (args) => {
-  const client = await getConnection()
+  const client = await getConnection(args.workspace)
 
   // Check identifier is unique
   const existing = await client.findOne(tracker.class.Project, { identifier: args.identifier })
