@@ -78,9 +78,10 @@ export const getIssue = wrapToolHandler<z.infer<typeof GetIssueSchema>>(async (a
     const frontUrl = process.env.HULY_FRONT_URL
     if (frontUrl != null && frontUrl !== '') {
       const { wsToken, workspaceUuid } = await getWorkspaceInfo(args.workspace)
-      const blobUrl = `${frontUrl}/files?file=${encodeURIComponent(issue.description)}&workspace=${workspaceUuid}&token=${wsToken}`
+      // Token goes in the Authorization header only — never in the URL (see get_document).
+      const blobUrl = `${frontUrl}/files?file=${encodeURIComponent(issue.description)}&workspace=${workspaceUuid}`
       try {
-        const res = await fetch(blobUrl)
+        const res = await fetch(blobUrl, { headers: { Authorization: `Bearer ${wsToken}` } })
         if (res.ok) {
           const text = await res.text()
           try {

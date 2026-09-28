@@ -8,6 +8,7 @@ import { createServer } from '../src/server'
 import { listProjects } from '../src/tools/projects'
 import { getIssue, updateIssue } from '../src/tools/issues'
 import { getDocument } from '../src/tools/documents'
+import { getOrganization } from '../src/tools/organizations'
 import { logTime } from '../src/tools/log-time'
 import { createMilestone } from '../src/tools/milestones'
 import { listMembers } from '../src/tools/members'
@@ -34,7 +35,8 @@ function workspaceData (label: string): FakeDoc[] {
       description: `blob-${label}`
     },
     { _id: 'member-1', _class: contact.class.Member, name: `${label} me` },
-    { _id: 'doc-1', _class: document.class.Document, space: 'ts-1', title: `${label} doc`, content: `content-${label}` }
+    { _id: 'doc-1', _class: document.class.Document, space: 'ts-1', title: `${label} doc`, content: `content-${label}` },
+    { _id: 'org-1', _class: contact.class.Organization, name: `${label} org`, description: `org-desc-${label}` }
   ]
 }
 
@@ -89,20 +91,41 @@ test('same entity id in two workspaces resolves per workspace', async () => {
   assert.match(avms, /AVMS Todo/)
 })
 
-test('blob fetches use the token and uuid of the workspace being queried', async () => {
-  process.env.HULY_FRONT_URL = 'https://front.example'
-  const urls: string[] = []
-  globalThis.fetch = (async (url: string) => {
-    urls.push(String(url))
-    return new Response('{"type":"doc","content":[]}', { status: 200 })
+// get_issue / get_organization fetch their description blob from front's /files. The workspace
+// token must travel only in the Authorization header — never as `token=` in the URL or in the output.
+function mockFront (expectedToken: string, text: string): Array<{ url: string, headers: Record<string, string> }> {
+  const requests: Array<{ url: string, headers: Record<string, string> }> = []
+  globalThis.fetch = (async (url: string, init?: RequestInit) => {
+    const headers = { ...(init?.headers as Record<string, string> | undefined) }
+    requests.push({ url: String(url), headers })
+    const body = JSON.stringify({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text }] }] })
+    return headers.Authorization === `Bearer ${expectedToken}` ? new Response(body, { status: 200 }) : new Response('', { status: 401 })
   }) as typeof fetch
+  return requests
+}
 
-  await getIssue({ workspace: 'avms', identifier: 'PROJ-1' })
-  assert.equal(urls.length, 1)
-  assert.match(urls[0], /file=blob-AVMS/)
-  assert.match(urls[0], new RegExp(`workspace=${AVMS.uuid}`))
-  assert.match(urls[0], /token=ws-token-avms/)
-})
+for (const { tool, run, blob } of [
+  { tool: 'get_issue', run: async () => await getIssue({ workspace: 'avms', identifier: 'PROJ-1' }), blob: 'blob-AVMS' },
+  { tool: 'get_organization', run: async () => await getOrganization({ workspace: 'avms', organizationId: 'org-1' }), blob: 'org-desc-AVMS' }
+]) {
+  test(`${tool}: description is fetched with a Bearer header, never a token in the URL or result`, async () => {
+    process.env.HULY_FRONT_URL = 'https://front.example'
+    const requests = mockFront('ws-token-avms', 'Loaded description')
+
+    const out = text(await run())
+
+    assert.equal(requests.length, 1)
+    assert.match(requests[0].url, new RegExp(`file=${blob}`))
+    assert.match(requests[0].url, new RegExp(`workspace=${AVMS.uuid}`))
+    assert.doesNotMatch(requests[0].url, /token=/i)
+    assert.ok(!requests[0].url.includes('ws-token-'), 'request URL contains a workspace token')
+    assert.equal(requests[0].headers.Authorization, 'Bearer ws-token-avms')
+
+    assert.match(out, /\*\*Description:\*\*\nLoaded description/)
+    assert.doesNotMatch(out, /token=/i)
+    assert.ok(!out.includes('ws-token-'), 'tool result contains a workspace token')
+  })
+}
 
 test('mutation lands only in the named workspace', async () => {
   await logTime({ workspace: 'jokeks2023', identifier: 'PROJ-1', hours: 2, description: 'x' })
