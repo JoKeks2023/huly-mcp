@@ -547,7 +547,10 @@ See [`src/connection.ts`](src/connection.ts).
 
 ## Changelog
 
-### Fork — multi-workspace
+### 2.0.0 — multi-workspace
+
+Breaking: tools that change data require `workspace`; `HULY_WORKSPACE` only restricts the server to one workspace.
+
 - **New: multi-workspace support** — one account login, workspaces discovered via `getUserWorkspaces()`, one cached connection per workspace; `HULY_WORKSPACE` is no longer required (still honoured as an optional single-workspace restriction)
 - **New: `list_workspaces`**
 - **Changed: every tool takes `workspace`** — required for all tools that change data; reads may omit it only when exactly one workspace is available

@@ -111,7 +111,7 @@ have access to several workspaces.
 `.trim()
 
 export function createServer (): McpServer {
-  const server = new McpServer({ name: 'huly-mcp-selfhost', version: '1.0.0' }, { instructions: SERVER_INSTRUCTIONS })
+  const server = new McpServer({ name: 'huly-mcp-selfhost', version: '2.0.0' }, { instructions: SERVER_INSTRUCTIONS })
 
   // Workspaces
   server.tool('list_workspaces', 'List all Huly workspaces this account can access (name, slug, id)', ListWorkspacesSchema.shape, listWorkspaces)
