@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>huly-mcp-selfhost — MCP server for Huly</title>
+  <meta name="description" content="MCP server for Huly. Self-hosted + cloud, multi-workspace, 48 tools for issues, documents, chat and more. Open source, EPL-2.0.">
+  <meta name="theme-color" content="#fafaf9" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0c0c0c" media="(prefers-color-scheme: dark)">
+  <meta property="og:title" content="huly-mcp-selfhost">
+  <meta property="og:description" content="MCP server for Huly. Self-hosted + cloud. Multi-workspace. 48 tools.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script>
+    // Apply a stored theme before first paint (no flash). Storage may be unavailable.
+    try { var t = localStorage.getItem('huly-site-theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t) } catch (e) {}
+  </script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+
+<header class="bar">
+  <div class="wrap">
+    <a class="brand" href="#top">huly-mcp<span>-selfhost</span></a>
+    <nav aria-label="Primary">
+      <a class="opt-sm" href="#setup">Setup</a>
+      <a class="opt" href="#multi-workspace">Workspaces</a>
+      <a class="opt" href="#tools">Tools</a>
+      <a href="https://github.com/JoKeks2023/huly-mcp/wiki/">Docs</a>
+      <a href="https://github.com/JoKeks2023/huly-mcp">GitHub</a>
+      <button class="theme" id="theme-toggle" type="button" aria-label="Toggle theme">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="8" cy="8" r="5.5"/><path d="M8 2.5v11" /><path d="M8 2.5a5.5 5.5 0 0 1 0 11z" fill="currentColor" stroke="none"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ── Hero ───────────────────────────────────────────────────────────── -->
+  <section class="hero">
+    <div class="wrap">
+      <span class="label">MCP server · open source · EPL-2.0</span>
+      <h1>huly-mcp-selfhost</h1>
+      <ul class="hero-lines">
+        <li>MCP server for Huly.</li>
+        <li>Self-hosted + cloud.</li>
+        <li>Multi-workspace.</li>
+        <li>48 tools.</li>
+      </ul>
+      <p class="byline"><em>for Claude, by Claude.</em></p>
+      <div class="actions">
+        <a class="btn primary" href="#setup">Quick setup <span class="arrow">↓</span></a>
+        <a class="btn" href="https://github.com/JoKeks2023/huly-mcp/wiki/">Documentation <span class="arrow">↗</span></a>
+        <a class="btn" href="https://github.com/JoKeks2023/huly-mcp">GitHub <span class="arrow">↗</span></a>
+      </div>
+      <div class="hero-meta">
+        <span><b>npx</b> huly-mcp-selfhost</span>
+        <span><b>docker</b> jokeks2023/huly-mcp</span>
+        <span><b>transport</b> stdio · HTTP via mcp-proxy</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Quick setup ────────────────────────────────────────────────────── -->
+  <section id="setup">
+    <div class="wrap">
+      <div class="setup-head">
+        <div>
+          <span class="label"><b>01</b> — Quick setup</span>
+          <h2>Pick your client. Paste. Done.</h2>
+          <p class="lede">Account credentials only. The server finds your workspaces itself — no workspace to configure.</p>
+        </div>
+      </div>
+
+      <div class="setup-controls">
+        <div class="tabs" role="tablist" aria-label="MCP client">
+          <button class="tab" role="tab" id="tab-claude-code" data-client="claude-code" aria-controls="setup-panel" aria-selected="true">Claude Code</button>
+          <button class="tab" role="tab" id="tab-claude-desktop" data-client="claude-desktop" aria-controls="setup-panel" aria-selected="false" tabindex="-1">Claude Desktop</button>
+          <button class="tab" role="tab" id="tab-codex" data-client="codex" aria-controls="setup-panel" aria-selected="false" tabindex="-1">Codex</button>
+          <button class="tab" role="tab" id="tab-cursor" data-client="cursor" aria-controls="setup-panel" aria-selected="false" tabindex="-1">Cursor</button>
+          <button class="tab" role="tab" id="tab-zed" data-client="zed" aria-controls="setup-panel" aria-selected="false" tabindex="-1">Zed</button>
+        </div>
+        <div class="seg" role="group" aria-label="Huly deployment">
+          <button type="button" data-mode="cloud" aria-pressed="true">Huly Cloud</button>
+          <button type="button" data-mode="self-hosted" aria-pressed="false">Self-hosted</button>
+        </div>
+      </div>
+
+      <div class="term" id="setup-panel" role="tabpanel" aria-labelledby="tab-claude-code">
+        <div class="term-head">
+          <span class="file" id="setup-file">terminal</span>
+          <button class="copy" type="button" data-copy="setup-code">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><rect x="5" y="5" width="8.5" height="8.5" rx="1.5"/><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"/></svg>
+            <span class="copy-label">Copy</span>
+          </button>
+        </div>
+<pre><code id="setup-code">claude mcp add huly \
+  -e HULY_EMAIL=you@example.com \
+  -e HULY_PASSWORD=your-password \
+  -- npx -y huly-mcp-selfhost</code></pre>
+      </div>
+      <p class="setup-note" id="setup-note">Add --scope user (all projects) or --scope project (.mcp.json — don’t commit secrets) after “add huly”. Check with: claude mcp list</p>
+      <p class="setup-note">SSO account without a password? Use <code>HULY_TOKEN</code> instead — see <a href="https://github.com/JoKeks2023/huly-mcp/wiki/Authentication">Authentication</a>. More clients (Windsurf, Cline, Continue) in the <a href="https://github.com/JoKeks2023/huly-mcp#compatible-clients">README</a>.</p>
+    </div>
+  </section>
+
+  <!-- ── What it does ───────────────────────────────────────────────────── -->
+  <section id="what">
+    <div class="wrap">
+      <span class="label"><b>02</b> — What it does</span>
+      <h2>Your Huly, as tools an agent can call.</h2>
+      <p class="lede">Native Huly SDK over WebSocket — not screen scraping, not a REST shim.</p>
+      <dl class="rows">
+        <div class="row"><dt>Projects &amp; issues</dt><dd>List, create, update and delete issues; status, priority, assignee, due date, component, milestone; Markdown descriptions.</dd></div>
+        <div class="row"><dt>Documents</dt><dd>Teamspaces and documents, Markdown in and out — tables, code blocks and native Mermaid diagrams.</dd></div>
+        <div class="row"><dt>Chat</dt><dd>Channels and direct messages: list, create, send, read.</dd></div>
+        <div class="row"><dt>Attachments</dt><dd>Attach files to issues (base64), list and delete them.</dd></div>
+        <div class="row"><dt>Organizations</dt><dd>Company contacts with Markdown descriptions.</dd></div>
+        <div class="row"><dt>Time tracking</dt><dd>Log hours on issues.</dd></div>
+        <div class="row"><dt>Structure</dt><dd>Labels, relations, blockers, epics (parent issues), milestones, components, custom issue statuses, full-text search.</dd></div>
+        <div class="row"><dt>Multi-workspace</dt><dd>Every workspace your account can access, from one server and one login.</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ── Multi-workspace ────────────────────────────────────────────────── -->
+  <section id="multi-workspace">
+    <div class="wrap split">
+      <div>
+        <span class="label"><b>03</b> — Multi-workspace</span>
+        <h2>One login. Every workspace.</h2>
+        <p class="lede">The server discovers what your account can access and keeps a separate connection per workspace. It never guesses which one you mean.</p>
+        <ul class="rules" style="margin-top:2rem">
+          <li><strong>One account login</strong> — email + password or token, once per process.</li>
+          <li><strong>Discovery</strong> via <code>getUserWorkspaces()</code>; <code>list_workspaces</code> shows name, slug and id.</li>
+          <li><strong>One cached connection per workspace</strong>, opened on first use via <code>selectWorkspace()</code> with its own workspace token.</li>
+          <li><strong>No current, default or last-used workspace.</strong> Every call names its target.</li>
+          <li><strong>Writes require <code>workspace</code></strong> — enforced by the tool schema, even with a single workspace.</li>
+          <li>Reads may omit it only when exactly one workspace is available. IDs like <code>PROJ-1</code> are only unique within their workspace.</li>
+        </ul>
+        <a class="more" href="https://github.com/JoKeks2023/huly-mcp/wiki/Multi-Workspace">Multi-Workspace in the docs →</a>
+      </div>
+
+      <div>
+        <div class="flow" role="img" aria-label="Diagram: one Huly account, getUserWorkspaces discovers two workspaces, each with its own cached connection.">
+          <div class="node">Huly account<small>HULY_EMAIL + HULY_PASSWORD · or HULY_TOKEN</small></div>
+          <div class="edge"><span class="edge-label">login (once)</span></div>
+          <div class="node accent">getUserWorkspaces()<small>workspace discovery</small></div>
+          <div class="edge"><span class="edge-label">selectWorkspace(slug) on first use</span></div>
+          <div class="node">Workspace connection manager<small>cache keyed by workspace id</small></div>
+          <div class="fork">
+            <div class="branch">
+              <div class="node">personal<small>workspace token A</small></div>
+              <div class="edge"></div>
+              <div class="node dim">connection</div>
+            </div>
+            <div class="branch">
+              <div class="node">acmeteam<small>workspace token B</small></div>
+              <div class="edge"></div>
+              <div class="node dim">connection</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="term" style="margin-top:2.5rem">
+          <div class="term-head"><span class="file">agent ↔ huly-mcp-selfhost</span></div>
+<pre><code><span class="p">› </span>list_workspaces()
+<span class="c">- **Acme Team** — slug: `acmeteam` — id: `3f2b9c1e-…`
+- **Personal** — slug: `personal` — id: `8a41d7e0-…`</span>
+
+<span class="p">› </span>list_projects(workspace=<span class="k">"acmeteam"</span>)
+<span class="c">## Projects (2) …</span>
+
+<span class="p">› </span>list_projects()
+<span class="c">Multiple workspaces available — pass 'workspace' explicitly.</span>
+
+<span class="p">› </span>log_time(identifier=<span class="k">"WEB-12"</span>, hours=2)
+<span class="c">Input validation error: workspace — Required</span></code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Tools ──────────────────────────────────────────────────────────── -->
+  <section id="tools">
+    <div class="wrap">
+      <span class="label"><b>04</b> — Tools</span>
+      <h2>Every tool, by category.</h2>
+      <div class="stats">
+        <div class="stat"><b>48</b><span>tools</span></div>
+        <div class="stat"><b>16</b><span>categories</span></div>
+        <div class="stat"><b>28</b><span>write — workspace required</span></div>
+        <div class="stat"><b>19</b><span>read — workspace optional*</span></div>
+      </div>
+      <div class="rows">
+        <div class="row"><h3>Workspaces</h3><div class="toolnames"><span>list_workspaces</span></div><span class="count">1</span></div>
+        <div class="row"><h3>Projects</h3><div class="toolnames"><span>list_projects</span><span>get_project</span><span class="w">create_project</span></div><span class="count">3</span></div>
+        <div class="row"><h3>Issues</h3><div class="toolnames"><span>list_issues</span><span>get_issue</span><span class="w">create_issue</span><span class="w">update_issue</span><span class="w">delete_issue</span></div><span class="count">5</span></div>
+        <div class="row"><h3>Comments</h3><div class="toolnames"><span class="w">add_comment</span><span>list_comments</span><span class="w">delete_comment</span></div><span class="count">3</span></div>
+        <div class="row"><h3>Time tracking</h3><div class="toolnames"><span class="w">log_time</span></div><span class="count">1</span></div>
+        <div class="row"><h3>Labels</h3><div class="toolnames"><span>list_labels</span><span class="w">create_label</span><span class="w">add_label</span><span class="w">remove_label</span></div><span class="count">4</span></div>
+        <div class="row"><h3>Relations</h3><div class="toolnames"><span class="w">add_relation</span><span class="w">add_blocked_by</span><span class="w">set_parent</span></div><span class="count">3</span></div>
+        <div class="row"><h3>Members</h3><div class="toolnames"><span>list_members</span></div><span class="count">1</span></div>
+        <div class="row"><h3>Milestones</h3><div class="toolnames"><span>list_milestones</span><span class="w">create_milestone</span></div><span class="count">2</span></div>
+        <div class="row"><h3>Components</h3><div class="toolnames"><span>list_components</span><span class="w">create_component</span></div><span class="count">2</span></div>
+        <div class="row"><h3>Documents</h3><div class="toolnames"><span>list_teamspaces</span><span class="w">create_teamspace</span><span>list_documents</span><span>get_document</span><span class="w">create_document</span><span class="w">delete_document</span><span class="w">update_document</span><span class="w">link_document</span></div><span class="count">8</span></div>
+        <div class="row"><h3>Search</h3><div class="toolnames"><span>search_issues</span></div><span class="count">1</span></div>
+        <div class="row"><h3>Chat</h3><div class="toolnames"><span>list_channels</span><span class="w">create_channel</span><span class="w">start_direct_message</span><span class="w">send_message</span><span>list_messages</span></div><span class="count">5</span></div>
+        <div class="row"><h3>Attachments</h3><div class="toolnames"><span class="w">attach_file</span><span>list_attachments</span><span class="w">delete_attachment</span></div><span class="count">3</span></div>
+        <div class="row"><h3>Issue statuses</h3><div class="toolnames"><span>list_issue_statuses</span><span class="w">create_issue_status</span></div><span class="count">2</span></div>
+        <div class="row"><h3>Organizations</h3><div class="toolnames"><span>list_organizations</span><span>get_organization</span><span class="w">create_organization</span><span class="w">update_organization</span></div><span class="count">4</span></div>
+      </div>
+      <div class="legend"><span class="w">changes data — <code>workspace</code> required</span><span>* only if exactly one workspace is available</span></div>
+      <a class="more" href="https://github.com/JoKeks2023/huly-mcp/wiki/Tools">Full tool reference with every argument →</a>
+    </div>
+  </section>
+
+  <!-- ── Architecture ───────────────────────────────────────────────────── -->
+  <section id="architecture">
+    <div class="wrap">
+      <span class="label"><b>05</b> — Architecture</span>
+      <h2>A thin, stateful bridge.</h2>
+      <p class="lede">No database, no cache service, no extra infrastructure. All state is in process memory: one account session, the discovered workspace list and one connection per workspace in use.</p>
+      <div class="layers">
+        <div class="layer"><div class="name">MCP client<small>Claude · Codex · Cursor · Zed</small></div><p>Calls tools over stdio — or HTTP when running the Docker image behind mcp-proxy.</p></div>
+        <div class="layer"><div class="name">MCP tools<small>src/tools/*.ts</small></div><p>48 handlers. Each resolves its own connection from its <code>workspace</code> argument; inputs are validated against zod schemas first.</p></div>
+        <div class="layer"><div class="name">Account client<small>HULY_ACCOUNTS_URL · account token</small></div><p><code>login</code> / <code>getLoginInfoByToken</code>, then <code>getUserWorkspaces()</code> and <code>selectWorkspace()</code>. Never holds a workspace token.</p></div>
+        <div class="layer"><div class="name">Workspace connection manager<small>src/connection.ts</small></div><p>Caches the session, the workspace list and one connection per workspace id. Failed attempts are not cached; shutdown closes everything.</p></div>
+        <div class="layer"><div class="name">Workspace client<small>per workspace · workspace token</small></div><p><code>TxOperations</code> for all reads and writes, plus a workspace-scoped account client for <code>getWorkspaceMembers()</code>.</p></div>
+        <div class="layer"><div class="name">Huly WebSocket<small>endpoint from selectWorkspace()</small></div><p>Opened with <code>@hcengineering/server-client</code>; loads the workspace model once, then stays open.</p></div>
+        <div class="layer"><div class="name">Storage / <span>/files</span><small>HULY_FRONT_URL · workspace token</small></div><p>Markup blobs (document bodies, descriptions) and attachments — Bearer-authenticated, per workspace.</p></div>
+      </div>
+      <a class="more" href="https://github.com/JoKeks2023/huly-mcp/wiki/Architecture">Architecture in the docs →</a>
+    </div>
+  </section>
+
+  <!-- ── Self-hosted ────────────────────────────────────────────────────── -->
+  <section id="self-hosted">
+    <div class="wrap">
+      <span class="label"><b>06</b> — Self-hosted</span>
+      <h2>Built for huly-selfhost. Works on Huly Cloud.</h2>
+      <p class="lede">Upstream writes document content through Huly Cloud’s datalake service, which self-hosted instances don’t run. This fork routes blobs through the front service’s own <code>/files</code> endpoint instead.</p>
+
+      <div class="cols">
+        <div class="col">
+          <h3>HULY_ACCOUNTS_URL</h3>
+          <p>Account service: login, workspace discovery, <code>selectWorkspace()</code>, members. Defaults to <code>https://account.huly.app</code>. Self-hosted: e.g. <code>https://your-huly-instance.com/_accounts</code>.</p>
+        </div>
+        <div class="col">
+          <h3>HULY_FRONT_URL</h3>
+          <p>Front service: reads document and description content and — when set — handles uploads via <code>/files</code>. Not involved in login or discovery. Self-hosted: e.g. <code>https://your-huly-instance.com</code>.</p>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Blob operation</th><th>HULY_FRONT_URL set</th><th>HULY_FRONT_URL unset (Cloud)</th></tr></thead>
+          <tbody>
+            <tr><td>Read content</td><td><code>GET {front}/files?file=…&amp;workspace=…</code></td><td>not fetched — blob ref shown</td></tr>
+            <tr><td>Upload</td><td><code>POST {front}/files</code></td><td><code>POST dl-eu.huly.app/upload/form-data/{workspace}</code></td></tr>
+            <tr><td>Delete</td><td><code>DELETE {front}/files?file=…</code></td><td><code>DELETE dl-eu.huly.app/blob/{workspace}/{id}</code></td></tr>
+            <tr><td>Auth</td><td colspan="2"><code>Authorization: Bearer &lt;workspace token&gt;</code> — of the workspace named in the call</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="callout"><strong>Note:</strong> <code>HULY_FRONT_URL</code> doubles as the self-hosted switch for uploads. On a self-hosted instance, always set it.</p>
+      <a class="more" href="https://github.com/JoKeks2023/huly-mcp/wiki/Self-Hosted-Huly">Self-hosted Huly in the docs →</a>
+    </div>
+  </section>
+
+  <!-- ── Security ───────────────────────────────────────────────────────── -->
+  <section id="security">
+    <div class="wrap split">
+      <div>
+        <span class="label"><b>07</b> — Security</span>
+        <h2>Tokens stay in headers.</h2>
+        <p class="lede">Content fetches in <code>get_document</code>, <code>get_issue</code> and <code>get_organization</code> used to put the workspace token into the <code>/files</code> URL — and <code>get_document</code> printed that URL into the tool result. Now the token only travels as an <code>Authorization</code> header.</p>
+        <ul class="rules" style="margin-top:2rem">
+          <li>No <code>/files</code> URL carries <code>token=</code>.</li>
+          <li>No tool result contains a workspace token — covered by regression tests.</li>
+          <li>Each request uses the token of the workspace named in the call.</li>
+        </ul>
+        <a class="more" href="https://github.com/JoKeks2023/huly-mcp/wiki/Security">Security in the docs →</a>
+      </div>
+      <div>
+        <div class="term">
+          <div class="term-head"><span class="file">GET /files — before → after</span></div>
+<pre><code><span class="del">- GET /files?file=&lt;blob&gt;&amp;workspace=&lt;uuid&gt;&amp;token=&lt;workspace token&gt;</span>
+<span class="add">+ GET /files?file=&lt;blob&gt;&amp;workspace=&lt;uuid&gt;</span>
+<span class="add">+ Authorization: Bearer &lt;workspace token&gt;</span></code></pre>
+        </div>
+        <p class="callout"><strong>Remote deployments:</strong> the Docker image does not authenticate MCP clients. Anyone who can reach it acts as your Huly account — put it behind an authenticating reverse proxy or a private network.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Install / Docker ───────────────────────────────────────────────── -->
+  <section id="install">
+    <div class="wrap">
+      <span class="label"><b>08</b> — Install</span>
+      <h2>Three ways to run it.</h2>
+      <div class="cols wide">
+        <div class="col">
+          <h3>npm</h3>
+          <p>Launched by your MCP client over stdio. Node.js ≥ 20.</p>
+          <div class="term"><div class="term-head"><span class="file">terminal</span><button class="copy" type="button" data-copy="c-npm"><span class="copy-label">Copy</span></button></div>
+<pre><code id="c-npm">npx -y huly-mcp-selfhost</code></pre></div>
+        </div>
+        <div class="col">
+          <h3>From source</h3>
+          <p>Point your client at <code>node /path/to/huly-mcp/dist/index.js</code>.</p>
+          <div class="term"><div class="term-head"><span class="file">terminal</span><button class="copy" type="button" data-copy="c-src"><span class="copy-label">Copy</span></button></div>
+<pre><code id="c-src">git clone https://github.com/JoKeks2023/huly-mcp.git
+cd huly-mcp &amp;&amp; npm install &amp;&amp; npm run build</code></pre></div>
+        </div>
+        <div class="col">
+          <h3>Docker</h3>
+          <p>HTTP via mcp-proxy on port 8000: <code>/mcp</code> (streamable HTTP) and <code>/sse</code>. Credentials in <code>.env</code>.</p>
+          <div class="term"><div class="term-head"><span class="file">terminal</span><button class="copy" type="button" data-copy="c-docker"><span class="copy-label">Copy</span></button></div>
+<pre><code id="c-docker">docker run -d --name huly-mcp -p 127.0.0.1:8000:8000 \
+  --env-file .env jokeks2023/huly-mcp:latest</code></pre></div>
+          <p>Remote clients connect to <code>https://&lt;your-host&gt;/mcp</code> through your own authenticating proxy.</p>
+        </div>
+      </div>
+      <a class="more" href="https://github.com/JoKeks2023/huly-mcp/wiki/Docker-Deployment">Docker deployment in the docs →</a>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <span class="name">huly-mcp-selfhost</span>
+    <nav aria-label="Project links">
+      <a href="https://github.com/JoKeks2023/huly-mcp/blob/main/LICENSE">EPL-2.0</a>
+      <a href="https://github.com/JoKeks2023/huly-mcp">GitHub</a>
+      <a href="https://www.npmjs.com/package/huly-mcp-selfhost">npm</a>
+      <a href="https://hub.docker.com/r/jokeks2023/huly-mcp">Docker</a>
+      <a href="https://github.com/JoKeks2023/huly-mcp/wiki/">Documentation</a>
+      <a href="https://github.com/varaprasadreddy9676/huly-mcp">Upstream</a>
+    </nav>
+    <span class="sig"><em>for Claude, by Claude.</em></span>
+  </div>
+</footer>
+
+</body>
+</html>
