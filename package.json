@@ -1,6 +1,6 @@
 {
   "name": "huly-mcp-selfhost",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "MCP server for Huly (self-hosted + cloud) — connect Claude Desktop to your Huly workspace via the native WebSocket SDK. Fork of huly-mcp-sdk with self-hosted document/description support, chat, attachments, custom issue statuses, and organizations.",
   "keywords": [
     "huly",
