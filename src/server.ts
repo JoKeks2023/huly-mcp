@@ -4,12 +4,12 @@ import { listIssues, getIssue, createIssue, updateIssue, deleteIssue } from './t
 import { addComment, listComments, deleteComment } from './tools/comments'
 import { logTime } from './tools/log-time'
 import { listMembers } from './tools/members'
-import { listMilestones, createMilestone } from './tools/milestones'
+import { listMilestones, createMilestone, getMilestone, updateMilestone, deleteMilestone } from './tools/milestones'
 import { listTeamspaces, createTeamspace, listDocuments, getDocument, createDocument, deleteDocument, updateDocument, linkDocument } from './tools/documents'
 import { searchIssues } from './tools/search'
 import { listLabels, createLabel, addLabel, removeLabel } from './tools/labels'
 import { addRelation, addBlockedBy, setParent } from './tools/relations'
-import { listComponents, createComponent } from './tools/components'
+import { listComponents, createComponent, updateComponent, deleteComponent } from './tools/components'
 import { listChannels, createChannel, startDirectMessage, sendMessage, listMessages } from './tools/channels'
 import { attachFile, listAttachments, deleteAttachment } from './tools/attachments'
 import { listIssueStatuses, createIssueStatus } from './tools/statuses'
@@ -32,6 +32,9 @@ import {
   LogTimeSchema,
   ListMilestonesSchema,
   CreateMilestoneSchema,
+  GetMilestoneSchema,
+  UpdateMilestoneSchema,
+  DeleteMilestoneSchema,
   ListDocumentsSchema,
   GetDocumentSchema,
   CreateDocumentSchema,
@@ -48,6 +51,8 @@ import {
   SetParentSchema,
   ListComponentsSchema,
   CreateComponentSchema,
+  UpdateComponentSchema,
+  DeleteComponentSchema,
   CreateTeamspaceSchema,
   DeleteDocumentSchema,
   ListChannelsSchema,
@@ -153,10 +158,15 @@ export function createServer (): McpServer {
   // Milestones
   server.tool('list_milestones', 'List milestones for a project', ListMilestonesSchema.shape, listMilestones)
   server.tool('create_milestone', 'Create a new milestone in a project with a target date', CreateMilestoneSchema.shape, createMilestone)
+  server.tool('get_milestone', 'Get a milestone with its progress (done/open issues) and the list of open issues', GetMilestoneSchema.shape, getMilestone)
+  server.tool('update_milestone', 'Update a milestone (name, target date, status, description)', UpdateMilestoneSchema.shape, updateMilestone)
+  server.tool('delete_milestone', 'Delete a milestone. Its issues are kept and either moved to another milestone (moveIssuesTo) or unassigned', DeleteMilestoneSchema.shape, deleteMilestone)
 
   // Components
   server.tool('list_components', 'List components (sub-areas) in a project', ListComponentsSchema.shape, listComponents)
   server.tool('create_component', 'Create a new component in a project', CreateComponentSchema.shape, createComponent)
+  server.tool('update_component', 'Update a component (name, description, lead)', UpdateComponentSchema.shape, updateComponent)
+  server.tool('delete_component', 'Delete a component. Its issues are kept and either moved to another component (moveIssuesTo) or unassigned', DeleteComponentSchema.shape, deleteComponent)
 
   // Documents
   server.tool('list_teamspaces', 'List all document teamspaces in the workspace', ListTeamspacesSchema.shape, listTeamspaces)

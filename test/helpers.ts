@@ -45,6 +45,10 @@ export class FakeTxClient {
   async updateDoc (_class: string, space: string, id: string, data: unknown): Promise<void> {
     this.mutations.push({ op: 'updateDoc', _class, space, attachedTo: id, data })
   }
+
+  async removeDoc (_class: string, space: string, id: string): Promise<void> {
+    this.mutations.push({ op: 'removeDoc', _class, space, attachedTo: id })
+  }
 }
 
 export interface FakeAccountCalls {
