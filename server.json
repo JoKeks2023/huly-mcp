@@ -1,17 +1,17 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.jokeks2023/huly-mcp-selfhost",
-  "description": "MCP server for Huly (self-hosted + cloud): projects, issues, milestones, planning, documents, chat and more.",
+  "description": "MCP server for Huly (self-hosted + cloud): tracker, documents, chat, inbox, planner, calendar and generic access to every module.",
   "repository": {
     "url": "https://github.com/JoKeks2023/huly-mcp",
     "source": "github"
   },
-  "version": "2.2.0",
+  "version": "3.0.0",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "huly-mcp-selfhost",
-      "version": "2.2.0",
+      "version": "3.0.0",
       "transport": {
         "type": "stdio"
       },
