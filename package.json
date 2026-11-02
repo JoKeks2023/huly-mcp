@@ -57,14 +57,17 @@
     "@hcengineering/tags": "^0.7.0",
     "@hcengineering/task": "^0.7.0",
     "@hcengineering/tracker": "^0.7.0",
-    "@modelcontextprotocol/sdk": "^1.10.0",
-    "ws": "^8.18.0",
-    "zod": "^3.23.0"
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "ws": "^8.22.1",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
     "@types/ws": "^8.5.0",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0"
+  },
+  "overrides": {
+    "dompurify": "^3.4.17"
   }
 }
