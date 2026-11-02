@@ -20,25 +20,57 @@ export class FakeTxClient {
   constructor (readonly label: string, readonly docs: FakeDoc[], readonly user = 'social-id') {}
 
   private matches (doc: FakeDoc, _class: string, query: Record<string, unknown>): boolean {
-    if (doc._class !== _class) return false
+    // Like the real server: a query on a base class also returns documents of derived classes.
+    if (doc._class !== _class && !this.getHierarchy().isDerived(doc._class, _class)) return false
     return Object.entries(query).every(([k, v]) => {
-      if (v != null && typeof v === 'object' && Array.isArray((v as any).$in)) return (v as any).$in.includes(doc[k])
-      return (doc[k] ?? null) === v
+      const actual = doc[k] ?? null
+      if (v != null && typeof v === 'object' && !Array.isArray(v)) {
+        const ops = v as Record<string, any>
+        if ('$in' in ops && !ops.$in.includes(actual)) return false
+        if ('$lte' in ops && !(actual != null && actual <= ops.$lte)) return false
+        if ('$gte' in ops && !(actual != null && actual >= ops.$gte)) return false
+        if ('$ne' in ops && actual === ops.$ne) return false
+        return true
+      }
+      return actual === v
     })
   }
 
   /** Collections per class, used by move_issue via getHierarchy(). */
   collections: Record<string, Array<{ name: string, of: string }>> = {}
 
+  /** Model classes for tools that inspect the hierarchy (generic tools). */
+  classes: Record<string, { extends?: string, domain?: string, kind?: number, attrs?: Record<string, string> }> = {}
+
   getHierarchy (): any {
+    const isDerived = (a: string, b: string): boolean => {
+      let cur: string | undefined = a
+      while (cur != null) { if (cur === b) return true; cur = this.classes[cur]?.extends }
+      return false
+    }
     return {
-      getAllAttributes: (_class: string) => new Map((this.collections[_class] ?? []).map((c) => [c.name, { name: c.name, type: { _class: 'core:class:Collection', of: c.of } }])),
-      isDerived: (a: string, b: string) => a === b
+      getAllAttributes: (_class: string) => {
+        const m = new Map<string, any>((this.collections[_class] ?? []).map((c) => [c.name, { name: c.name, type: { _class: 'core:class:Collection', of: c.of } }]))
+        let cur: string | undefined = _class
+        while (cur != null) {
+          for (const [k, t] of Object.entries(this.classes[cur]?.attrs ?? {})) if (!m.has(k)) m.set(k, { name: k, type: { _class: t } })
+          cur = this.classes[cur]?.extends
+        }
+        return m
+      },
+      isDerived,
+      getClass: (id: string) => { const c = this.classes[id]; if (c == null) throw new Error('not found'); return { _id: id, kind: c.kind ?? 0, extends: c.extends } },
+      findDomain: (id: string) => { let cur: string | undefined = id; while (cur != null) { if (this.classes[cur]?.domain != null) return this.classes[cur].domain; cur = this.classes[cur]?.extends } return undefined },
+      getDescendants: (id: string) => Object.keys(this.classes).filter((c) => isDerived(c, id)),
+      hasMixin: (doc: any, mixin: string) => doc[mixin] != null
     }
   }
 
-  async findAll (_class: string, query: Record<string, unknown> = {}): Promise<FakeDoc[]> {
-    return this.docs.filter((d) => this.matches(d, _class, query))
+  async findAll (_class: string, query: Record<string, unknown> = {}, options: { limit?: number, total?: boolean } = {}): Promise<any> {
+    const all = this.docs.filter((d) => this.matches(d, _class, query))
+    const result: any = options.limit != null ? all.slice(0, options.limit) : all
+    result.total = all.length
+    return result
   }
 
   async findOne (_class: string, query: Record<string, unknown> = {}): Promise<FakeDoc | undefined> {

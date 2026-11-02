@@ -436,3 +436,229 @@ export const RepairParentLinksSchema = z.object({
   projectIdentifier: z.string().describe('Project key'),
   dryRun: z.boolean().default(true).describe('false applies the repair')
 })
+
+// ── 3.0: inbox, activity, planner, calendar, chat, github, contacts, generic ─
+const ToDoPriorityEnum = z.enum(['Urgent', 'High', 'Medium', 'Low', 'NoPriority'])
+const ProviderEnum = z.enum(['Email', 'Phone', 'LinkedIn', 'Twitter', 'GitHub', 'Facebook', 'Homepage', 'Whatsapp', 'Skype', 'Telegram', 'Viber', 'Profile'])
+
+export const ListNotificationsSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  unreadOnly: z.boolean().default(true),
+  limit: z.number().int().min(1).max(200).default(30)
+})
+
+export const MarkNotificationsReadSchema = z.object({
+  workspace: WorkspaceArg,
+  object: z.string().optional().describe('Issue id or object id: read all its notifications'),
+  notificationIds: z.array(z.string()).optional().describe('From list_notifications'),
+  all: z.boolean().optional().describe('Mark everything read'),
+  archive: z.boolean().default(false).describe('Also archive')
+})
+
+export const GetActivitySchema = z.object({
+  workspace: ReadWorkspaceArg,
+  object: z.string().describe('Issue id (PROJ-1) or object id'),
+  limit: z.number().int().min(1).max(200).default(50)
+})
+
+export const ListTodosSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  status: z.enum(['open', 'done', 'all']).default('open'),
+  dueBefore: z.string().optional().describe('ISO date'),
+  limit: z.number().int().min(1).max(200).default(50)
+})
+
+export const CreateTodoSchema = z.object({
+  workspace: WorkspaceArg,
+  title: z.string().min(1),
+  description: z.string().optional().describe('Markdown'),
+  dueDate: z.string().optional().describe('ISO date'),
+  priority: ToDoPriorityEnum.default('NoPriority'),
+  issue: z.string().optional().describe('Issue id to attach the to-do to')
+})
+
+export const UpdateTodoSchema = z.object({
+  workspace: WorkspaceArg,
+  todoId: z.string().describe('From list_todos'),
+  title: z.string().min(1).optional(),
+  description: z.string().optional().describe('Markdown'),
+  dueDate: z.string().nullable().optional(),
+  priority: ToDoPriorityEnum.optional(),
+  done: z.boolean().optional()
+})
+
+export const DeleteTodoSchema = z.object({
+  workspace: WorkspaceArg,
+  todoId: z.string().describe('From list_todos')
+})
+
+export const ScheduleTodoSchema = z.object({
+  workspace: WorkspaceArg,
+  todoId: z.string().describe('From list_todos'),
+  start: z.string().describe('ISO date-time, e.g. 2026-11-03T09:00'),
+  durationMinutes: z.number().int().min(5).max(1440).default(30)
+})
+
+export const ListEventsSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  from: z.string().optional().describe('ISO date; default today'),
+  to: z.string().optional().describe('ISO date, inclusive; default from + 7 days'),
+  limit: z.number().int().min(1).max(200).default(50)
+})
+
+export const CreateEventSchema = z.object({
+  workspace: WorkspaceArg,
+  title: z.string().min(1),
+  start: z.string().describe('ISO date-time, or date for allDay'),
+  end: z.string().optional().describe('ISO date-time; default start + 1h'),
+  allDay: z.boolean().default(false),
+  location: z.string().optional(),
+  description: z.string().optional().describe('Markdown'),
+  participants: z.array(z.string()).optional().describe('Person names; you are always included')
+})
+
+export const UpdateEventSchema = z.object({
+  workspace: WorkspaceArg,
+  eventId: z.string().describe('From list_events'),
+  title: z.string().min(1).optional(),
+  start: z.string().optional(),
+  end: z.string().optional(),
+  location: z.string().optional(),
+  description: z.string().optional().describe('Markdown')
+})
+
+export const DeleteEventSchema = z.object({
+  workspace: WorkspaceArg,
+  eventId: z.string().describe('From list_events')
+})
+
+const MessageIdArg = z.string().describe('Message id (list_messages, list_comments, list_thread)')
+
+export const ListThreadSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  messageId: MessageIdArg,
+  limit: z.number().int().min(1).max(200).default(50)
+})
+
+export const ReplyToMessageSchema = z.object({
+  workspace: WorkspaceArg,
+  messageId: MessageIdArg,
+  message: z.string().min(1)
+})
+
+export const UpdateMessageSchema = z.object({
+  workspace: WorkspaceArg,
+  messageId: MessageIdArg,
+  message: z.string().min(1)
+})
+
+export const DeleteMessageSchema = z.object({
+  workspace: WorkspaceArg,
+  messageId: MessageIdArg
+})
+
+export const ReactionSchema = z.object({
+  workspace: WorkspaceArg,
+  messageId: MessageIdArg,
+  emoji: z.string().min(1).describe('e.g. 👍')
+})
+
+export const PinMessageSchema = z.object({
+  workspace: WorkspaceArg,
+  messageId: MessageIdArg,
+  pinned: z.boolean().default(true)
+})
+
+export const ListPullRequestsSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  projectIdentifier: z.string().optional().describe('Project key'),
+  issue: z.string().optional().describe('Issue id the PRs belong to'),
+  state: z.enum(['open', 'closed', 'merged', 'all']).default('open'),
+  limit: z.number().int().min(1).max(200).default(30)
+})
+
+export const GetPullRequestSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  identifier: z.string().describe('PR id, e.g. PROJ-34')
+})
+
+const PersonRef = z.string().describe('Person name or id')
+
+export const ListPersonsSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  query: z.string().optional().describe('Name filter'),
+  employeesOnly: z.boolean().default(false),
+  limit: z.number().int().min(1).max(500).default(100)
+})
+
+export const GetPersonSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  person: PersonRef
+})
+
+export const CreatePersonSchema = z.object({
+  workspace: WorkspaceArg,
+  firstName: z.string().min(1),
+  lastName: z.string().default(''),
+  city: z.string().optional(),
+  channels: z.array(z.object({ provider: ProviderEnum, value: z.string().min(1) })).optional()
+})
+
+export const UpdatePersonSchema = z.object({
+  workspace: WorkspaceArg,
+  person: PersonRef,
+  firstName: z.string().min(1).optional(),
+  lastName: z.string().optional(),
+  city: z.string().optional()
+})
+
+export const ContactChannelSchema = z.object({
+  workspace: WorkspaceArg,
+  person: PersonRef,
+  provider: ProviderEnum,
+  value: z.string().min(1)
+})
+
+export const ListClassesSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  module: z.string().optional().describe('e.g. recruit, lead, hr, board, drive'),
+  withCounts: z.boolean().default(false).describe('Count documents (slower)')
+})
+
+export const DescribeClassSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  className: z.string().describe('e.g. recruit:class:Vacancy')
+})
+
+export const QueryDocumentsSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  className: z.string(),
+  query: z.record(z.string(), z.any()).optional().describe('Field equality filter, e.g. {"space":"…"}'),
+  fields: z.array(z.string()).optional().describe('Only these fields'),
+  limit: z.number().int().min(1).max(200).default(20)
+})
+
+export const GenericCreateSchema = z.object({
+  workspace: WorkspaceArg,
+  className: z.string(),
+  space: z.string().describe('Space id the document belongs to'),
+  attributes: z.record(z.string(), z.any()),
+  attachTo: z.object({ id: z.string(), className: z.string(), collection: z.string() }).optional().describe('For attached docs'),
+  dryRun: z.boolean().default(true)
+})
+
+export const GenericUpdateSchema = z.object({
+  workspace: WorkspaceArg,
+  className: z.string(),
+  id: z.string(),
+  attributes: z.record(z.string(), z.any()),
+  dryRun: z.boolean().default(true)
+})
+
+export const GenericDeleteSchema = z.object({
+  workspace: WorkspaceArg,
+  className: z.string(),
+  id: z.string(),
+  dryRun: z.boolean().default(true),
+  confirm: z.boolean().default(false).describe('Must be true to delete')
+})

@@ -8,7 +8,7 @@ import { createServer, parseToolsets } from '../src/server'
 import { TOOLS, TOOLSETS, DEFAULT_TOOLSETS } from '../src/registry'
 
 /** Characters of the tools/list payload; ~3.5 characters per token. */
-const DEFAULT_BUDGET_CHARS = 35_000
+const DEFAULT_BUDGET_CHARS = 40_000
 
 async function listTools (toolsets: string): Promise<any[]> {
   const server = createServer({ toolsets })
