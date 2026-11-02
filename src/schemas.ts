@@ -90,6 +90,29 @@ export const CreateMilestoneSchema = z.object({
   status: MilestoneStatusEnum.default('Planned').describe('Milestone status')
 })
 
+export const GetMilestoneSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  projectIdentifier: z.string().describe('Project identifier, e.g. "PROJ"'),
+  label: z.string().min(1).describe('Milestone name')
+})
+
+export const UpdateMilestoneSchema = z.object({
+  workspace: WorkspaceArg,
+  projectIdentifier: z.string().describe('Project identifier, e.g. "PROJ"'),
+  label: z.string().min(1).describe('Current milestone name'),
+  newLabel: z.string().min(1).optional().describe('New milestone name'),
+  targetDate: z.string().optional().describe('New target date as ISO 8601 string, e.g. "2026-06-01"'),
+  status: MilestoneStatusEnum.optional().describe('New milestone status'),
+  description: z.string().nullable().optional().describe('New description as Markdown, or null to clear')
+})
+
+export const DeleteMilestoneSchema = z.object({
+  workspace: WorkspaceArg,
+  projectIdentifier: z.string().describe('Project identifier, e.g. "PROJ"'),
+  label: z.string().min(1).describe('Milestone name to delete'),
+  moveIssuesTo: z.string().min(1).optional().describe('Milestone name to move its issues to. If omitted, the issues keep existing but lose their milestone.')
+})
+
 export const ListComponentsSchema = z.object({
   workspace: ReadWorkspaceArg,
   projectIdentifier: z.string().describe('Project identifier, e.g. "PROJ"')
@@ -101,6 +124,22 @@ export const CreateComponentSchema = z.object({
   label: z.string().min(1).describe('Component name'),
   description: z.string().optional().describe('Component description'),
   lead: z.string().optional().describe('Lead member name (first/last/full)')
+})
+
+export const UpdateComponentSchema = z.object({
+  workspace: WorkspaceArg,
+  projectIdentifier: z.string().describe('Project identifier, e.g. "PROJ"'),
+  label: z.string().min(1).describe('Current component name'),
+  newLabel: z.string().min(1).optional().describe('New component name'),
+  description: z.string().nullable().optional().describe('New description as Markdown, or null to clear'),
+  lead: z.string().nullable().optional().describe('Lead member name (first/last/full), or null to clear')
+})
+
+export const DeleteComponentSchema = z.object({
+  workspace: WorkspaceArg,
+  projectIdentifier: z.string().describe('Project identifier, e.g. "PROJ"'),
+  label: z.string().min(1).describe('Component name to delete'),
+  moveIssuesTo: z.string().min(1).optional().describe('Component name to move its issues to. If omitted, the issues keep existing but lose their component.')
 })
 
 export const CreateProjectSchema = z.object({

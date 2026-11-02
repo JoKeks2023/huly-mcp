@@ -10,7 +10,9 @@ import { getIssue, updateIssue } from '../src/tools/issues'
 import { getDocument } from '../src/tools/documents'
 import { getOrganization } from '../src/tools/organizations'
 import { logTime } from '../src/tools/log-time'
-import { createMilestone } from '../src/tools/milestones'
+import { createMilestone, getMilestone, updateMilestone, deleteMilestone } from '../src/tools/milestones'
+import { updateComponent, deleteComponent } from '../src/tools/components'
+import task from '@hcengineering/task'
 import { listMembers } from '../src/tools/members'
 import { listWorkspaces } from '../src/tools/workspaces'
 import * as schemas from '../src/schemas'
@@ -164,7 +166,8 @@ const MUTATION_SCHEMAS = [
   'AddCommentSchema', 'DeleteCommentSchema', 'LogTimeSchema',
   'CreateLabelSchema', 'AddLabelSchema', 'RemoveLabelSchema',
   'AddRelationSchema', 'AddBlockedBySchema', 'SetParentSchema',
-  'CreateMilestoneSchema', 'CreateComponentSchema',
+  'CreateMilestoneSchema', 'UpdateMilestoneSchema', 'DeleteMilestoneSchema',
+  'CreateComponentSchema', 'UpdateComponentSchema', 'DeleteComponentSchema',
   'CreateTeamspaceSchema', 'CreateDocumentSchema', 'DeleteDocumentSchema', 'UpdateDocumentSchema', 'LinkDocumentSchema',
   'CreateChannelSchema', 'StartDirectMessageSchema', 'SendMessageSchema',
   'AttachFileSchema', 'DeleteAttachmentSchema',
@@ -235,4 +238,114 @@ test('get_document without a successful fetch still leaks no token', async () =>
   globalThis.fetch = (async () => { throw new Error('network down') }) as unknown as typeof fetch
   const failed = text(await getDocument({ workspace: 'jokeks2023', documentId: 'doc-1' }))
   assert.ok(!failed.includes('ws-token-'), 'tool result contains a workspace token')
+})
+
+// --- Milestones & components: get / update / delete -------------------------
+
+function planningData (): FakeDoc[] {
+  return [
+    { _id: 'project-1', _class: tracker.class.Project, identifier: 'PROJ', name: 'p', sequence: 3 },
+    { _id: 'st-todo', _class: tracker.class.IssueStatus, name: 'Todo', category: task.statusCategory.ToDo },
+    { _id: 'st-done', _class: tracker.class.IssueStatus, name: 'Done', category: task.statusCategory.Won },
+    { _id: 'st-cancel', _class: tracker.class.IssueStatus, name: 'Canceled', category: task.statusCategory.Lost },
+    { _id: 'ms-1', _class: tracker.class.Milestone, space: 'project-1', label: 'v1.0', status: 0, targetDate: Date.UTC(2026, 11, 1), description: JSON.stringify({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'First release' }] }] }) },
+    { _id: 'ms-2', _class: tracker.class.Milestone, space: 'project-1', label: 'v1.1', status: 0, targetDate: Date.UTC(2027, 0, 1) },
+    { _id: 'cmp-1', _class: tracker.class.Component, space: 'project-1', label: 'API', lead: null, description: 'plain text desc' },
+    { _id: 'cmp-2', _class: tracker.class.Component, space: 'project-1', label: 'UI', lead: null },
+    { _id: 'member-1', _class: contact.class.Member, name: 'Jo Keks' },
+    { _id: 'i-1', _class: tracker.class.Issue, space: 'project-1', identifier: 'PROJ-1', title: 'open one', status: 'st-todo', milestone: 'ms-1', component: 'cmp-1' },
+    { _id: 'i-2', _class: tracker.class.Issue, space: 'project-1', identifier: 'PROJ-2', title: 'done one', status: 'st-done', milestone: 'ms-1', component: 'cmp-1' },
+    { _id: 'i-3', _class: tracker.class.Issue, space: 'project-1', identifier: 'PROJ-3', title: 'dropped', status: 'st-cancel', milestone: 'ms-1', component: null }
+  ]
+}
+
+function usePlanningData (): void {
+  env = createFakeEnv({ workspaces: [PERSONAL], data: { jokeks2023: planningData() } })
+  setConnectionManager(env.manager)
+}
+
+function mutations (): Array<{ op: string, _class: string, attachedTo?: string, data?: any }> {
+  return env.clients.get('jokeks2023')!.mutations as any
+}
+
+test('get_milestone reports progress, description and open issues', async () => {
+  usePlanningData()
+  const out = text(await getMilestone({ projectIdentifier: 'PROJ', label: 'v1.0' }))
+  assert.match(out, /\*\*Progress:\*\* 1\/2 done \(1 open, 1 canceled\)/)
+  assert.match(out, /\*\*Target date:\*\* 2026-12-01/)
+  assert.match(out, /First release/)
+  assert.match(out, /PROJ-1: open one/)
+  assert.doesNotMatch(out, /PROJ-2|PROJ-3/)
+})
+
+test('update_milestone changes only the given fields', async () => {
+  usePlanningData()
+  const out = text(await updateMilestone({ workspace: 'jokeks2023', projectIdentifier: 'PROJ', label: 'v1.0', newLabel: 'v1.0 MVP', status: 'InProgress', targetDate: '2026-12-15' }))
+  assert.match(out, /v1\.0 MVP/)
+  const [m] = mutations()
+  assert.equal(m.op, 'updateDoc')
+  assert.equal(m.attachedTo, 'ms-1')
+  assert.deepEqual(m.data, { label: 'v1.0 MVP', status: 1, targetDate: Date.UTC(2026, 11, 15) })
+})
+
+test('update_milestone rejects a name that already exists and bad dates', async () => {
+  usePlanningData()
+  await assert.rejects(updateMilestone({ workspace: 'jokeks2023', projectIdentifier: 'PROJ', label: 'v1.0', newLabel: 'v1.1' }), /already exists/)
+  await assert.rejects(updateMilestone({ workspace: 'jokeks2023', projectIdentifier: 'PROJ', label: 'v1.0', targetDate: 'soon' }), /Invalid date/)
+  await assert.rejects(updateMilestone({ workspace: 'jokeks2023', projectIdentifier: 'PROJ', label: 'nope', status: 'Completed' }), /not found/)
+  assert.equal(mutations().length, 0)
+})
+
+test('update_milestone stores the description as ProseMirror markup', async () => {
+  usePlanningData()
+  await updateMilestone({ workspace: 'jokeks2023', projectIdentifier: 'PROJ', label: 'v1.1', description: 'Hello' })
+  const desc = JSON.parse(mutations()[0].data.description)
+  assert.equal(desc.type, 'doc')
+  assert.match(JSON.stringify(desc), /Hello/)
+})
+
+test('markupToText keeps inline marks on one line and separates blocks', async () => {
+  const { markupToText, textToMarkup } = await import('../src/utils/format')
+  assert.equal(markupToText(textToMarkup('Smoke **test** description')), 'Smoke test description')
+  assert.equal(markupToText(textToMarkup('a\n\nb')), 'a\nb')
+  assert.equal(markupToText('plain'), 'plain')
+  assert.equal(markupToText(null), '')
+})
+
+test('delete_milestone unassigns its issues before removing it', async () => {
+  usePlanningData()
+  const out = text(await deleteMilestone({ workspace: 'jokeks2023', projectIdentifier: 'PROJ', label: 'v1.0' }))
+  assert.match(out, /3 issue\(s\) no longer have a milestone/)
+  const ops = mutations().map((m) => [m.op, m.attachedTo, m.data?.milestone])
+  assert.deepEqual(ops, [
+    ['updateDoc', 'i-1', null], ['updateDoc', 'i-2', null], ['updateDoc', 'i-3', null],
+    ['removeDoc', 'ms-1', undefined]
+  ])
+})
+
+test('delete_milestone with moveIssuesTo reassigns issues; same target is rejected', async () => {
+  usePlanningData()
+  await assert.rejects(deleteMilestone({ workspace: 'jokeks2023', projectIdentifier: 'PROJ', label: 'v1.0', moveIssuesTo: 'v1.0' }), /different milestone/)
+  await assert.rejects(deleteMilestone({ workspace: 'jokeks2023', projectIdentifier: 'PROJ', label: 'v1.0', moveIssuesTo: 'v9' }), /not found/)
+  assert.equal(mutations().length, 0)
+  const out = text(await deleteMilestone({ workspace: 'jokeks2023', projectIdentifier: 'PROJ', label: 'v1.0', moveIssuesTo: 'v1.1' }))
+  assert.match(out, /3 issue\(s\) moved to \*\*v1\.1\*\*/)
+  assert.ok(mutations().filter((m) => m.op === 'updateDoc').every((m) => m.data.milestone === 'ms-2'))
+})
+
+test('update_component sets name, description and lead (and clears lead with null)', async () => {
+  usePlanningData()
+  await updateComponent({ workspace: 'jokeks2023', projectIdentifier: 'PROJ', label: 'API', newLabel: 'Backend', lead: 'keks' })
+  assert.deepEqual(mutations()[0].data, { label: 'Backend', lead: 'member-1' })
+  await updateComponent({ workspace: 'jokeks2023', projectIdentifier: 'PROJ', label: 'UI', lead: null })
+  assert.deepEqual(mutations()[1].data, { lead: null })
+  await assert.rejects(updateComponent({ workspace: 'jokeks2023', projectIdentifier: 'PROJ', label: 'UI', lead: 'ghost' }), /Member 'ghost' not found/)
+})
+
+test('delete_component unassigns or moves only its own issues', async () => {
+  usePlanningData()
+  const out = text(await deleteComponent({ workspace: 'jokeks2023', projectIdentifier: 'PROJ', label: 'API', moveIssuesTo: 'UI' }))
+  assert.match(out, /2 issue\(s\) moved to \*\*UI\*\*/)
+  const ops = mutations().map((m) => [m.op, m.attachedTo, m.data?.component])
+  assert.deepEqual(ops, [['updateDoc', 'i-1', 'cmp-2'], ['updateDoc', 'i-2', 'cmp-2'], ['removeDoc', 'cmp-1', undefined]])
 })

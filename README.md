@@ -31,7 +31,7 @@ This is a fork of [varaprasadreddy9676/huly-mcp](https://github.com/varaprasadre
 
 ---
 
-## Tools (48 total)
+## Tools (53 total)
 
 All tools except `list_workspaces` take a `workspace` argument — required for every change, optional for reads when only one workspace is available.
 
@@ -60,8 +60,13 @@ All tools except `list_workspaces` take a `workspace` argument — required for 
 | **Members** | `list_members` | List workspace members |
 | **Milestones** | `list_milestones` | List milestones for a project |
 | | `create_milestone` | Create a milestone with a target date and status |
+| | `get_milestone` | Milestone details with progress (done/open/canceled issues) and the open issues |
+| | `update_milestone` | Change name, target date, status or description |
+| | `delete_milestone` | Delete a milestone; its issues are unassigned or moved (`moveIssuesTo`) |
 | **Components** | `list_components` | List components (sub-areas) in a project |
 | | `create_component` | Create a new component with optional lead |
+| | `update_component` | Change name, description or lead |
+| | `delete_component` | Delete a component; its issues are unassigned or moved (`moveIssuesTo`) |
 | **Documents** | `list_teamspaces` | List document teamspaces |
 | | `create_teamspace` | Create a new teamspace (top-level document folder) |
 | | `list_documents` | List documents in a teamspace |
@@ -371,6 +376,9 @@ For network access (HTTP/SSE) use the [Docker image](#docker-network-reachable-s
 - *"List milestones for the PROJ project"*
 - *"Create a component called 'Auth' in PROJ"*
 - *"List all components in PROJ"*
+- *"How far along is milestone v2.0 Launch in PROJ?"*
+- *"Move the v2.0 Launch milestone to 2026-07-15 and set it to In Progress"*
+- *"Delete milestone 'Beta' in PROJ and move its issues to 'v2.0 Launch'"*
 
 **Labels & relations:**
 - *"Add the label 'bug' to PROJ-42"*
@@ -546,6 +554,12 @@ See [`src/connection.ts`](src/connection.ts).
 ---
 
 ## Changelog
+
+### Unreleased
+
+- **New: `get_milestone`, `update_milestone`, `delete_milestone`** — progress overview, edit name/date/status/description, delete with issues unassigned or moved via `moveIssuesTo`
+- **New: `update_component`, `delete_component`** — edit name/description/lead, delete with issues unassigned or moved via `moveIssuesTo`
+- **Changed: `list_components`** renders Markdown/ProseMirror descriptions as text
 
 ### 2.0.0 — multi-workspace
 
