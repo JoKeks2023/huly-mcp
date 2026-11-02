@@ -1,14 +1,14 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
-import { listProjects, getProject, createProject } from './tools/projects'
-import { listIssues, getIssue, createIssue, updateIssue, deleteIssue } from './tools/issues'
-import { addComment, listComments, deleteComment } from './tools/comments'
-import { logTime } from './tools/log-time'
+import { listProjects, getProject, createProject, updateProject } from './tools/projects'
+import { listIssues, getIssue, createIssue, updateIssue, deleteIssue, bulkUpdateIssues, moveIssue, listSubIssues } from './tools/issues'
+import { addComment, listComments, deleteComment, updateComment } from './tools/comments'
+import { logTime, listTimeReports } from './tools/log-time'
 import { listMembers } from './tools/members'
 import { listMilestones, createMilestone, getMilestone, updateMilestone, deleteMilestone } from './tools/milestones'
 import { listTeamspaces, createTeamspace, listDocuments, getDocument, createDocument, deleteDocument, updateDocument, linkDocument } from './tools/documents'
 import { searchIssues } from './tools/search'
-import { listLabels, createLabel, addLabel, removeLabel } from './tools/labels'
-import { addRelation, addBlockedBy, setParent } from './tools/relations'
+import { listLabels, createLabel, addLabel, removeLabel, updateLabel, deleteLabel } from './tools/labels'
+import { addRelation, addBlockedBy, setParent, removeRelation, removeBlockedBy, repairParentLinks } from './tools/relations'
 import { listComponents, createComponent, updateComponent, deleteComponent } from './tools/components'
 import { listChannels, createChannel, startDirectMessage, sendMessage, listMessages } from './tools/channels'
 import { attachFile, listAttachments, deleteAttachment } from './tools/attachments'
@@ -16,6 +16,17 @@ import { listIssueStatuses, createIssueStatus } from './tools/statuses'
 import { listOrganizations, getOrganization, createOrganization, updateOrganization } from './tools/organizations'
 import { listWorkspaces } from './tools/workspaces'
 import {
+  UpdateProjectSchema,
+  BulkUpdateIssuesSchema,
+  MoveIssueSchema,
+  ListSubIssuesSchema,
+  UpdateCommentSchema,
+  ListTimeReportsSchema,
+  UpdateLabelSchema,
+  DeleteLabelSchema,
+  RemoveRelationSchema,
+  RemoveBlockedBySchema,
+  RepairParentLinksSchema,
   ListWorkspacesSchema,
   ListProjectsSchema,
   ListMembersSchema,
@@ -125,32 +136,43 @@ export function createServer (): McpServer {
   server.tool('list_projects', 'List all projects in a Huly workspace', ListProjectsSchema.shape, listProjects)
   server.tool('get_project', 'Get a project by its identifier (e.g. "PROJ")', GetProjectSchema.shape, getProject)
   server.tool('create_project', 'Create a new tracker project with a unique ALL-CAPS identifier', CreateProjectSchema.shape, createProject)
+  server.tool('update_project', 'Update a project (name, description, default assignee, default status for new issues)', UpdateProjectSchema.shape, updateProject)
 
   // Issues
-  server.tool('list_issues', 'List issues in a project with optional filters', ListIssuesSchema.shape, listIssues)
+  server.tool('list_issues', 'List issues in a project, filterable by status, priority, milestone, component, label, assignee and parent', ListIssuesSchema.shape, listIssues)
   server.tool('get_issue', 'Get full details of an issue by identifier (e.g. "PROJ-123")', GetIssueSchema.shape, getIssue)
   server.tool('create_issue', 'Create a new issue in a project', CreateIssueSchema.shape, createIssue)
   server.tool('update_issue', 'Update an existing issue (title, status, priority, due date, assignee, component, milestone)', UpdateIssueSchema.shape, updateIssue)
   server.tool('delete_issue', 'Permanently delete an issue by identifier (e.g. "PROJ-123")', DeleteIssueSchema.shape, deleteIssue)
+  server.tool('bulk_update_issues', 'Apply the same change (status, priority, due date, assignee, component, milestone) to many issues at once — validates all before writing', BulkUpdateIssuesSchema.shape, bulkUpdateIssues)
+  server.tool('move_issue', 'Move an issue (with sub-issues, comments, attachments, labels, time reports) to another project — it gets a new identifier; component and milestone are cleared', MoveIssueSchema.shape, moveIssue)
+  server.tool('list_sub_issues', 'Show the sub-issue tree of an issue/epic with status and progress', ListSubIssuesSchema.shape, listSubIssues)
 
   // Comments
   server.tool('add_comment', 'Add a comment to an issue', AddCommentSchema.shape, addComment)
   server.tool('list_comments', 'List all comments on an issue (includes comment IDs for use with delete_comment)', ListCommentsSchema.shape, listComments)
   server.tool('delete_comment', 'Delete a specific comment from an issue by its ID (get IDs from list_comments)', DeleteCommentSchema.shape, deleteComment)
+  server.tool('update_comment', 'Edit the text of a comment on an issue (get IDs from list_comments)', UpdateCommentSchema.shape, updateComment)
 
   // Time tracking
   server.tool('log_time', 'Log hours spent on an issue', LogTimeSchema.shape, logTime)
+  server.tool('list_time_reports', 'List logged time for an issue or a whole project, with totals per member; filter by member and date range', ListTimeReportsSchema.shape, listTimeReports)
 
   // Labels
   server.tool('list_labels', 'List all labels in the workspace', ListLabelsSchema.shape, listLabels)
   server.tool('create_label', 'Create a new label with an optional hex color', CreateLabelSchema.shape, createLabel)
   server.tool('add_label', 'Add a label to an issue (auto-creates the label if it does not exist)', AddLabelSchema.shape, addLabel)
   server.tool('remove_label', 'Remove a label from an issue', RemoveLabelSchema.shape, removeLabel)
+  server.tool('update_label', 'Rename a label or change its color/description (also updates it on every issue)', UpdateLabelSchema.shape, updateLabel)
+  server.tool('delete_label', 'Delete a label and remove it from every issue', DeleteLabelSchema.shape, deleteLabel)
 
   // Relations
   server.tool('add_relation', 'Mark two issues as related to each other (bidirectional)', AddRelationSchema.shape, addRelation)
   server.tool('add_blocked_by', 'Mark an issue as blocked by another issue', AddBlockedBySchema.shape, addBlockedBy)
-  server.tool('set_parent', 'Set or clear the parent (epic) of an issue', SetParentSchema.shape, setParent)
+  server.tool('set_parent', 'Set or clear the parent (epic) of an issue. Also repairs sub-issues linked by older versions that do not show under their parent', SetParentSchema.shape, setParent)
+  server.tool('remove_relation', 'Remove the "related" link between two issues', RemoveRelationSchema.shape, removeRelation)
+  server.tool('remove_blocked_by', 'Remove a "blocked by" link from an issue', RemoveBlockedBySchema.shape, removeBlockedBy)
+  server.tool('repair_parent_links', 'Find and fix sub-issues linked by huly-mcp <= 2.1 that do not show under their parent in Huly. Dry run by default', RepairParentLinksSchema.shape, repairParentLinks)
 
   // Members
   server.tool('list_members', 'List all members in the workspace', ListMembersSchema.shape, listMembers)

@@ -33,6 +33,11 @@ export const ListIssuesSchema = z.object({
   projectIdentifier: z.string().describe('Project identifier, e.g. "PROJ"'),
   status: z.string().optional().describe('Filter by status name, e.g. "In Progress"'),
   priority: PriorityEnum.optional().describe('Filter by priority'),
+  milestoneLabel: z.string().min(1).nullable().optional().describe('Filter by milestone name; null = issues without milestone'),
+  componentLabel: z.string().min(1).nullable().optional().describe('Filter by component name; null = issues without component'),
+  labelName: z.string().min(1).optional().describe('Filter by label name'),
+  assignee: z.string().min(1).nullable().optional().describe('Filter by assignee name (first/last/full); null = unassigned'),
+  parentIdentifier: z.string().min(1).nullable().optional().describe('Only direct sub-issues of this issue, e.g. "PROJ-1"; null = only top-level issues'),
   limit: z.number().int().min(1).max(250).default(50).describe('Max issues to return')
 })
 
@@ -65,7 +70,7 @@ export const UpdateIssueSchema = z.object({
   priority: PriorityEnum.optional().describe('New priority'),
   dueDate: z.string().nullable().optional().describe('New due date (ISO 8601) or null to clear'),
   assignee: z.string().nullable().optional().describe('Assignee name (first/last/full) or null to unassign'),
-  componentLabel: z.string().optional().describe('Component name to assign, or null to unassign'),
+  componentLabel: z.string().nullable().optional().describe('Component name to assign, or null to unassign'),
   milestoneLabel: z.string().nullable().optional().describe('Milestone name to assign, or null to clear')
 })
 
@@ -346,4 +351,88 @@ export const UpdateOrganizationSchema = z.object({
   workspace: WorkspaceArg,
   organizationId: z.string().describe('Organization _id from list_organizations'),
   description: z.string().describe('New description as Markdown (replaces existing content)')
+})
+
+// ── 2.2.0 additions ──────────────────────────────────────────────────────────
+const IssueRef = z.string().describe('Issue identifier, e.g. "PROJ-123"')
+
+export const BulkUpdateIssuesSchema = z.object({
+  workspace: WorkspaceArg,
+  identifiers: z.array(z.string().min(1)).min(1).max(100).describe('Issue identifiers to update, e.g. ["PROJ-1", "PROJ-2"]'),
+  statusName: z.string().optional().describe('New status name'),
+  priority: PriorityEnum.optional().describe('New priority'),
+  dueDate: z.string().nullable().optional().describe('New due date (ISO 8601) or null to clear'),
+  assignee: z.string().nullable().optional().describe('Assignee name (first/last/full) or null to unassign'),
+  componentLabel: z.string().nullable().optional().describe('Component name to assign, or null to unassign'),
+  milestoneLabel: z.string().nullable().optional().describe('Milestone name to assign, or null to clear')
+})
+
+export const MoveIssueSchema = z.object({
+  workspace: WorkspaceArg,
+  identifier: IssueRef,
+  targetProjectIdentifier: z.string().describe('Project to move the issue to, e.g. "OTHER"'),
+  statusName: z.string().optional().describe('Status in the target project (default: keep current status)')
+})
+
+export const ListSubIssuesSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  identifier: z.string().describe('Parent issue (epic) identifier, e.g. "PROJ-1"'),
+  depth: z.number().int().min(1).max(10).default(5).describe('How many levels of sub-issues to show')
+})
+
+export const RemoveRelationSchema = z.object({
+  workspace: WorkspaceArg,
+  identifier: IssueRef,
+  relatedTo: z.string().describe('Related issue identifier to unlink, e.g. "PROJ-456"')
+})
+
+export const RemoveBlockedBySchema = z.object({
+  workspace: WorkspaceArg,
+  identifier: z.string().describe('Issue that is blocked, e.g. "PROJ-123"'),
+  blockedBy: z.string().describe('Blocking issue to remove, e.g. "PROJ-100"')
+})
+
+export const UpdateCommentSchema = z.object({
+  workspace: WorkspaceArg,
+  identifier: IssueRef,
+  commentId: z.string().min(1).describe('Comment ID (from list_comments)'),
+  message: z.string().min(1).describe('New comment text')
+})
+
+export const UpdateLabelSchema = z.object({
+  workspace: WorkspaceArg,
+  labelName: z.string().min(1).describe('Current label name'),
+  newName: z.string().min(1).optional().describe('New label name'),
+  color: z.string().regex(/^#?[0-9a-fA-F]{6}$/).optional().describe('New hex color, e.g. "#FF6B6B"'),
+  description: z.string().optional().describe('New label description')
+})
+
+export const DeleteLabelSchema = z.object({
+  workspace: WorkspaceArg,
+  labelName: z.string().min(1).describe('Label name to delete — it is removed from every issue that has it')
+})
+
+export const UpdateProjectSchema = z.object({
+  workspace: WorkspaceArg,
+  identifier: z.string().describe('Project identifier, e.g. "PROJ"'),
+  name: z.string().min(1).optional().describe('New project name'),
+  description: z.string().optional().describe('New project description'),
+  defaultAssignee: z.string().nullable().optional().describe('Default assignee for new issues (member name), or null to clear'),
+  defaultStatus: z.string().optional().describe('Default status name for new issues')
+})
+
+export const ListTimeReportsSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  identifier: z.string().optional().describe('Issue identifier — list reports of this issue (sub-issues not included)'),
+  projectIdentifier: z.string().optional().describe('Project identifier — list reports of all issues in this project'),
+  member: z.string().optional().describe('Only reports of this member (name)'),
+  from: z.string().optional().describe('Only reports on/after this date (ISO 8601)'),
+  to: z.string().optional().describe('Only reports on/before this date (ISO 8601)'),
+  limit: z.number().int().min(1).max(500).default(100).describe('Max reports to list')
+})
+
+export const RepairParentLinksSchema = z.object({
+  workspace: WorkspaceArg,
+  projectIdentifier: z.string().describe('Project identifier, e.g. "PROJ"'),
+  dryRun: z.boolean().default(true).describe('Only list what would be repaired (default). Set false to apply.')
 })

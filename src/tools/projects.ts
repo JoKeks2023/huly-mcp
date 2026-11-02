@@ -6,7 +6,8 @@ import type { ProjectType } from '@hcengineering/task'
 import { getConnection } from '../connection'
 import { wrapToolHandler } from '../utils/errors'
 import type { z } from 'zod'
-import type { ListProjectsSchema, GetProjectSchema, CreateProjectSchema } from '../schemas'
+import { findPerson } from '../utils/people'
+import type { ListProjectsSchema, GetProjectSchema, CreateProjectSchema, UpdateProjectSchema } from '../schemas'
 
 export const listProjects = wrapToolHandler<z.infer<typeof ListProjectsSchema>>(async (args) => {
   const client = await getConnection(args.workspace)
@@ -72,4 +73,29 @@ export const createProject = wrapToolHandler<z.infer<typeof CreateProjectSchema>
   )
 
   return `✅ Project **${args.identifier}** ("${args.name}") created successfully.\nNote: default statuses are set up automatically by the platform.`
+})
+
+export const updateProject = wrapToolHandler<z.infer<typeof UpdateProjectSchema>>(async (args) => {
+  const client = await getConnection(args.workspace)
+  const project = await client.findOne(tracker.class.Project, { identifier: args.identifier })
+  if (project == null) throw new Error(`Project '${args.identifier}' not found.`)
+
+  const updates: Record<string, unknown> = {}
+  if (args.name !== undefined) updates.name = args.name
+  if (args.description !== undefined) updates.description = args.description
+  if (args.defaultAssignee !== undefined) {
+    if (args.defaultAssignee === null) updates.defaultAssignee = null
+    else {
+      updates.defaultAssignee = (await findPerson(client, args.defaultAssignee))._id
+    }
+  }
+  if (args.defaultStatus !== undefined) {
+    const status = await client.findOne(tracker.class.IssueStatus, { name: args.defaultStatus })
+    if (status == null) throw new Error(`Status '${args.defaultStatus}' not found.`)
+    updates.defaultIssueStatus = status._id
+  }
+  if (Object.keys(updates).length === 0) return `Nothing to update for project **${args.identifier}**.`
+
+  await client.updateDoc(tracker.class.Project, project.space, project._id, updates as any)
+  return `✅ Project **${args.identifier}** updated (${Object.keys(updates).join(', ')}).`
 })
