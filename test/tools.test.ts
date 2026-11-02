@@ -189,7 +189,7 @@ test('every mutation schema requires workspace', () => {
 })
 
 test('every registered tool except list_workspaces accepts workspace', () => {
-  const server = createServer()
+  const server = createServer({ toolsets: 'all' })
   const tools = (server as any)._registeredTools as Record<string, { inputSchema?: any }>
   const names = Object.keys(tools)
   assert.ok(names.includes('list_workspaces'))
