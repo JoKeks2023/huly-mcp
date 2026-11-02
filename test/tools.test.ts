@@ -167,6 +167,11 @@ const MUTATION_SCHEMAS = [
   'CreateProjectSchema', 'UpdateProjectSchema', 'CreateIssueSchema', 'UpdateIssueSchema', 'DeleteIssueSchema',
   'BulkUpdateIssuesSchema', 'MoveIssueSchema', 'UpdateCommentSchema', 'UpdateLabelSchema', 'DeleteLabelSchema',
   'RemoveRelationSchema', 'RemoveBlockedBySchema', 'RepairParentLinksSchema',
+  'MarkNotificationsReadSchema', 'CreateTodoSchema', 'UpdateTodoSchema', 'DeleteTodoSchema', 'ScheduleTodoSchema',
+  'CreateEventSchema', 'UpdateEventSchema', 'DeleteEventSchema',
+  'ReplyToMessageSchema', 'UpdateMessageSchema', 'DeleteMessageSchema', 'ReactionSchema', 'ReactionSchema', 'PinMessageSchema',
+  'CreatePersonSchema', 'UpdatePersonSchema', 'ContactChannelSchema', 'ContactChannelSchema',
+  'GenericCreateSchema', 'GenericUpdateSchema', 'GenericDeleteSchema',
   'AddCommentSchema', 'DeleteCommentSchema', 'LogTimeSchema',
   'CreateLabelSchema', 'AddLabelSchema', 'RemoveLabelSchema',
   'AddRelationSchema', 'AddBlockedBySchema', 'SetParentSchema',
@@ -189,7 +194,7 @@ test('every mutation schema requires workspace', () => {
 })
 
 test('every registered tool except list_workspaces accepts workspace', () => {
-  const server = createServer()
+  const server = createServer({ toolsets: 'all' })
   const tools = (server as any)._registeredTools as Record<string, { inputSchema?: any }>
   const names = Object.keys(tools)
   assert.ok(names.includes('list_workspaces'))
@@ -198,7 +203,7 @@ test('every registered tool except list_workspaces accepts workspace', () => {
     const shape = tools[name].inputSchema?.shape
     assert.ok(shape?.workspace !== undefined, `${name} does not accept workspace`)
   }
-  const mutationTools = names.filter((n) => /^(create|update|delete|add|remove|set|log|link|send|attach|start|bulk|move|repair)_/.test(n))
+  const mutationTools = names.filter((n) => /^(create|update|delete|add|remove|set|log|link|send|attach|start|bulk|move|repair|mark|reply|pin|schedule|generic)_/.test(n))
   assert.equal(mutationTools.length, MUTATION_SCHEMAS.length)
   for (const name of mutationTools) {
     assert.equal(tools[name].inputSchema.shape.workspace.isOptional(), false, `${name}.workspace must be required`)

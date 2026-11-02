@@ -8,7 +8,7 @@ import contact from '@hcengineering/contact'
 import type { Ref, TxOperations } from '@hcengineering/core'
 import type { Person } from '@hcengineering/contact'
 
-export interface PersonInfo { _id: Ref<Person>, name: string, rawName: string }
+export interface PersonInfo { _id: Ref<Person>, name: string, rawName: string, uuid?: string }
 
 /** "Conrad,Joris" → "Joris Conrad"; other formats are returned trimmed. */
 export function formatPersonName (raw: string | null | undefined): string {
@@ -51,7 +51,7 @@ export async function currentPerson (client: TxOperations): Promise<PersonInfo> 
   const personId = identity?.attachedTo
   if (personId == null) throw new Error('Could not identify current user.')
   const person: any = await client.findOne(contact.class.Person, { _id: personId })
-  return { _id: personId, rawName: person?.name ?? '', name: formatPersonName(person?.name) }
+  return { _id: personId, rawName: person?.name ?? '', name: formatPersonName(person?.name), uuid: person?.personUuid }
 }
 
 /** Map social identity (PersonId, e.g. createdBy/modifiedBy) → display name. */
@@ -60,4 +60,11 @@ export async function socialIdNames (client: TxOperations, ids: string[]): Promi
   const identities: any[] = await client.findAll(contact.class.SocialIdentity as any, { _id: { $in: ids } } as any)
   const names = await peopleNames(client)
   return new Map(identities.map((i) => [i._id as string, names.get(i.attachedTo) ?? 'Unknown']))
+}
+
+/** Account UUID of the connected user (inbox notifications and calendars are keyed by it). */
+export async function currentAccountUuid (client: TxOperations): Promise<string> {
+  const me = await currentPerson(client)
+  if (me.uuid == null) throw new Error('Could not determine the account of the current user.')
+  return me.uuid
 }

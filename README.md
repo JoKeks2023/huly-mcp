@@ -27,13 +27,42 @@ This is a fork of [varaprasadreddy9676/huly-mcp](https://github.com/varaprasadre
 - **Issue Statuses** — `list_issue_statuses`, `create_issue_status` (custom workflow states)
 - **Organizations** — `list_organizations`, `get_organization`, `create_organization`, `update_organization`
 
-**Investigated and deliberately not built:** Calendar (not a native event system in Huly — it's a Google Calendar sync bridge requiring infra this fork doesn't assume you're running) and Drive/HR/Recruiting/CRM-Leads/Board (blocked by an [upstream npm packaging bug](https://github.com/hcengineering/platform/issues/10881) — `@hcengineering/*` packages published `0.7.411`+ ship without their `types/` directory, and these modules have no earlier version to pin around it).
+**Beyond the tracker (3.0):** inbox, activity history, planner to-dos and time blocking, calendar events, chat threads/reactions/pins, GitHub pull requests, contact persons — plus generic read access to *every* Huly class (`list_classes`, `describe_class`, `query_documents`) and optional guarded writes (`generic_*`). Modules without a published npm type package (Recruiting, CRM, HR, Board, Drive, …) are reachable through the generic tools; dedicated tools for them follow in 3.1/3.2.
+
+**Deliberately not built:** Love (live video office), Gmail/Telegram/Bitrix bridges (need their own service setup), analytics and UI preferences.
 
 ---
 
-## Tools (64 total)
+## Tools (97 total, grouped in toolsets)
 
 All tools except `list_workspaces` take a `workspace` argument — required for every change, optional for reads when only one workspace is available.
+
+### Toolsets
+
+Every tool schema is sent to the model in each session (Claude Desktop loads all of them up front), so tools are grouped and only the default toolsets are enabled unless you choose otherwise:
+
+```bash
+HULY_TOOLSETS=all                       # everything
+HULY_TOOLSETS=tracker,documents,planner # just these ('core' = list_workspaces is always on)
+```
+
+| Toolset | Default | Tools | Contents |
+|---------|:-:|--:|----------|
+| `tracker` | ✓ | 45 | projects, issues, comments, time, labels, relations, milestones, components, statuses, attachments, search |
+| `documents` | ✓ | 8 | teamspaces and documents |
+| `chat` | ✓ | 12 | channels, DMs, threads, edit/delete, reactions, pins |
+| `contacts` | ✓ | 11 | members, organizations, persons, contact channels |
+| `inbox` | ✓ | 2 | notifications, mark read/archive |
+| `activity` | ✓ | 1 | change history of an issue/object |
+| `planner` | ✓ | 5 | to-dos, time blocking |
+| `generic` | ✓ | 3 | read any Huly class |
+| `calendar` | | 4 | calendar events |
+| `github` | | 2 | pull requests synced by Huly's GitHub integration (read-only) |
+| `generic-write` | | 3 | create/update/delete any class — dry run by default, deletes need `confirm` |
+
+Context cost of `tools/list` (≈3.5 chars/token): default set ~38k chars ≈ **11k tokens** (88 tools), `all` ~43k chars ≈ **12k tokens** (97 tools). For comparison, 2.2.0 needed ≈12.8k tokens for 64 tools. Claude Code loads MCP tools on demand, so there the toolset choice matters less.
+
+### Tool reference
 
 | Category | Tool | Description |
 |----------|------|-------------|
@@ -69,6 +98,12 @@ All tools except `list_workspaces` take a `workspace` argument — required for 
 | | `remove_blocked_by` | Remove a "blocked by" link |
 | | `repair_parent_links` | Fix sub-issues linked by huly-mcp ≤ 2.1 that don't show under their parent (dry run by default) |
 | **Members** | `list_members` | List workspace members with names and roles |
+| **Persons** (`contacts`) | `list_persons` | Contact persons with their channels |
+| | `get_person` | Person details, contact channels, organizations |
+| | `create_person` | Create a contact person (with optional channels) |
+| | `update_person` | Change name or city |
+| | `add_contact_channel` | Add email, phone, LinkedIn, … |
+| | `remove_contact_channel` | Remove a contact channel |
 | **Milestones** | `list_milestones` | List milestones for a project |
 | | `create_milestone` | Create a milestone with a target date and status |
 | | `get_milestone` | Milestone details with progress (done/open/canceled issues) and the open issues |
@@ -91,7 +126,13 @@ All tools except `list_workspaces` take a `workspace` argument — required for 
 | | `create_channel` | Create a new channel |
 | | `start_direct_message` | Start (or find) a 1:1 direct message with a workspace member |
 | | `send_message` | Send a message to a channel or direct message |
-| | `list_messages` | List messages in a channel or direct message |
+| | `list_messages` | List messages with authors, ids, replies, reactions, pins |
+| | `list_thread` | A message with its thread replies |
+| | `reply_to_message` | Reply in a thread (channel messages and issue comments) |
+| | `update_message` | Edit a message or reply |
+| | `delete_message` | Delete a message or reply |
+| | `add_reaction` / `remove_reaction` | Emoji reactions |
+| | `pin_message` | Pin or unpin a message |
 | **Attachments** | `attach_file` | Attach a file to an issue (base64-encoded content) |
 | | `list_attachments` | List files attached to an issue |
 | | `delete_attachment` | Delete a file attachment from an issue |
@@ -101,6 +142,22 @@ All tools except `list_workspaces` take a `workspace` argument — required for 
 | | `get_organization` | Get details of an organization, including description |
 | | `create_organization` | Create a new organization (company contact) |
 | | `update_organization` | Set the description of an organization from Markdown |
+| **Inbox** (`inbox`) | `list_notifications` | Your notifications, grouped by issue/PR/document |
+| | `mark_notifications_read` | Mark read by object, ids or all; optionally archive |
+| **Activity** (`activity`) | `get_activity` | Who changed what, plus comments, for an issue or object |
+| **Planner** (`planner`) | `list_todos` | Your to-dos (open/done, due date filter) |
+| | `create_todo` | Create a to-do, optionally attached to an issue |
+| | `update_todo` | Change title, due date, priority; mark done/reopen |
+| | `delete_todo` | Delete a to-do |
+| | `schedule_todo` | Block time for a to-do in your calendar |
+| **Calendar** (`calendar`) | `list_events` | Events and work slots in a date range |
+| | `create_event` / `update_event` / `delete_event` | Manage events in your calendar |
+| **GitHub** (`github`) | `list_pull_requests` | PRs by project, issue, state |
+| | `get_pull_request` | State, branches, reviews, review comments, linked issue |
+| **Generic** (`generic`) | `list_classes` | All data classes of the workspace (filter by module, optional counts) |
+| | `describe_class` | Attributes and types of a class |
+| | `query_documents` | Read documents of any class; secrets are redacted |
+| **Generic write** (`generic-write`) | `generic_create` / `generic_update` / `generic_delete` | Any class; dry run by default, deletes also need `confirm: true`; system classes, spaces and credentials are blocked |
 
 ---
 
@@ -184,6 +241,7 @@ A single Huly account can belong to several workspaces — e.g. a personal one a
 | `HULY_ACCOUNTS_URL` | self-hosted only | Account service — login and workspace discovery. Default `https://account.huly.app`. Self-hosted: your instance's accounts URL, e.g. `https://huly.example.com/_accounts` |
 | `HULY_FRONT_URL` | self-hosted (optional on Cloud) | Front service — document/description content and file uploads. Not involved in login or workspace discovery. Self-hosted: e.g. `https://huly.example.com` |
 | `HULY_WORKSPACE` | no (legacy) | Restrict the server to a single workspace |
+| `HULY_TOOLSETS` | no | Comma-separated toolsets to enable, or `all` (see [Toolsets](#toolsets)). Default: `tracker,documents,chat,contacts,inbox,activity,planner,generic` |
 
 ---
 
@@ -398,6 +456,13 @@ For network access (HTTP/SSE) use the [Docker image](#docker-network-reachable-s
 - *"How many hours did we log on PROJ in October, per person?"*
 - *"Move PROJ-42 to the OPS project"*
 
+**Inbox, planner, calendar:**
+- *"What's new in my inbox? Mark everything about PROJ-12 as read"*
+- *"Create a to-do 'Review PR' on PROJ-7 due Friday and block 45 minutes tomorrow at 9"*
+- *"What's on my calendar this week?"*
+- *"Show the history of PROJ-12 — who moved it to Done?"*
+- *"Which pull requests are waiting for review in TRACR?"*
+
 **Labels & relations:**
 - *"Add the label 'bug' to PROJ-42"*
 - *"Create a label called 'backend' with color #3b82f6"*
@@ -572,6 +637,20 @@ See [`src/connection.ts`](src/connection.ts).
 ---
 
 ## Changelog
+
+### 3.0.0 — toolsets, inbox, planner, calendar, chat, GitHub, contacts, generic access
+
+Breaking: tools are grouped into toolsets; `calendar`, `github` and `generic-write` are not enabled by default (`HULY_TOOLSETS=all` enables everything).
+
+- **New: toolsets** (`HULY_TOOLSETS`) and slimmer tool schemas — the same 64 tools as 2.2.0 now cost ~36 % fewer tokens; all 97 tools together cost less than 2.2.0's 64
+- **New: inbox** — `list_notifications`, `mark_notifications_read`
+- **New: activity** — `get_activity`
+- **New: planner** — `list_todos`, `create_todo`, `update_todo`, `delete_todo`, `schedule_todo`
+- **New: calendar** — `list_events`, `create_event`, `update_event`, `delete_event`
+- **New: chat** — `list_thread`, `reply_to_message`, `update_message`, `delete_message`, `add_reaction`, `remove_reaction`, `pin_message`; `list_messages` now shows authors and message ids
+- **New: GitHub** — `list_pull_requests`, `get_pull_request`
+- **New: persons** — `list_persons`, `get_person`, `create_person`, `update_person`, `add_contact_channel`, `remove_contact_channel`
+- **New: generic access** — `list_classes`, `describe_class`, `query_documents` (secrets redacted); `generic_create`/`generic_update`/`generic_delete` (opt-in, dry run by default)
 
 ### 2.2.0 — planning, bulk edits, fixes for Huly 0.7
 
