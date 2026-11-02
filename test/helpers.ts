@@ -143,4 +143,4 @@ export function createFakeEnv (opts: FakeEnvOptions): {
 }
 
 export const PERSONAL: FakeWorkspace = { uuid: '11111111-aaaa-4000-8000-000000000001', url: 'jokeks2023', name: 'JoKeks2023' }
-export const AVMS: FakeWorkspace = { uuid: '22222222-bbbb-4000-8000-000000000002', url: 'avms', name: 'AVMS' }
+export const ACME: FakeWorkspace = { uuid: '22222222-bbbb-4000-8000-000000000002', url: 'acme', name: 'ACME' }
