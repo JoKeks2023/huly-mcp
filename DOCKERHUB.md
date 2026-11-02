@@ -1,6 +1,6 @@
 # huly-mcp
 
-MCP server for [Huly](https://huly.app) (self-hosted + cloud) — connects Claude Desktop and any [MCP](https://modelcontextprotocol.io)-compatible client to your Huly workspaces. 53 tools: workspace discovery (one account, several workspaces), issues, projects, milestones, components, documents, labels, chat (channels/DMs), file attachments, custom issue statuses, organizations, and more.
+MCP server for [Huly](https://huly.app) (self-hosted + cloud) — connects Claude Desktop and any [MCP](https://modelcontextprotocol.io)-compatible client to your Huly workspaces. 64 tools: workspace discovery (one account, several workspaces), issues, projects, milestones, components, documents, labels, chat (channels/DMs), file attachments, custom issue statuses, organizations, and more.
 
 Fork of [huly-mcp-sdk](https://github.com/varaprasadreddy9676/huly-mcp) with fixes for **self-hosted** (`huly-selfhost`) deployments — upstream's document/description writes are hardcoded against Huly Cloud's infrastructure and silently fail on self-hosted instances.
 

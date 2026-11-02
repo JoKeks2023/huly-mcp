@@ -31,7 +31,7 @@ This is a fork of [varaprasadreddy9676/huly-mcp](https://github.com/varaprasadre
 
 ---
 
-## Tools (53 total)
+## Tools (64 total)
 
 All tools except `list_workspaces` take a `workspace` argument — required for every change, optional for reads when only one workspace is available.
 
@@ -41,23 +41,34 @@ All tools except `list_workspaces` take a `workspace` argument — required for 
 | **Projects** | `list_projects` | List all projects in a workspace |
 | | `get_project` | Get project details + available statuses |
 | | `create_project` | Create a new tracker project with a unique identifier |
-| **Issues** | `list_issues` | List issues with optional status / priority filters |
-| | `get_issue` | Get full details of an issue (e.g. `PROJ-42`) |
+| | `update_project` | Change name, description, default assignee or default status |
+| **Issues** | `list_issues` | List issues, filterable by status, priority, milestone, component, label, assignee, parent |
+| | `get_issue` | Full details of an issue (e.g. `PROJ-42`): assignee, milestone, component, labels, parent, links |
 | | `create_issue` | Create a new issue (with optional Markdown description) |
 | | `update_issue` | Update title, description, status, priority, assignee, due date, component, milestone |
 | | `delete_issue` | Permanently delete an issue by identifier |
+| | `bulk_update_issues` | Same change on many issues at once — validates all before writing |
+| | `move_issue` | Move an issue (with sub-issues, comments, attachments, labels, time) to another project |
+| | `list_sub_issues` | Sub-issue tree of an epic with status and progress |
 | **Comments** | `add_comment` | Add a comment to an issue |
 | | `list_comments` | List all comments on an issue (includes IDs for `delete_comment`) |
+| | `update_comment` | Edit a comment |
 | | `delete_comment` | Delete a specific comment by ID |
 | **Time Tracking** | `log_time` | Log hours spent on an issue |
+| | `list_time_reports` | Logged time per issue or project, totals per member, member/date filters |
 | **Labels** | `list_labels` | List all labels with color + usage count |
 | | `create_label` | Create a new label with an optional hex color |
 | | `add_label` | Add a label to an issue (auto-creates if it doesn't exist) |
 | | `remove_label` | Remove a label from an issue |
+| | `update_label` | Rename or recolor a label (updated on every issue) |
+| | `delete_label` | Delete a label and remove it from every issue |
 | **Relations** | `add_relation` | Mark two issues as related (bidirectional) |
 | | `add_blocked_by` | Mark an issue as blocked by another issue |
 | | `set_parent` | Set or clear the parent epic of an issue |
-| **Members** | `list_members` | List workspace members |
+| | `remove_relation` | Remove a "related" link |
+| | `remove_blocked_by` | Remove a "blocked by" link |
+| | `repair_parent_links` | Fix sub-issues linked by huly-mcp ≤ 2.1 that don't show under their parent (dry run by default) |
+| **Members** | `list_members` | List workspace members with names and roles |
 | **Milestones** | `list_milestones` | List milestones for a project |
 | | `create_milestone` | Create a milestone with a target date and status |
 | | `get_milestone` | Milestone details with progress (done/open/canceled issues) and the open issues |
@@ -380,6 +391,13 @@ For network access (HTTP/SSE) use the [Docker image](#docker-network-reachable-s
 - *"Move the v2.0 Launch milestone to 2026-07-15 and set it to In Progress"*
 - *"Delete milestone 'Beta' in PROJ and move its issues to 'v2.0 Launch'"*
 
+**Planning & bulk work:**
+- *"Which issues in milestone v2.0 Launch carry the label 'bug' and are still unassigned?"*
+- *"Set PROJ-12, PROJ-13 and PROJ-20 to In Progress and put them into milestone v2.0 Launch"*
+- *"Show me the sub-issue tree of PROJ-1 and how far along it is"*
+- *"How many hours did we log on PROJ in October, per person?"*
+- *"Move PROJ-42 to the OPS project"*
+
 **Labels & relations:**
 - *"Add the label 'bug' to PROJ-42"*
 - *"Create a label called 'backend' with color #3b82f6"*
@@ -554,6 +572,19 @@ See [`src/connection.ts`](src/connection.ts).
 ---
 
 ## Changelog
+
+### 2.2.0 — planning, bulk edits, fixes for Huly 0.7
+
+- **New: filters in `list_issues`** — milestone, component, label, assignee, parent (null = without / top-level)
+- **New: `bulk_update_issues`, `move_issue`, `list_sub_issues`, `list_time_reports`**
+- **New: `update_project`, `update_comment`, `update_label`, `delete_label`, `remove_relation`, `remove_blocked_by`**
+- **New: `repair_parent_links`** — re-links sub-issues created by earlier versions (dry run by default)
+- **More detail in `get_issue`** — assignee, milestone, component, labels, parent, blocked by, related
+- **`list_members`** shows names
+- **Fix: `set_parent`** now links like Huly itself (`attachedTo`). Before, sub-issues did not appear under their parent in Huly. Existing links: `repair_parent_links` or `set_parent` again
+- **Fix: people lookup on Huly 0.7** — `log_time` failed ("Could not identify current user"), assigning by name (`assignee`, `lead`) never matched and comment authors showed as "Unknown". People are now resolved via the Employee mixin; names are shown as "First Last" and ambiguous names are rejected
+- **Fix: bold/italic text** in issue, document and organization descriptions no longer breaks into separate lines
+- **Fix: `update_issue`** accepts `componentLabel: null` (as documented) and rejects invalid due dates
 
 ### 2.1.0 — milestones & components, security updates
 

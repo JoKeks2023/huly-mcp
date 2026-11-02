@@ -21,7 +21,20 @@ export class FakeTxClient {
 
   private matches (doc: FakeDoc, _class: string, query: Record<string, unknown>): boolean {
     if (doc._class !== _class) return false
-    return Object.entries(query).every(([k, v]) => doc[k] === v)
+    return Object.entries(query).every(([k, v]) => {
+      if (v != null && typeof v === 'object' && Array.isArray((v as any).$in)) return (v as any).$in.includes(doc[k])
+      return (doc[k] ?? null) === v
+    })
+  }
+
+  /** Collections per class, used by move_issue via getHierarchy(). */
+  collections: Record<string, Array<{ name: string, of: string }>> = {}
+
+  getHierarchy (): any {
+    return {
+      getAllAttributes: (_class: string) => new Map((this.collections[_class] ?? []).map((c) => [c.name, { name: c.name, type: { _class: 'core:class:Collection', of: c.of } }])),
+      isDerived: (a: string, b: string) => a === b
+    }
   }
 
   async findAll (_class: string, query: Record<string, unknown> = {}): Promise<FakeDoc[]> {
@@ -42,8 +55,28 @@ export class FakeTxClient {
     return 'new-id'
   }
 
-  async updateDoc (_class: string, space: string, id: string, data: unknown): Promise<void> {
+  async updateDoc (_class: string, space: string, id: string, data: unknown, retrieve?: boolean): Promise<unknown> {
     this.mutations.push({ op: 'updateDoc', _class, space, attachedTo: id, data })
+    // Emulate $inc with retrieve (used for project sequence numbers).
+    const inc = (data as any)?.$inc
+    if (retrieve === true && inc != null) {
+      const doc = this.docs.find((d) => d._id === id)
+      if (doc != null) for (const [k, v] of Object.entries(inc)) doc[k] = (doc[k] as number) + (v as number)
+      return { object: doc }
+    }
+    return undefined
+  }
+
+  async update (doc: FakeDoc, data: unknown): Promise<void> {
+    this.mutations.push({ op: 'update', _class: doc._class, space: doc.space, attachedTo: doc._id, data })
+  }
+
+  async updateCollection (_class: string, space: string, id: string, _attachedTo: string, _attachedToClass: string, _coll: string, data: unknown): Promise<void> {
+    this.mutations.push({ op: 'updateCollection', _class, space, attachedTo: id, data })
+  }
+
+  async removeCollection (_class: string, space: string, id: string): Promise<void> {
+    this.mutations.push({ op: 'removeCollection', _class, space, attachedTo: id })
   }
 
   async removeDoc (_class: string, space: string, id: string): Promise<void> {

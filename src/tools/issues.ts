@@ -1,7 +1,7 @@
-import tracker, { IssuePriority, type Issue } from '@hcengineering/tracker'
+import tracker, { IssuePriority, type Issue, type Project } from '@hcengineering/tracker'
+import tags from '@hcengineering/tags'
 import task from '@hcengineering/task'
-import contact from '@hcengineering/contact'
-import { SortingOrder, generateId, type Ref, type DocumentUpdate } from '@hcengineering/core'
+import core, { SortingOrder, generateId, type Ref, type Doc, type DocumentUpdate, type TxOperations } from '@hcengineering/core'
 import type { Person } from '@hcengineering/contact'
 import { makeRank } from '@hcengineering/rank'
 import { getConnection, getWorkspaceInfo } from '../connection'
@@ -9,14 +9,22 @@ import { wrapToolHandler } from '../utils/errors'
 import { priorityLabel, formatDate } from '../utils/format'
 import { markdownToProseMirror, extractText } from '../utils/markdown'
 import { uploadMarkupBlob } from '../utils/storage'
+import { findPerson, peopleNames } from '../utils/people'
 import type { z } from 'zod'
 import type {
   ListIssuesSchema,
   GetIssueSchema,
   CreateIssueSchema,
   UpdateIssueSchema,
-  DeleteIssueSchema
+  DeleteIssueSchema,
+  BulkUpdateIssuesSchema,
+  MoveIssueSchema,
+  ListSubIssuesSchema
 } from '../schemas'
+
+async function findMemberId (client: TxOperations, name: string): Promise<Ref<Person>> {
+  return (await findPerson(client, name))._id
+}
 
 export const listIssues = wrapToolHandler<z.infer<typeof ListIssuesSchema>>(async (args) => {
   const client = await getConnection(args.workspace)
@@ -33,6 +41,44 @@ export const listIssues = wrapToolHandler<z.infer<typeof ListIssuesSchema>>(asyn
 
   if (args.priority != null) {
     query.priority = IssuePriority[args.priority as keyof typeof IssuePriority]
+  }
+
+  if (args.milestoneLabel !== undefined) {
+    if (args.milestoneLabel === null) query.milestone = null
+    else {
+      const m = await client.findOne(tracker.class.Milestone, { space: project._id, label: args.milestoneLabel })
+      if (m == null) throw new Error(`Milestone '${args.milestoneLabel}' not found in project ${args.projectIdentifier}.`)
+      query.milestone = m._id
+    }
+  }
+
+  if (args.componentLabel !== undefined) {
+    if (args.componentLabel === null) query.component = null
+    else {
+      const c = await client.findOne(tracker.class.Component, { space: project._id, label: args.componentLabel })
+      if (c == null) throw new Error(`Component '${args.componentLabel}' not found in project ${args.projectIdentifier}.`)
+      query.component = c._id
+    }
+  }
+
+  if (args.assignee !== undefined) {
+    query.assignee = args.assignee === null ? null : await findMemberId(client, args.assignee)
+  }
+
+  if (args.parentIdentifier !== undefined) {
+    if (args.parentIdentifier === null) query.attachedTo = tracker.ids.NoParent
+    else {
+      const parent = await client.findOne(tracker.class.Issue, { identifier: args.parentIdentifier })
+      if (parent == null) throw new Error(`Issue '${args.parentIdentifier}' not found.`)
+      query.attachedTo = parent._id
+    }
+  }
+
+  if (args.labelName != null) {
+    const label = await client.findOne(tags.class.TagElement, { targetClass: tracker.class.Issue, title: args.labelName })
+    if (label == null) throw new Error(`Label '${args.labelName}' not found.`)
+    const refs = await client.findAll(tags.class.TagReference, { tag: label._id })
+    query._id = { $in: refs.map((r) => r.attachedTo) }
   }
 
   const issues = await client.findAll(
@@ -62,11 +108,31 @@ export const getIssue = wrapToolHandler<z.infer<typeof GetIssueSchema>>(async (a
   if (issue == null) throw new Error(`Issue '${args.identifier}' not found.`)
 
   const status = await client.findOne(tracker.class.IssueStatus, { _id: issue.status })
+  const milestone = issue.milestone != null ? await client.findOne(tracker.class.Milestone, { _id: issue.milestone }) : undefined
+  const component = issue.component != null ? await client.findOne(tracker.class.Component, { _id: issue.component }) : undefined
+  const assignee = issue.assignee != null ? (await peopleNames(client)).get(issue.assignee as string) ?? String(issue.assignee) : 'Unassigned'
+  const labelRefs = await client.findAll(tags.class.TagReference, { attachedTo: issue._id })
+  const refIds = async (list: Array<{ _id: Ref<Doc> }> | undefined): Promise<string> => {
+    if (list == null || list.length === 0) return 'None'
+    const names: string[] = []
+    for (const r of list) {
+      const other = await client.findOne(tracker.class.Issue, { _id: r._id as Ref<Issue> })
+      names.push(other?.identifier ?? String(r._id))
+    }
+    return names.join(', ')
+  }
 
   const lines = [
     `## ${issue.identifier}: ${issue.title}`,
     `**Status:** ${status?.name ?? 'Unknown'}`,
     `**Priority:** ${priorityLabel(issue.priority)}`,
+    `**Assignee:** ${assignee}`,
+    `**Milestone:** ${milestone?.label ?? 'None'}`,
+    `**Component:** ${component?.label ?? 'None'}`,
+    `**Labels:** ${labelRefs.length > 0 ? labelRefs.map((l) => l.title).join(', ') : 'None'}`,
+    `**Parent:** ${issue.parents?.[0] != null ? `${issue.parents[0].identifier} — ${issue.parents[0].parentTitle}` : 'None'}`,
+    `**Blocked by:** ${await refIds(issue.blockedBy)}`,
+    `**Related:** ${await refIds(issue.relations)}`,
     `**Due date:** ${formatDate(issue.dueDate)}`,
     `**Comments:** ${issue.comments ?? 0}`,
     `**Sub-issues:** ${issue.subIssues ?? 0}`,
@@ -211,26 +277,12 @@ export const deleteIssue = wrapToolHandler<z.infer<typeof DeleteIssueSchema>>(as
   return `✅ Deleted **${args.identifier}**: ${issue.title}`
 })
 
-export const updateIssue = wrapToolHandler<z.infer<typeof UpdateIssueSchema>>(async (args) => {
-  const client = await getConnection(args.workspace)
-  const issue = await client.findOne(tracker.class.Issue, { identifier: args.identifier })
-  if (issue == null) throw new Error(`Issue '${args.identifier}' not found.`)
 
+type FieldArgs = Pick<z.infer<typeof UpdateIssueSchema>, 'statusName' | 'priority' | 'dueDate' | 'assignee' | 'componentLabel' | 'milestoneLabel'>
+
+/** Shared by update_issue and bulk_update_issues: turns name-based arguments into issue field updates. */
+async function resolveFieldUpdates (client: TxOperations, issue: Issue, args: FieldArgs): Promise<DocumentUpdate<Issue>> {
   const updates: DocumentUpdate<Issue> = {}
-
-  if (args.title != null) updates.title = args.title
-
-  if (args.description != null && args.description !== '') {
-    const { wsToken, workspaceUuid } = await getWorkspaceInfo(args.workspace)
-    const prosemirror = markdownToProseMirror(args.description)
-    const descriptionBlobId = await uploadMarkupBlob(
-      wsToken,
-      workspaceUuid,
-      `${issue._id}-description-${Date.now()}`,
-      JSON.stringify(prosemirror)
-    )
-    updates.description = descriptionBlobId as any
-  }
 
   if (args.statusName != null) {
     const status = await client.findOne(tracker.class.IssueStatus, { name: args.statusName })
@@ -243,6 +295,7 @@ export const updateIssue = wrapToolHandler<z.infer<typeof UpdateIssueSchema>>(as
   }
 
   if (args.dueDate !== undefined) {
+    if (args.dueDate != null && isNaN(new Date(args.dueDate).getTime())) throw new Error(`Invalid date: '${args.dueDate}'`)
     updates.dueDate = args.dueDate != null ? new Date(args.dueDate).getTime() : null
   }
 
@@ -250,13 +303,7 @@ export const updateIssue = wrapToolHandler<z.infer<typeof UpdateIssueSchema>>(as
     if (args.assignee === null) {
       updates.assignee = null
     } else {
-      const employees = await client.findAll(contact.class.Member, {})
-      const match = employees.find((e) => {
-        const name: string = (e as any).name ?? ''
-        return name.toLowerCase().includes(args.assignee!.toLowerCase())
-      })
-      if (match == null) throw new Error(`Member '${args.assignee}' not found.`)
-      updates.assignee = match._id as unknown as Ref<Person>
+      updates.assignee = await findMemberId(client, args.assignee)
     }
   }
 
@@ -280,10 +327,149 @@ export const updateIssue = wrapToolHandler<z.infer<typeof UpdateIssueSchema>>(as
     }
   }
 
+  return updates
+}
+
+export const updateIssue = wrapToolHandler<z.infer<typeof UpdateIssueSchema>>(async (args) => {
+  const client = await getConnection(args.workspace)
+  const issue = await client.findOne(tracker.class.Issue, { identifier: args.identifier })
+  if (issue == null) throw new Error(`Issue '${args.identifier}' not found.`)
+
+  const updates: DocumentUpdate<Issue> = {}
+
+  if (args.title != null) updates.title = args.title
+
+  if (args.description != null && args.description !== '') {
+    const { wsToken, workspaceUuid } = await getWorkspaceInfo(args.workspace)
+    const prosemirror = markdownToProseMirror(args.description)
+    const descriptionBlobId = await uploadMarkupBlob(
+      wsToken,
+      workspaceUuid,
+      `${issue._id}-description-${Date.now()}`,
+      JSON.stringify(prosemirror)
+    )
+    updates.description = descriptionBlobId as any
+  }
+
+  Object.assign(updates, await resolveFieldUpdates(client, issue, args))
+
   if (Object.keys(updates).length === 0) return `No changes made to ${args.identifier}.`
 
   await client.updateDoc(tracker.class.Issue, issue.space, issue._id, updates)
 
   const changed = Object.keys(updates).join(', ')
   return `✅ Updated **${args.identifier}** — changed: ${changed}`
+})
+
+export const bulkUpdateIssues = wrapToolHandler<z.infer<typeof BulkUpdateIssuesSchema>>(async (args) => {
+  const client = await getConnection(args.workspace)
+  const identifiers = [...new Set(args.identifiers)]
+
+  // Resolve every issue and every update first — nothing is written unless all inputs are valid.
+  const planned: Array<{ issue: Issue, updates: DocumentUpdate<Issue> }> = []
+  for (const identifier of identifiers) {
+    const issue = await client.findOne(tracker.class.Issue, { identifier })
+    if (issue == null) throw new Error(`Issue '${identifier}' not found. Nothing was changed.`)
+    planned.push({ issue, updates: await resolveFieldUpdates(client, issue, args) })
+  }
+  if (planned.every((p) => Object.keys(p.updates).length === 0)) return 'No changes requested.'
+
+  for (const { issue, updates } of planned) {
+    await client.updateDoc(tracker.class.Issue, issue.space, issue._id, updates)
+  }
+
+  const changed = Object.keys(planned[0].updates).join(', ')
+  return `✅ Updated ${planned.length} issue(s) — changed: ${changed}\n${planned.map((p) => `- ${p.issue.identifier}`).join('\n')}`
+})
+
+export const listSubIssues = wrapToolHandler<z.infer<typeof ListSubIssuesSchema>>(async (args) => {
+  const client = await getConnection(args.workspace)
+  const root = await client.findOne(tracker.class.Issue, { identifier: args.identifier })
+  if (root == null) throw new Error(`Issue '${args.identifier}' not found.`)
+
+  const statuses = await client.findAll(tracker.class.IssueStatus, {})
+  const statusById = new Map(statuses.map((s) => [s._id as string, s]))
+  const isDone = (i: Issue): boolean => statusById.get(i.status as string)?.category === task.statusCategory.Won
+  const isCanceled = (i: Issue): boolean => statusById.get(i.status as string)?.category === task.statusCategory.Lost
+
+  // Children are found via attachedTo (how Huly links sub-issues) and, for issues linked by
+  // older versions of set_parent, via the parents list.
+  const projectIssues = await client.findAll(tracker.class.Issue, { space: root.space })
+  const childrenOf = (id: string): Issue[] => projectIssues.filter((i) =>
+    i._id !== id && ((i.attachedTo as string) === id || (i.parents?.[0]?.parentId as string | undefined) === id))
+
+  let total = 0; let done = 0; let canceled = 0
+  const lines: string[] = []
+  const walk = (id: string, level: number): void => {
+    for (const child of childrenOf(id)) {
+      total++
+      if (isDone(child)) done++
+      if (isCanceled(child)) canceled++
+      const statusName = statusById.get(child.status as string)?.name ?? 'Unknown'
+      const mark = isDone(child) ? 'x' : (isCanceled(child) ? '-' : ' ')
+      lines.push(`${'  '.repeat(level)}- [${mark}] **${child.identifier}** [${statusName}] ${child.title}`)
+      if (level + 1 < args.depth) walk(child._id, level + 1)
+    }
+  }
+  walk(root._id, 0)
+
+  if (total === 0) return `**${root.identifier}** has no sub-issues.`
+  return `## Sub-issues of ${root.identifier}: ${root.title}\n**Progress:** ${done}/${total - canceled} done${canceled > 0 ? ` (${canceled} canceled)` : ''}\n\n${lines.join('\n')}`
+})
+
+/**
+ * Moves an issue (with its sub-issues, comments, attachments, labels and time reports) to
+ * another project. Mirrors Huly's own moveIssueToSpace: every attached doc gets the new space,
+ * every moved issue gets a new number in the target project. Component and milestone belong
+ * to the old project and are cleared.
+ */
+export const moveIssue = wrapToolHandler<z.infer<typeof MoveIssueSchema>>(async (args) => {
+  const client = await getConnection(args.workspace)
+  const issue = await client.findOne(tracker.class.Issue, { identifier: args.identifier })
+  if (issue == null) throw new Error(`Issue '${args.identifier}' not found.`)
+  const target = await client.findOne(tracker.class.Project, { identifier: args.targetProjectIdentifier })
+  if (target == null) throw new Error(`Project '${args.targetProjectIdentifier}' not found.`)
+  if (target._id === issue.space) throw new Error(`${args.identifier} is already in project ${args.targetProjectIdentifier}.`)
+
+  let statusUpdate: DocumentUpdate<Issue> = {}
+  if (args.statusName != null) {
+    const status = await client.findOne(tracker.class.IssueStatus, { name: args.statusName })
+    if (status == null) throw new Error(`Status '${args.statusName}' not found.`)
+    statusUpdate = { status: status._id }
+  }
+
+  const hierarchy = client.getHierarchy()
+  const renamed: string[] = []
+  const lastRank = async (): Promise<string | undefined> =>
+    (await client.findOne(tracker.class.Issue, { space: target._id }, { sort: { rank: SortingOrder.Descending } }))?.rank
+
+  const nextNumber = async (): Promise<number> => {
+    const inc = await client.updateDoc(tracker.class.Project, core.space.Space, target._id, { $inc: { sequence: 1 } } as any, true)
+    return (inc as any)?.object?.sequence ?? (target as Project).sequence + 1
+  }
+
+  const moveDoc = async (doc: Doc, extra: DocumentUpdate<any>): Promise<void> => {
+    for (const attribute of hierarchy.getAllAttributes(doc._class).values()) {
+      if (!hierarchy.isDerived(attribute.type._class, core.class.Collection)) continue
+      const of = (attribute.type as any).of
+      const attached = await client.findAll(of, { attachedTo: doc._id })
+      for (const child of attached) {
+        if (hierarchy.isDerived(of, tracker.class.Issue)) {
+          const number = await nextNumber()
+          renamed.push(`${(child as any).identifier as string} → ${target.identifier}-${number}`)
+          await moveDoc(child, { number, identifier: `${target.identifier}-${number}`, rank: makeRank(await lastRank(), undefined), component: null, milestone: null })
+        } else {
+          await moveDoc(child, {})
+        }
+      }
+    }
+    await client.update(doc, { space: target._id, ...extra })
+  }
+
+  const number = await nextNumber()
+  const newIdentifier = `${target.identifier}-${number}`
+  renamed.unshift(`${issue.identifier} → ${newIdentifier}`)
+  await moveDoc(issue, { ...statusUpdate, number, identifier: newIdentifier, rank: makeRank(await lastRank(), undefined), component: null, milestone: null })
+
+  return `✅ Moved to project **${target.identifier}** (component and milestone cleared):\n${renamed.map((r) => `- ${r}`).join('\n')}`
 })

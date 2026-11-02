@@ -1,11 +1,11 @@
 import tracker from '@hcengineering/tracker'
-import contact from '@hcengineering/contact'
 import { generateId, type Ref, type DocumentUpdate } from '@hcengineering/core'
 import type { Employee } from '@hcengineering/contact'
 import type { Component } from '@hcengineering/tracker'
 import { getConnection } from '../connection'
 import { wrapToolHandler } from '../utils/errors'
 import { markupToText, textToMarkup } from '../utils/format'
+import { findPerson, peopleNames } from '../utils/people'
 import type { z } from 'zod'
 import type { ListComponentsSchema, CreateComponentSchema, UpdateComponentSchema, DeleteComponentSchema } from '../schemas'
 
@@ -25,10 +25,7 @@ async function findComponent (client: Client, project: any, label: string): Prom
 }
 
 async function findMemberRef (client: Client, name: string): Promise<Ref<Employee>> {
-  const employees = await client.findAll(contact.class.Member, {})
-  const match = employees.find((e) => ((e as any).name ?? '').toLowerCase().includes(name.toLowerCase()))
-  if (match == null) throw new Error(`Member '${name}' not found.`)
-  return match._id as unknown as Ref<Employee>
+  return (await findPerson(client, name))._id as unknown as Ref<Employee>
 }
 
 export const listComponents = wrapToolHandler<z.infer<typeof ListComponentsSchema>>(async (args) => {
@@ -41,14 +38,10 @@ export const listComponents = wrapToolHandler<z.infer<typeof ListComponentsSchem
   if (components.length === 0) return `No components found in project ${args.projectIdentifier}.`
 
   // Resolve lead names
-  const leadIds = components.map((c) => c.lead).filter((id): id is Ref<Employee> => id != null)
-  const leads = leadIds.length > 0
-    ? await client.findAll(contact.class.Member, { _id: { $in: leadIds as any[] } as any })
-    : []
-  const leadMap = new Map(leads.map((l) => [l._id, (l as any).name ?? l._id]))
+  const leadMap = await peopleNames(client)
 
   const lines = components.map((c) => {
-    const lead = c.lead != null ? ` — Lead: ${leadMap.get(c.lead as unknown as any) ?? c.lead}` : ''
+    const lead = c.lead != null ? ` — Lead: ${leadMap.get(c.lead as unknown as string) ?? c.lead}` : ''
     const text = markupToText(c.description)
     const desc = text !== '' ? `\n  ${text}` : ''
     return `- **${c.label}** (id: \`${c._id}\`)${lead}${desc}`
@@ -62,16 +55,7 @@ export const createComponent = wrapToolHandler<z.infer<typeof CreateComponentSch
   const project = await client.findOne(tracker.class.Project, { identifier: args.projectIdentifier })
   if (project == null) throw new Error(`Project '${args.projectIdentifier}' not found.`)
 
-  let leadRef: Ref<Employee> | null = null
-  if (args.lead != null) {
-    const employees = await client.findAll(contact.class.Member, {})
-    const match = employees.find((e) => {
-      const name: string = (e as any).name ?? ''
-      return name.toLowerCase().includes(args.lead!.toLowerCase())
-    })
-    if (match == null) throw new Error(`Member '${args.lead}' not found.`)
-    leadRef = match._id as unknown as Ref<Employee>
-  }
+  const leadRef: Ref<Employee> | null = args.lead != null ? await findMemberRef(client, args.lead) : null
 
   await client.createDoc(
     tracker.class.Component,

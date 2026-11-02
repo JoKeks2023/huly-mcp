@@ -36,7 +36,9 @@ function workspaceData (label: string): FakeDoc[] {
       reportedTime: 0,
       description: `blob-${label}`
     },
-    { _id: 'member-1', _class: contact.class.Member, name: `${label} me` },
+    { _id: 'member-1', _class: contact.class.Person, name: `me,${label}` },
+    { _id: 'member-1', _class: contact.mixin.Employee, name: `me,${label}`, active: true },
+    { _id: 'social-id', _class: contact.class.SocialIdentity, attachedTo: 'member-1', type: 'email' },
     { _id: 'doc-1', _class: document.class.Document, space: 'ts-1', title: `${label} doc`, content: `content-${label}` },
     { _id: 'org-1', _class: contact.class.Organization, name: `${label} org`, description: `org-desc-${label}` }
   ]
@@ -162,7 +164,9 @@ test('list_members uses the workspace-scoped account client', async () => {
 
 // Every tool that changes data must require `workspace`; read tools may leave it optional.
 const MUTATION_SCHEMAS = [
-  'CreateProjectSchema', 'CreateIssueSchema', 'UpdateIssueSchema', 'DeleteIssueSchema',
+  'CreateProjectSchema', 'UpdateProjectSchema', 'CreateIssueSchema', 'UpdateIssueSchema', 'DeleteIssueSchema',
+  'BulkUpdateIssuesSchema', 'MoveIssueSchema', 'UpdateCommentSchema', 'UpdateLabelSchema', 'DeleteLabelSchema',
+  'RemoveRelationSchema', 'RemoveBlockedBySchema', 'RepairParentLinksSchema',
   'AddCommentSchema', 'DeleteCommentSchema', 'LogTimeSchema',
   'CreateLabelSchema', 'AddLabelSchema', 'RemoveLabelSchema',
   'AddRelationSchema', 'AddBlockedBySchema', 'SetParentSchema',
@@ -194,7 +198,7 @@ test('every registered tool except list_workspaces accepts workspace', () => {
     const shape = tools[name].inputSchema?.shape
     assert.ok(shape?.workspace !== undefined, `${name} does not accept workspace`)
   }
-  const mutationTools = names.filter((n) => /^(create|update|delete|add|remove|set|log|link|send|attach|start)_/.test(n))
+  const mutationTools = names.filter((n) => /^(create|update|delete|add|remove|set|log|link|send|attach|start|bulk|move|repair)_/.test(n))
   assert.equal(mutationTools.length, MUTATION_SCHEMAS.length)
   for (const name of mutationTools) {
     assert.equal(tools[name].inputSchema.shape.workspace.isOptional(), false, `${name}.workspace must be required`)
@@ -252,7 +256,7 @@ function planningData (): FakeDoc[] {
     { _id: 'ms-2', _class: tracker.class.Milestone, space: 'project-1', label: 'v1.1', status: 0, targetDate: Date.UTC(2027, 0, 1) },
     { _id: 'cmp-1', _class: tracker.class.Component, space: 'project-1', label: 'API', lead: null, description: 'plain text desc' },
     { _id: 'cmp-2', _class: tracker.class.Component, space: 'project-1', label: 'UI', lead: null },
-    { _id: 'member-1', _class: contact.class.Member, name: 'Jo Keks' },
+    { _id: 'member-1', _class: contact.mixin.Employee, name: 'Keks,Jo', active: true },
     { _id: 'i-1', _class: tracker.class.Issue, space: 'project-1', identifier: 'PROJ-1', title: 'open one', status: 'st-todo', milestone: 'ms-1', component: 'cmp-1' },
     { _id: 'i-2', _class: tracker.class.Issue, space: 'project-1', identifier: 'PROJ-2', title: 'done one', status: 'st-done', milestone: 'ms-1', component: 'cmp-1' },
     { _id: 'i-3', _class: tracker.class.Issue, space: 'project-1', identifier: 'PROJ-3', title: 'dropped', status: 'st-cancel', milestone: 'ms-1', component: null }

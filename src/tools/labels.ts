@@ -9,7 +9,9 @@ import type {
   ListLabelsSchema,
   CreateLabelSchema,
   AddLabelSchema,
-  RemoveLabelSchema
+  RemoveLabelSchema,
+  UpdateLabelSchema,
+  DeleteLabelSchema
 } from '../schemas'
 
 export const listLabels = wrapToolHandler<z.infer<typeof ListLabelsSchema>>(async (args) => {
@@ -158,4 +160,56 @@ export const removeLabel = wrapToolHandler<z.infer<typeof RemoveLabelSchema>>(as
   )
 
   return `✅ Removed label **${args.labelName}** from **${args.identifier}**`
+})
+
+async function findLabel (client: Awaited<ReturnType<typeof getConnection>>, title: string): Promise<TagElement> {
+  const label = await client.findOne(tags.class.TagElement, { targetClass: tracker.class.Issue, title })
+  if (label == null) throw new Error(`Label '${title}' not found.`)
+  return label
+}
+
+export const updateLabel = wrapToolHandler<z.infer<typeof UpdateLabelSchema>>(async (args) => {
+  const client = await getConnection(args.workspace)
+  const label = await findLabel(client, args.labelName)
+
+  const updates: Record<string, unknown> = {}
+  if (args.newName !== undefined && args.newName !== label.title) {
+    const clash = await client.findOne(tags.class.TagElement, { targetClass: tracker.class.Issue, title: args.newName })
+    if (clash != null) throw new Error(`A label named '${args.newName}' already exists.`)
+    updates.title = args.newName
+  }
+  if (args.color !== undefined) updates.color = parseInt(args.color.replace('#', ''), 16)
+  if (args.description !== undefined) updates.description = args.description
+  if (Object.keys(updates).length === 0) return `Nothing to update for label **${label.title}**.`
+
+  await client.updateDoc(tags.class.TagElement, label.space, label._id, updates as any)
+
+  // Issues show the title/color copied into each TagReference — keep them in sync.
+  const refUpdates: Record<string, unknown> = {}
+  if (updates.title !== undefined) refUpdates.title = updates.title
+  if (updates.color !== undefined) refUpdates.color = updates.color
+  let synced = 0
+  if (Object.keys(refUpdates).length > 0) {
+    const refs = await client.findAll(tags.class.TagReference, { tag: label._id })
+    for (const ref of refs) {
+      await client.updateCollection(tags.class.TagReference, ref.space, ref._id, ref.attachedTo, ref.attachedToClass, ref.collection, refUpdates as any)
+      synced++
+    }
+  }
+
+  return `✅ Label **${(updates.title as string | undefined) ?? label.title}** updated (${Object.keys(updates).map((k) => (k === 'title' ? 'name' : k)).join(', ')})${synced > 0 ? ` on ${synced} issue(s)` : ''}.`
+})
+
+export const deleteLabel = wrapToolHandler<z.infer<typeof DeleteLabelSchema>>(async (args) => {
+  const client = await getConnection(args.workspace)
+  const label = await findLabel(client, args.labelName)
+
+  // Remove the label from every issue first, so no issue keeps a reference to a deleted label.
+  const refs = await client.findAll(tags.class.TagReference, { tag: label._id })
+  for (const ref of refs) {
+    await client.removeCollection(tags.class.TagReference, ref.space, ref._id, ref.attachedTo, ref.attachedToClass, ref.collection)
+  }
+  await client.removeDoc(tags.class.TagElement, label.space, label._id)
+
+  return `🗑️ Label **${label.title}** deleted${refs.length > 0 ? ` and removed from ${refs.length} issue(s)` : ''}.`
 })

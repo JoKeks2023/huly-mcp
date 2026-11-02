@@ -147,10 +147,15 @@ export function buildTable (rows: string[][]): PMNode {
 
 // Extract plain text from Huly's ProseMirror JSON markup (inverse-ish of
 // markdownToProseMirror, used for get_document / get_issue content reads).
+// Inline nodes (text, marks) are concatenated; block nodes are separated by newlines.
+const BLOCK_TYPES = new Set(['doc', 'paragraph', 'heading', 'bulletList', 'orderedList', 'listItem', 'codeBlock', 'blockquote', 'table', 'tableRow', 'tableCell', 'tableHeader', 'horizontalRule', 'image'])
+
 export function extractText (node: any): string {
   if (typeof node === 'string') return node
   if (node == null || typeof node !== 'object') return ''
-  if (node.type === 'text' && typeof node.text === 'string') return node.text
-  const children: any[] = node.content ?? node.children ?? []
-  return children.map(extractText).join(node.type === 'paragraph' || node.type === 'heading' ? '\n' : '')
+  if (node.type === 'text') return typeof node.text === 'string' ? node.text : ''
+  if (node.type === 'hardBreak') return '\n'
+  const children: any[] = Array.isArray(node.content) ? node.content : (Array.isArray(node.children) ? node.children : [])
+  const hasBlocks = children.some((c) => BLOCK_TYPES.has(c?.type))
+  return children.map(extractText).join(hasBlocks ? '\n' : '')
 }

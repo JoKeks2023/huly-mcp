@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>huly-mcp-selfhost — MCP server for Huly</title>
-  <meta name="description" content="MCP server for Huly. Self-hosted + cloud, multi-workspace, 53 tools for issues, documents, chat and more. Open source, EPL-2.0.">
+  <meta name="description" content="MCP server for Huly. Self-hosted + cloud, multi-workspace, 64 tools for issues, documents, chat and more. Open source, EPL-2.0.">
   <meta name="theme-color" content="#fafaf9" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0c0c0c" media="(prefers-color-scheme: dark)">
   <meta property="og:title" content="huly-mcp-selfhost">
-  <meta property="og:description" content="MCP server for Huly. Self-hosted + cloud. Multi-workspace. 53 tools.">
+  <meta property="og:description" content="MCP server for Huly. Self-hosted + cloud. Multi-workspace. 64 tools.">
   <meta property="og:type" content="website">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
@@ -47,7 +47,7 @@
         <li>MCP server for Huly.</li>
         <li>Self-hosted + cloud.</li>
         <li>Multi-workspace.</li>
-        <li>53 tools.</li>
+        <li>64 tools.</li>
       </ul>
       <p class="byline"><em>for Claude, by Claude.</em></p>
       <div class="actions">
@@ -189,19 +189,19 @@
       <span class="label"><b>04</b> — Tools</span>
       <h2>Every tool, by category.</h2>
       <div class="stats">
-        <div class="stat"><b>53</b><span>tools</span></div>
+        <div class="stat"><b>64</b><span>tools</span></div>
         <div class="stat"><b>16</b><span>categories</span></div>
         <div class="stat"><b>28</b><span>write — workspace required</span></div>
         <div class="stat"><b>19</b><span>read — workspace optional*</span></div>
       </div>
       <div class="rows">
         <div class="row"><h3>Workspaces</h3><div class="toolnames"><span>list_workspaces</span></div><span class="count">1</span></div>
-        <div class="row"><h3>Projects</h3><div class="toolnames"><span>list_projects</span><span>get_project</span><span class="w">create_project</span></div><span class="count">3</span></div>
-        <div class="row"><h3>Issues</h3><div class="toolnames"><span>list_issues</span><span>get_issue</span><span class="w">create_issue</span><span class="w">update_issue</span><span class="w">delete_issue</span></div><span class="count">5</span></div>
-        <div class="row"><h3>Comments</h3><div class="toolnames"><span class="w">add_comment</span><span>list_comments</span><span class="w">delete_comment</span></div><span class="count">3</span></div>
-        <div class="row"><h3>Time tracking</h3><div class="toolnames"><span class="w">log_time</span></div><span class="count">1</span></div>
-        <div class="row"><h3>Labels</h3><div class="toolnames"><span>list_labels</span><span class="w">create_label</span><span class="w">add_label</span><span class="w">remove_label</span></div><span class="count">4</span></div>
-        <div class="row"><h3>Relations</h3><div class="toolnames"><span class="w">add_relation</span><span class="w">add_blocked_by</span><span class="w">set_parent</span></div><span class="count">3</span></div>
+        <div class="row"><h3>Projects</h3><div class="toolnames"><span>list_projects</span><span>get_project</span><span class="w">create_project</span><span class="w">update_project</span></div><span class="count">4</span></div>
+        <div class="row"><h3>Issues</h3><div class="toolnames"><span>list_issues</span><span>get_issue</span><span>list_sub_issues</span><span class="w">create_issue</span><span class="w">update_issue</span><span class="w">bulk_update_issues</span><span class="w">move_issue</span><span class="w">delete_issue</span></div><span class="count">8</span></div>
+        <div class="row"><h3>Comments</h3><div class="toolnames"><span class="w">add_comment</span><span>list_comments</span><span class="w">update_comment</span><span class="w">delete_comment</span></div><span class="count">4</span></div>
+        <div class="row"><h3>Time tracking</h3><div class="toolnames"><span class="w">log_time</span><span>list_time_reports</span></div><span class="count">2</span></div>
+        <div class="row"><h3>Labels</h3><div class="toolnames"><span>list_labels</span><span class="w">create_label</span><span class="w">update_label</span><span class="w">delete_label</span><span class="w">add_label</span><span class="w">remove_label</span></div><span class="count">6</span></div>
+        <div class="row"><h3>Relations</h3><div class="toolnames"><span class="w">add_relation</span><span class="w">remove_relation</span><span class="w">add_blocked_by</span><span class="w">remove_blocked_by</span><span class="w">set_parent</span><span class="w">repair_parent_links</span></div><span class="count">6</span></div>
         <div class="row"><h3>Members</h3><div class="toolnames"><span>list_members</span></div><span class="count">1</span></div>
         <div class="row"><h3>Milestones</h3><div class="toolnames"><span>list_milestones</span><span>get_milestone</span><span class="w">create_milestone</span><span class="w">update_milestone</span><span class="w">delete_milestone</span></div><span class="count">5</span></div>
         <div class="row"><h3>Components</h3><div class="toolnames"><span>list_components</span><span class="w">create_component</span><span class="w">update_component</span><span class="w">delete_component</span></div><span class="count">4</span></div>
@@ -225,7 +225,7 @@
       <p class="lede">No database, no cache service, no extra infrastructure. All state is in process memory: one account session, the discovered workspace list and one connection per workspace in use.</p>
       <div class="layers">
         <div class="layer"><div class="name">MCP client<small>Claude · Codex · Cursor · Zed</small></div><p>Calls tools over stdio — or HTTP when running the Docker image behind mcp-proxy.</p></div>
-        <div class="layer"><div class="name">MCP tools<small>src/tools/*.ts</small></div><p>53 handlers. Each resolves its own connection from its <code>workspace</code> argument; inputs are validated against zod schemas first.</p></div>
+        <div class="layer"><div class="name">MCP tools<small>src/tools/*.ts</small></div><p>64 handlers. Each resolves its own connection from its <code>workspace</code> argument; inputs are validated against zod schemas first.</p></div>
         <div class="layer"><div class="name">Account client<small>HULY_ACCOUNTS_URL · account token</small></div><p><code>login</code> / <code>getLoginInfoByToken</code>, then <code>getUserWorkspaces()</code> and <code>selectWorkspace()</code>. Never holds a workspace token.</p></div>
         <div class="layer"><div class="name">Workspace connection manager<small>src/connection.ts</small></div><p>Caches the session, the workspace list and one connection per workspace id. Failed attempts are not cached; shutdown closes everything.</p></div>
         <div class="layer"><div class="name">Workspace client<small>per workspace · workspace token</small></div><p><code>TxOperations</code> for all reads and writes, plus a workspace-scoped account client for <code>getWorkspaceMembers()</code>.</p></div>
