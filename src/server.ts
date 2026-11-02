@@ -37,7 +37,7 @@ export function parseToolsets (value: string | undefined): Set<Toolset> {
 
 export function createServer (options: { toolsets?: string } = {}): McpServer {
   const enabled = parseToolsets(options.toolsets ?? process.env.HULY_TOOLSETS)
-  const server = new McpServer({ name: 'huly-mcp-selfhost', version: '2.2.0' }, { instructions: SERVER_INSTRUCTIONS })
+  const server = new McpServer({ name: 'huly-mcp-selfhost', version: '3.0.0' }, { instructions: SERVER_INSTRUCTIONS })
   for (const tool of TOOLS) {
     if (enabled.has(tool.toolset)) server.tool(tool.name, tool.description, tool.schema.shape, tool.handler)
   }
