@@ -16,7 +16,7 @@ import task from '@hcengineering/task'
 import { listMembers } from '../src/tools/members'
 import { listWorkspaces } from '../src/tools/workspaces'
 import * as schemas from '../src/schemas'
-import { createFakeEnv, PERSONAL, AVMS, type FakeDoc } from './helpers'
+import { createFakeEnv, PERSONAL, ACME, type FakeDoc } from './helpers'
 
 // Both workspaces deliberately contain a project "PROJ" and an issue "PROJ-1" with the
 // same _id — entity identity is (workspace, id), never id alone.
@@ -52,8 +52,8 @@ const savedFetch = globalThis.fetch
 
 beforeEach(() => {
   env = createFakeEnv({
-    workspaces: [PERSONAL, AVMS],
-    data: { jokeks2023: workspaceData('Personal'), avms: workspaceData('AVMS') }
+    workspaces: [PERSONAL, ACME],
+    data: { jokeks2023: workspaceData('Personal'), acme: workspaceData('ACME') }
   })
   setConnectionManager(env.manager)
   delete process.env.HULY_FRONT_URL
@@ -70,13 +70,13 @@ afterEach(async () => {
 test('list_workspaces returns name, slug and id', async () => {
   const out = text(await listWorkspaces({}))
   assert.match(out, /\*\*JoKeks2023\*\* — slug: `jokeks2023` — id: `11111111-aaaa-4000-8000-000000000001`/)
-  assert.match(out, /\*\*AVMS\*\* — slug: `avms` — id: `22222222-bbbb-4000-8000-000000000002`/)
+  assert.match(out, /\*\*ACME\*\* — slug: `acme` — id: `22222222-bbbb-4000-8000-000000000002`/)
 })
 
 test('read tools route to the named workspace', async () => {
   assert.match(text(await listProjects({ workspace: 'jokeks2023' })), /Personal project/)
-  assert.match(text(await listProjects({ workspace: 'avms' })), /AVMS project/)
-  assert.doesNotMatch(text(await listProjects({ workspace: 'avms' })), /Personal/)
+  assert.match(text(await listProjects({ workspace: 'acme' })), /ACME project/)
+  assert.doesNotMatch(text(await listProjects({ workspace: 'acme' })), /Personal/)
 })
 
 test('read tools without workspace fail when several are available', async () => {
@@ -86,11 +86,11 @@ test('read tools without workspace fail when several are available', async () =>
 
 test('same entity id in two workspaces resolves per workspace', async () => {
   const personal = text(await getIssue({ workspace: 'jokeks2023', identifier: 'PROJ-1' }))
-  const avms = text(await getIssue({ workspace: 'AVMS', identifier: 'PROJ-1' }))
+  const acme = text(await getIssue({ workspace: 'ACME', identifier: 'PROJ-1' }))
   assert.match(personal, /PROJ-1: Personal issue/)
   assert.match(personal, /Personal Todo/)
-  assert.match(avms, /PROJ-1: AVMS issue/)
-  assert.match(avms, /AVMS Todo/)
+  assert.match(acme, /PROJ-1: ACME issue/)
+  assert.match(acme, /ACME Todo/)
 })
 
 // get_issue / get_organization fetch their description blob from front's /files. The workspace
@@ -107,21 +107,21 @@ function mockFront (expectedToken: string, text: string): Array<{ url: string, h
 }
 
 for (const { tool, run, blob } of [
-  { tool: 'get_issue', run: async () => await getIssue({ workspace: 'avms', identifier: 'PROJ-1' }), blob: 'blob-AVMS' },
-  { tool: 'get_organization', run: async () => await getOrganization({ workspace: 'avms', organizationId: 'org-1' }), blob: 'org-desc-AVMS' }
+  { tool: 'get_issue', run: async () => await getIssue({ workspace: 'acme', identifier: 'PROJ-1' }), blob: 'blob-ACME' },
+  { tool: 'get_organization', run: async () => await getOrganization({ workspace: 'acme', organizationId: 'org-1' }), blob: 'org-desc-ACME' }
 ]) {
   test(`${tool}: description is fetched with a Bearer header, never a token in the URL or result`, async () => {
     process.env.HULY_FRONT_URL = 'https://front.example'
-    const requests = mockFront('ws-token-avms', 'Loaded description')
+    const requests = mockFront('ws-token-acme', 'Loaded description')
 
     const out = text(await run())
 
     assert.equal(requests.length, 1)
     assert.match(requests[0].url, new RegExp(`file=${blob}`))
-    assert.match(requests[0].url, new RegExp(`workspace=${AVMS.uuid}`))
+    assert.match(requests[0].url, new RegExp(`workspace=${ACME.uuid}`))
     assert.doesNotMatch(requests[0].url, /token=/i)
     assert.ok(!requests[0].url.includes('ws-token-'), 'request URL contains a workspace token')
-    assert.equal(requests[0].headers.Authorization, 'Bearer ws-token-avms')
+    assert.equal(requests[0].headers.Authorization, 'Bearer ws-token-acme')
 
     assert.match(out, /\*\*Description:\*\*\nLoaded description/)
     assert.doesNotMatch(out, /token=/i)
@@ -131,33 +131,33 @@ for (const { tool, run, blob } of [
 
 test('mutation lands only in the named workspace', async () => {
   await logTime({ workspace: 'jokeks2023', identifier: 'PROJ-1', hours: 2, description: 'x' })
-  await createMilestone({ workspace: 'avms', projectIdentifier: 'PROJ', label: 'M1', targetDate: '2026-12-01', status: 'Planned' })
+  await createMilestone({ workspace: 'acme', projectIdentifier: 'PROJ', label: 'M1', targetDate: '2026-12-01', status: 'Planned' })
 
   const personal = env.clients.get('jokeks2023')!.mutations
-  const avms = env.clients.get('avms')!.mutations
+  const acme = env.clients.get('acme')!.mutations
   assert.deepEqual(personal.map((m) => [m.op, m._class]), [['addCollection', tracker.class.TimeSpendReport]])
   assert.equal((personal[0].data as any).employee, 'member-1')
-  assert.deepEqual(avms.map((m) => [m.op, m._class]), [['createDoc', tracker.class.Milestone]])
+  assert.deepEqual(acme.map((m) => [m.op, m._class]), [['createDoc', tracker.class.Milestone]])
 })
 
 test('mutation after using another workspace still goes to the named one', async () => {
-  await listProjects({ workspace: 'avms' })
+  await listProjects({ workspace: 'acme' })
   await updateIssue({ workspace: 'jokeks2023', identifier: 'PROJ-1', title: 'renamed' })
-  assert.equal(env.clients.get('avms')!.mutations.length, 0)
+  assert.equal(env.clients.get('acme')!.mutations.length, 0)
   assert.deepEqual(env.clients.get('jokeks2023')!.mutations.map((m) => m.op), ['updateDoc'])
 })
 
 test('mutation with unknown workspace fails without touching any workspace', async () => {
   await assert.rejects(
-    logTime({ workspace: 'avmss', identifier: 'PROJ-1', hours: 1 }),
-    /Unknown workspace 'avmss'/
+    logTime({ workspace: 'acmes', identifier: 'PROJ-1', hours: 1 }),
+    /Unknown workspace 'acmes'/
   )
   assert.equal(env.calls.opened.length, 0)
 })
 
 test('list_members uses the workspace-scoped account client', async () => {
-  assert.match(text(await listMembers({ workspace: 'avms' })), /member-via-ws-token-avms/)
-  assert.deepEqual(env.calls.getWorkspaceMembersTokens, ['ws-token-avms'])
+  assert.match(text(await listMembers({ workspace: 'acme' })), /member-via-ws-token-acme/)
+  assert.deepEqual(env.calls.getWorkspaceMembersTokens, ['ws-token-acme'])
 })
 
 // Every tool that changes data must require `workspace`; read tools may leave it optional.
@@ -206,24 +206,24 @@ test('get_document never exposes the workspace token, but still loads content wi
   const requests: Array<{ url: string, headers: Record<string, string> }> = []
   globalThis.fetch = (async (url: string, init?: RequestInit) => {
     requests.push({ url: String(url), headers: { ...(init?.headers as Record<string, string>) } })
-    const authorized = (init?.headers as Record<string, string> | undefined)?.Authorization === 'Bearer ws-token-avms'
+    const authorized = (init?.headers as Record<string, string> | undefined)?.Authorization === 'Bearer ws-token-acme'
     const body = JSON.stringify({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Secret-free body' }] }] })
     return authorized ? new Response(body, { status: 200 }) : new Response('', { status: 401 })
   }) as typeof fetch
 
-  const out = text(await getDocument({ workspace: 'avms', documentId: 'doc-1' }))
+  const out = text(await getDocument({ workspace: 'acme', documentId: 'doc-1' }))
 
   // Content is still fetched and rendered…
   assert.match(out, /\*\*Content:\*\*\nSecret-free body/)
   // …via one request carrying the token only in the Authorization header of the right workspace.
   assert.equal(requests.length, 1)
-  assert.equal(requests[0].headers.Authorization, 'Bearer ws-token-avms')
-  assert.match(requests[0].url, /file=content-AVMS/)
-  assert.match(requests[0].url, new RegExp(`workspace=${AVMS.uuid}`))
+  assert.equal(requests[0].headers.Authorization, 'Bearer ws-token-acme')
+  assert.match(requests[0].url, /file=content-ACME/)
+  assert.match(requests[0].url, new RegExp(`workspace=${ACME.uuid}`))
   assert.doesNotMatch(requests[0].url, /token/i)
   // The tool result never contains a token, in any form.
   assert.doesNotMatch(out, /token=/i)
-  assert.ok(!out.includes('ws-token-avms'), 'tool result contains the workspace token')
+  assert.ok(!out.includes('ws-token-acme'), 'tool result contains the workspace token')
   assert.ok(!out.includes('ws-token-jokeks2023'), 'tool result contains another workspace token')
 })
 

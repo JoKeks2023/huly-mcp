@@ -152,7 +152,7 @@ A single Huly account can belong to several workspaces — e.g. a personal one a
 
 - **`list_workspaces`** returns name, slug and id of every available workspace.
 - **Every other tool takes a `workspace` argument** — the slug, the name or the id (case-insensitive):
-  `list_projects(workspace="jokeks2023")`, `get_issue(workspace="avms", identifier="PROJ-1")`, `log_time(workspace="jokeks2023", identifier="WEB-12", hours=2)`.
+  `list_projects(workspace="jokeks2023")`, `get_issue(workspace="acme", identifier="PROJ-1")`, `log_time(workspace="jokeks2023", identifier="WEB-12", hours=2)`.
 - **Changes always require `workspace`.** Every tool that creates, updates, deletes, links, sends, attaches or logs something has `workspace` as a required argument — the server never falls back to an implicit, default or "last used" workspace for a write.
 - **Reads may omit `workspace` only if exactly one workspace is available.** With several, the call fails and lists the options.
 - **IDs are per workspace.** `PROJ-1`, a document id or a comment id identifies something only together with its workspace — the same id can exist in two workspaces. Pass the same `workspace` you got the id from.
@@ -359,7 +359,7 @@ For network access (HTTP/SSE) use the [Docker image](#docker-network-reachable-s
 
 **Workspaces:**
 - *"Which Huly workspaces do I have?"*
-- *"List the projects in my AVMS workspace"*
+- *"List the projects in my Acme workspace"*
 - *"In the jokeks2023 workspace, log 2 hours on WEB-12"*
 
 **Projects & issues:**
@@ -555,11 +555,12 @@ See [`src/connection.ts`](src/connection.ts).
 
 ## Changelog
 
-### Unreleased
+### 2.1.0 — milestones & components, security updates
 
 - **New: `get_milestone`, `update_milestone`, `delete_milestone`** — progress overview, edit name/date/status/description, delete with issues unassigned or moved via `moveIssuesTo`
 - **New: `update_component`, `delete_component`** — edit name/description/lead, delete with issues unassigned or moved via `moveIssuesTo`
 - **Changed: `list_components`** renders Markdown/ProseMirror descriptions as text
+- **Security:** all open dependency advisories fixed — `@modelcontextprotocol/sdk` 1.32, `ws` 8.22, `zod` 4, `dompurify` 3.4.17 (override)
 
 ### 2.0.0 — multi-workspace
 

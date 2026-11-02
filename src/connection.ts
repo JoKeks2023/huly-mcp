@@ -83,7 +83,7 @@ export class WorkspaceConnectionManager {
   private workspaces: Promise<WorkspaceRef[]> | null = null
   // Bumped by closeAll() so calls that were in flight don't hand out or register connections afterwards.
   private generation = 0
-  // Keyed by workspace UUID — never by user input, so "avms" and its UUID share one connection.
+  // Keyed by workspace UUID — never by user input, so "acme" and its UUID share one connection.
   private readonly connections = new Map<string, Promise<WorkspaceConnection & { close: () => Promise<void> }>>()
 
   constructor (private readonly opts: ConnectionManagerOptions) {

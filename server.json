@@ -1,38 +1,59 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.varaprasadreddy9676/huly-mcp",
-  "description": "MCP server for Huly — manage projects, issues, documents and more via natural language.",
+  "name": "io.github.jokeks2023/huly-mcp-selfhost",
+  "description": "MCP server for Huly (self-hosted + cloud): projects, issues, milestones, documents, chat and more.",
   "repository": {
-    "url": "https://github.com/varaprasadreddy9676/huly-mcp",
+    "url": "https://github.com/JoKeks2023/huly-mcp",
     "source": "github"
   },
-  "version": "0.5.6",
+  "version": "2.1.0",
   "packages": [
     {
       "registryType": "npm",
-      "identifier": "huly-mcp-sdk",
-      "version": "0.5.6",
+      "identifier": "huly-mcp-selfhost",
+      "version": "2.1.0",
       "transport": {
         "type": "stdio"
       },
       "environmentVariables": [
         {
-          "name": "HULY_TOKEN",
-          "description": "Huly workspace token — get from huly.app DevTools → Application → Local Storage → token",
-          "isRequired": true,
+          "name": "HULY_EMAIL",
+          "description": "Huly account email (option A, together with HULY_PASSWORD)",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string"
+        },
+        {
+          "name": "HULY_PASSWORD",
+          "description": "Huly account password (option A)",
+          "isRequired": false,
           "isSecret": true,
           "format": "string"
         },
         {
-          "name": "HULY_WORKSPACE",
-          "description": "Your Huly workspace slug (the part after huly.app/ in your URL, e.g. 'myteam')",
-          "isRequired": true,
+          "name": "HULY_TOKEN",
+          "description": "Huly token for SSO accounts without a password (option B, get it via `npx huly-mcp-setup`)",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "HULY_ACCOUNTS_URL",
+          "description": "Account service URL for self-hosted Huly. Default: https://account.huly.app",
+          "isRequired": false,
           "isSecret": false,
           "format": "string"
         },
         {
           "name": "HULY_FRONT_URL",
-          "description": "Optional — set to https://front.huly.app to enable reading document content",
+          "description": "Front URL of your Huly instance, enables document/description content and uploads",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string"
+        },
+        {
+          "name": "HULY_WORKSPACE",
+          "description": "Optional: restrict the server to one workspace (slug, name or id)",
           "isRequired": false,
           "isSecret": false,
           "format": "string"
