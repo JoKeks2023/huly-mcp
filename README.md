@@ -33,7 +33,7 @@ This is a fork of [varaprasadreddy9676/huly-mcp](https://github.com/varaprasadre
 
 ---
 
-## Tools (97 total, grouped in toolsets)
+## Tools (104 total, grouped in toolsets)
 
 All tools except `list_workspaces` take a `workspace` argument — required for every change, optional for reads when only one workspace is available.
 
@@ -48,7 +48,8 @@ HULY_TOOLSETS=tracker,documents,planner # just these ('core' = list_workspaces i
 
 | Toolset | Default | Tools | Contents |
 |---------|:-:|--:|----------|
-| `tracker` | ✓ | 45 | projects, issues, comments, time, labels, relations, milestones, components, statuses, attachments, search |
+| `agent` | ✓ | 7 | agent workflow: issue context in one call, start/finish work, plan → issue tree, changes since, claims — plus [resources and prompts](#agent-workflow) |
+| `tracker` | ✓ | 37 | projects, issues, comments, time, labels, relations, milestones, components, statuses, attachments, search |
 | `documents` | ✓ | 8 | teamspaces and documents |
 | `chat` | ✓ | 12 | channels, DMs, threads, edit/delete, reactions, pins |
 | `contacts` | ✓ | 11 | members, organizations, persons, contact channels |
@@ -56,11 +57,37 @@ HULY_TOOLSETS=tracker,documents,planner # just these ('core' = list_workspaces i
 | `activity` | ✓ | 1 | change history of an issue/object |
 | `planner` | ✓ | 5 | to-dos, time blocking |
 | `generic` | ✓ | 3 | read any Huly class |
+| `tracker-admin` | | 8 | rarely needed admin: create/update project, create status, update/delete label, delete milestone/component, repair parent links |
 | `calendar` | | 4 | calendar events |
 | `github` | | 2 | pull requests synced by Huly's GitHub integration (read-only) |
 | `generic-write` | | 3 | create/update/delete any class — dry run by default, deletes need `confirm` |
 
-Context cost of `tools/list` (≈3.5 chars/token): default set ~38k chars ≈ **11k tokens** (88 tools), `all` ~43k chars ≈ **12k tokens** (97 tools). For comparison, 2.2.0 needed ≈12.8k tokens for 64 tools. Claude Code loads MCP tools on demand, so there the toolset choice matters less.
+Context cost of `tools/list` (≈3.5 chars/token): default set ~39k chars ≈ **11k tokens** (87 tools), `all` ~47k chars ≈ **13k tokens** (104 tools). For comparison, 2.2.0 needed ≈12.8k tokens for 64 tools. Claude Code loads MCP tools on demand, so there the toolset choice matters less.
+
+### Agent workflow
+
+Tools, resources and prompts for AI agents working on Huly issues (toolset `agent`):
+
+| Tool | What it does |
+|------|--------------|
+| `get_issue_context` | Everything about an issue in one call: fields, description, parent chain, sub-issues, blocked by / blocks, related, PRs, comments, suggested branch name |
+| `start_work` | Status → In Progress, assign to me, optionally claim — returns the full context |
+| `finish_work` | Work summary as comment, PR (`#12`, URL or Huly id) linked as sub-issue, status → Review in progress, claim released. Validates the PR before changing anything |
+| `create_issue_tree` | Plan → epic + sub-issues with priorities, components, milestones, assignees, labels and blockers (`"#2"` = second child). Same-title issues are reused, dry run by default |
+| `changes_since` | Issues/PRs changed since `24h`, `7d` or an ISO time — which fields changed, new comments, by whom |
+| `claim_issue` / `release_issue` | Lease an issue to an agent (label `agent:working` + comment marker) so parallel agents skip it; expires after `minutes` |
+
+**Resources** — `huly://<workspace>/issue/<PROJ-12>` and `huly://<workspace>/document/<id>`. Your open assigned issues are listed, so in Claude Code you can `@`-mention them.
+
+**Prompts** — `start`, `finish`, `plan`, `triage`, `standup` (in Claude Code: `/mcp__huly__start` …).
+
+**Guard rails** (environment):
+
+| Variable | Effect |
+|----------|--------|
+| `HULY_WRITE_PROJECTS=TSK,WEB` | Changes are only allowed when every project they touch (project keys and `PROJ-12` ids in the arguments) is listed. Reads are never blocked. Tools without a project (chat, documents, planner) are not affected |
+| `HULY_AUDIT_LOG=/path/audit.jsonl` | Every change is appended as one JSON line (time, tool, shortened arguments, success, first line of the result) |
+| `HULY_AGENT_NAME=claude-2` | Default agent name for claims |
 
 ### Tool reference
 
@@ -69,8 +96,8 @@ Context cost of `tools/list` (≈3.5 chars/token): default set ~38k chars ≈ **
 | **Workspaces** | `list_workspaces` | List the workspaces this account can access (name, slug, id) |
 | **Projects** | `list_projects` | List all projects in a workspace |
 | | `get_project` | Get project details + available statuses |
-| | `create_project` | Create a new tracker project with a unique identifier |
-| | `update_project` | Change name, description, default assignee or default status |
+| | `create_project` | Create a new tracker project with a unique identifier *(tracker-admin)* |
+| | `update_project` | Change name, description, default assignee or default status *(tracker-admin)* |
 | **Issues** | `list_issues` | List issues, filterable by status, priority, milestone, component, label, assignee, parent |
 | | `get_issue` | Full details of an issue (e.g. `PROJ-42`): assignee, milestone, component, labels, parent, links |
 | | `create_issue` | Create a new issue (with optional Markdown description) |
@@ -89,14 +116,14 @@ Context cost of `tools/list` (≈3.5 chars/token): default set ~38k chars ≈ **
 | | `create_label` | Create a new label with an optional hex color |
 | | `add_label` | Add a label to an issue (auto-creates if it doesn't exist) |
 | | `remove_label` | Remove a label from an issue |
-| | `update_label` | Rename or recolor a label (updated on every issue) |
-| | `delete_label` | Delete a label and remove it from every issue |
+| | `update_label` | Rename or recolor a label (updated on every issue) *(tracker-admin)* |
+| | `delete_label` | Delete a label and remove it from every issue *(tracker-admin)* |
 | **Relations** | `add_relation` | Mark two issues as related (bidirectional) |
 | | `add_blocked_by` | Mark an issue as blocked by another issue |
 | | `set_parent` | Set or clear the parent epic of an issue |
 | | `remove_relation` | Remove a "related" link |
 | | `remove_blocked_by` | Remove a "blocked by" link |
-| | `repair_parent_links` | Fix sub-issues linked by huly-mcp ≤ 2.1 that don't show under their parent (dry run by default) |
+| | `repair_parent_links` | Fix sub-issues linked by huly-mcp ≤ 2.1 that don't show under their parent (dry run by default) *(tracker-admin)* |
 | **Members** | `list_members` | List workspace members with names and roles |
 | **Persons** (`contacts`) | `list_persons` | Contact persons with their channels |
 | | `get_person` | Person details, contact channels, organizations |
@@ -108,11 +135,11 @@ Context cost of `tools/list` (≈3.5 chars/token): default set ~38k chars ≈ **
 | | `create_milestone` | Create a milestone with a target date and status |
 | | `get_milestone` | Milestone details with progress (done/open/canceled issues) and the open issues |
 | | `update_milestone` | Change name, target date, status or description |
-| | `delete_milestone` | Delete a milestone; its issues are unassigned or moved (`moveIssuesTo`) |
+| | `delete_milestone` | Delete a milestone; its issues are unassigned or moved (`moveIssuesTo`) *(tracker-admin)* |
 | **Components** | `list_components` | List components (sub-areas) in a project |
 | | `create_component` | Create a new component with optional lead |
 | | `update_component` | Change name, description or lead |
-| | `delete_component` | Delete a component; its issues are unassigned or moved (`moveIssuesTo`) |
+| | `delete_component` | Delete a component; its issues are unassigned or moved (`moveIssuesTo`) *(tracker-admin)* |
 | **Documents** | `list_teamspaces` | List document teamspaces |
 | | `create_teamspace` | Create a new teamspace (top-level document folder) |
 | | `list_documents` | List documents in a teamspace |
@@ -137,7 +164,7 @@ Context cost of `tools/list` (≈3.5 chars/token): default set ~38k chars ≈ **
 | | `list_attachments` | List files attached to an issue |
 | | `delete_attachment` | Delete a file attachment from an issue |
 | **Issue Statuses** | `list_issue_statuses` | List all issue statuses (workflow states), grouped by phase |
-| | `create_issue_status` | Create a new issue status — available in every project immediately |
+| | `create_issue_status` | Create a new issue status — available in every project immediately *(tracker-admin)* |
 | **Organizations** | `list_organizations` | List all organizations (companies) in the workspace |
 | | `get_organization` | Get details of an organization, including description |
 | | `create_organization` | Create a new organization (company contact) |
@@ -241,7 +268,10 @@ A single Huly account can belong to several workspaces — e.g. a personal one a
 | `HULY_ACCOUNTS_URL` | self-hosted only | Account service — login and workspace discovery. Default `https://account.huly.app`. Self-hosted: your instance's accounts URL, e.g. `https://huly.example.com/_accounts` |
 | `HULY_FRONT_URL` | self-hosted (optional on Cloud) | Front service — document/description content and file uploads. Not involved in login or workspace discovery. Self-hosted: e.g. `https://huly.example.com` |
 | `HULY_WORKSPACE` | no (legacy) | Restrict the server to a single workspace |
-| `HULY_TOOLSETS` | no | Comma-separated toolsets to enable, or `all` (see [Toolsets](#toolsets)). Default: `tracker,documents,chat,contacts,inbox,activity,planner,generic` |
+| `HULY_TOOLSETS` | no | Comma-separated toolsets to enable, or `all` (see [Toolsets](#toolsets)). Default: `agent,tracker,documents,chat,contacts,inbox,activity,planner,generic` |
+| `HULY_WRITE_PROJECTS` | no | Only allow changes in these projects, e.g. `TSK,WEB` (see [Agent workflow](#agent-workflow)) |
+| `HULY_AUDIT_LOG` | no | Append every change as JSON line to this file |
+| `HULY_AGENT_NAME` | no | Default agent name for `claim_issue` (default `claude`) |
 
 ---
 
@@ -637,6 +667,14 @@ See [`src/connection.ts`](src/connection.ts).
 ---
 
 ## Changelog
+
+### 3.1.0 — agent workflow
+
+- **New: agent workflow** (toolset `agent`, on by default) — `get_issue_context`, `start_work`, `finish_work`, `create_issue_tree`, `changes_since`, `claim_issue`, `release_issue`
+- **New: MCP resources** (`huly://…/issue/…`, `huly://…/document/…`) and **prompts** (`start`, `finish`, `plan`, `triage`, `standup`)
+- **New: guard rails** — `HULY_WRITE_PROJECTS` limits changes to listed projects, `HULY_AUDIT_LOG` records every change
+- **Changed: toolset `tracker-admin`** — `create_project`, `update_project`, `create_issue_status`, `update_label`, `delete_label`, `delete_milestone`, `delete_component`, `repair_parent_links` moved out of the default set to make room for the agent tools within the context budget. Enable with `HULY_TOOLSETS=…,tracker-admin` or `all`
+- Fixed: nested tool errors no longer repeat the "Huly MCP:" prefix
 
 ### 3.0.0 — toolsets, inbox, planner, calendar, chat, GitHub, contacts, generic access
 

@@ -24,13 +24,14 @@ import { listClasses, describeClass, queryDocuments, genericCreate, genericUpdat
 import { attachFile, listAttachments, deleteAttachment } from './tools/attachments'
 import { listIssueStatuses, createIssueStatus } from './tools/statuses'
 import { listOrganizations, getOrganization, createOrganization, updateOrganization } from './tools/organizations'
+import { getIssueContext, startWork, finishWork, createIssueTree, changesSince, claimIssue, releaseIssue } from './tools/agent'
 import * as S from './schemas'
 
-export const TOOLSETS = ['core', 'tracker', 'documents', 'chat', 'contacts', 'inbox', 'activity', 'planner', 'calendar', 'github', 'generic', 'generic-write'] as const
+export const TOOLSETS = ['core', 'agent', 'tracker', 'tracker-admin', 'documents', 'chat', 'contacts', 'inbox', 'activity', 'planner', 'calendar', 'github', 'generic', 'generic-write'] as const
 export type Toolset = typeof TOOLSETS[number]
 
 /** Enabled when HULY_TOOLSETS is not set. 'core' is always enabled. */
-export const DEFAULT_TOOLSETS: Toolset[] = ['tracker', 'documents', 'chat', 'contacts', 'inbox', 'activity', 'planner', 'generic']
+export const DEFAULT_TOOLSETS: Toolset[] = ['agent', 'tracker', 'documents', 'chat', 'contacts', 'inbox', 'activity', 'planner', 'generic']
 
 export interface ToolDef {
   name: string
@@ -44,8 +45,8 @@ export const TOOLS: ToolDef[] = [
   { name: 'list_workspaces', toolset: 'core', description: 'List accessible workspaces (name, slug, id)', schema: S.ListWorkspacesSchema, handler: listWorkspaces },
   { name: 'list_projects', toolset: 'tracker', description: 'List all projects in a Huly workspace', schema: S.ListProjectsSchema, handler: listProjects },
   { name: 'get_project', toolset: 'tracker', description: 'Get a project by its identifier (e.g. "PROJ")', schema: S.GetProjectSchema, handler: getProject },
-  { name: 'create_project', toolset: 'tracker', description: 'Create a tracker project', schema: S.CreateProjectSchema, handler: createProject },
-  { name: 'update_project', toolset: 'tracker', description: 'Update project name, description, default assignee/status', schema: S.UpdateProjectSchema, handler: updateProject },
+  { name: 'create_project', toolset: 'tracker-admin', description: 'Create a tracker project', schema: S.CreateProjectSchema, handler: createProject },
+  { name: 'update_project', toolset: 'tracker-admin', description: 'Update project name, description, default assignee/status', schema: S.UpdateProjectSchema, handler: updateProject },
   { name: 'list_issues', toolset: 'tracker', description: 'List issues of a project; filters: status, priority, milestone, component, label, assignee, parent', schema: S.ListIssuesSchema, handler: listIssues },
   { name: 'get_issue', toolset: 'tracker', description: 'Get full details of an issue by identifier (e.g. "PROJ-123")', schema: S.GetIssueSchema, handler: getIssue },
   { name: 'create_issue', toolset: 'tracker', description: 'Create a new issue in a project', schema: S.CreateIssueSchema, handler: createIssue },
@@ -64,24 +65,24 @@ export const TOOLS: ToolDef[] = [
   { name: 'create_label', toolset: 'tracker', description: 'Create a new label with an optional hex color', schema: S.CreateLabelSchema, handler: createLabel },
   { name: 'add_label', toolset: 'tracker', description: 'Add label to issue (auto-creates label)', schema: S.AddLabelSchema, handler: addLabel },
   { name: 'remove_label', toolset: 'tracker', description: 'Remove a label from an issue', schema: S.RemoveLabelSchema, handler: removeLabel },
-  { name: 'update_label', toolset: 'tracker', description: 'Rename/recolor a label (on every issue)', schema: S.UpdateLabelSchema, handler: updateLabel },
-  { name: 'delete_label', toolset: 'tracker', description: 'Delete a label and remove it from every issue', schema: S.DeleteLabelSchema, handler: deleteLabel },
+  { name: 'update_label', toolset: 'tracker-admin', description: 'Rename/recolor a label (on every issue)', schema: S.UpdateLabelSchema, handler: updateLabel },
+  { name: 'delete_label', toolset: 'tracker-admin', description: 'Delete a label and remove it from every issue', schema: S.DeleteLabelSchema, handler: deleteLabel },
   { name: 'add_relation', toolset: 'tracker', description: 'Mark two issues as related to each other (bidirectional)', schema: S.AddRelationSchema, handler: addRelation },
   { name: 'add_blocked_by', toolset: 'tracker', description: 'Mark an issue as blocked by another issue', schema: S.AddBlockedBySchema, handler: addBlockedBy },
   { name: 'set_parent', toolset: 'tracker', description: 'Set or clear the parent (epic) of an issue', schema: S.SetParentSchema, handler: setParent },
   { name: 'remove_relation', toolset: 'tracker', description: 'Remove the "related" link between two issues', schema: S.RemoveRelationSchema, handler: removeRelation },
   { name: 'remove_blocked_by', toolset: 'tracker', description: 'Remove a "blocked by" link from an issue', schema: S.RemoveBlockedBySchema, handler: removeBlockedBy },
-  { name: 'repair_parent_links', toolset: 'tracker', description: 'Fix sub-issues from huly-mcp <=2.1 not shown under their parent (dry run by default)', schema: S.RepairParentLinksSchema, handler: repairParentLinks },
+  { name: 'repair_parent_links', toolset: 'tracker-admin', description: 'Fix sub-issues from huly-mcp <=2.1 not shown under their parent (dry run by default)', schema: S.RepairParentLinksSchema, handler: repairParentLinks },
   { name: 'list_members', toolset: 'contacts', description: 'List all members in the workspace', schema: S.ListMembersSchema, handler: listMembers },
   { name: 'list_milestones', toolset: 'tracker', description: 'List milestones for a project', schema: S.ListMilestonesSchema, handler: listMilestones },
   { name: 'create_milestone', toolset: 'tracker', description: 'Create a new milestone in a project with a target date', schema: S.CreateMilestoneSchema, handler: createMilestone },
   { name: 'get_milestone', toolset: 'tracker', description: 'Milestone with progress and open issues', schema: S.GetMilestoneSchema, handler: getMilestone },
   { name: 'update_milestone', toolset: 'tracker', description: 'Update a milestone (name, target date, status, description)', schema: S.UpdateMilestoneSchema, handler: updateMilestone },
-  { name: 'delete_milestone', toolset: 'tracker', description: 'Delete milestone; its issues are unassigned or moved (moveIssuesTo)', schema: S.DeleteMilestoneSchema, handler: deleteMilestone },
+  { name: 'delete_milestone', toolset: 'tracker-admin', description: 'Delete milestone; its issues are unassigned or moved (moveIssuesTo)', schema: S.DeleteMilestoneSchema, handler: deleteMilestone },
   { name: 'list_components', toolset: 'tracker', description: 'List components (sub-areas) in a project', schema: S.ListComponentsSchema, handler: listComponents },
   { name: 'create_component', toolset: 'tracker', description: 'Create a new component in a project', schema: S.CreateComponentSchema, handler: createComponent },
   { name: 'update_component', toolset: 'tracker', description: 'Update a component (name, description, lead)', schema: S.UpdateComponentSchema, handler: updateComponent },
-  { name: 'delete_component', toolset: 'tracker', description: 'Delete component; its issues are unassigned or moved (moveIssuesTo)', schema: S.DeleteComponentSchema, handler: deleteComponent },
+  { name: 'delete_component', toolset: 'tracker-admin', description: 'Delete component; its issues are unassigned or moved (moveIssuesTo)', schema: S.DeleteComponentSchema, handler: deleteComponent },
   { name: 'list_teamspaces', toolset: 'documents', description: 'List all document teamspaces in the workspace', schema: S.ListTeamspacesSchema, handler: listTeamspaces },
   { name: 'create_teamspace', toolset: 'documents', description: 'Create a document teamspace', schema: S.CreateTeamspaceSchema, handler: createTeamspace },
   { name: 'list_documents', toolset: 'documents', description: 'List documents in a teamspace', schema: S.ListDocumentsSchema, handler: listDocuments },
@@ -100,7 +101,7 @@ export const TOOLS: ToolDef[] = [
   { name: 'list_attachments', toolset: 'tracker', description: 'List files attached to an issue', schema: S.ListAttachmentsSchema, handler: listAttachments },
   { name: 'delete_attachment', toolset: 'tracker', description: 'Delete a file attachment from an issue', schema: S.DeleteAttachmentSchema, handler: deleteAttachment },
   { name: 'list_issue_statuses', toolset: 'tracker', description: 'List all issue statuses (workflow states), grouped by phase', schema: S.ListIssueStatusesSchema, handler: listIssueStatuses },
-  { name: 'create_issue_status', toolset: 'tracker', description: 'Create a workspace-wide issue status', schema: S.CreateIssueStatusSchema, handler: createIssueStatus },
+  { name: 'create_issue_status', toolset: 'tracker-admin', description: 'Create a workspace-wide issue status', schema: S.CreateIssueStatusSchema, handler: createIssueStatus },
   { name: 'list_organizations', toolset: 'contacts', description: 'List all organizations (companies) in the workspace', schema: S.ListOrganizationsSchema, handler: listOrganizations },
   { name: 'get_organization', toolset: 'contacts', description: 'Get details of an organization, including description', schema: S.GetOrganizationSchema, handler: getOrganization },
   { name: 'create_organization', toolset: 'contacts', description: 'Create a new organization (company contact)', schema: S.CreateOrganizationSchema, handler: createOrganization },
@@ -138,6 +139,14 @@ export const TOOLS: ToolDef[] = [
   { name: 'update_person', toolset: 'contacts', description: 'Update a contact person', schema: S.UpdatePersonSchema, handler: updatePerson },
   { name: 'add_contact_channel', toolset: 'contacts', description: 'Add email/phone/… to a person', schema: S.ContactChannelSchema, handler: addContactChannel },
   { name: 'remove_contact_channel', toolset: 'contacts', description: 'Remove email/phone/… from a person', schema: S.ContactChannelSchema, handler: removeContactChannel },
+  // Agent workflow
+  { name: 'get_issue_context', toolset: 'agent', description: 'Issue with description, sub-issues, blockers, PRs, comments, branch name', schema: S.GetIssueContextSchema, handler: getIssueContext },
+  { name: 'start_work', toolset: 'agent', description: 'Pick up issue: In Progress, assign me, return context', schema: S.StartWorkSchema, handler: startWork },
+  { name: 'finish_work', toolset: 'agent', description: 'Hand back: summary comment, link PR, status to review', schema: S.FinishWorkSchema, handler: finishWork },
+  { name: 'create_issue_tree', toolset: 'agent', description: 'Plan → epic + sub-issues with blockers; skips duplicates; dry run first', schema: S.CreateIssueTreeSchema, handler: createIssueTree },
+  { name: 'changes_since', toolset: 'agent', description: 'Issues/PRs changed since a time: fields, comments, who', schema: S.ChangesSinceSchema, handler: changesSince },
+  { name: 'claim_issue', toolset: 'agent', description: 'Lease an issue so parallel agents skip it', schema: S.ClaimIssueSchema, handler: claimIssue },
+  { name: 'release_issue', toolset: 'agent', description: 'Release an agent claim', schema: S.ReleaseIssueSchema, handler: releaseIssue },
   // Generic access to any class
   { name: 'list_classes', toolset: 'generic', description: 'Huly data classes (for modules without dedicated tools)', schema: S.ListClassesSchema, handler: listClasses },
   { name: 'describe_class', toolset: 'generic', description: 'Attributes and types of a class', schema: S.DescribeClassSchema, handler: describeClass },

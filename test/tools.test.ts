@@ -164,6 +164,7 @@ test('list_members uses the workspace-scoped account client', async () => {
 
 // Every tool that changes data must require `workspace`; read tools may leave it optional.
 const MUTATION_SCHEMAS = [
+  'StartWorkSchema', 'FinishWorkSchema', 'CreateIssueTreeSchema', 'ClaimIssueSchema', 'ReleaseIssueSchema',
   'CreateProjectSchema', 'UpdateProjectSchema', 'CreateIssueSchema', 'UpdateIssueSchema', 'DeleteIssueSchema',
   'BulkUpdateIssuesSchema', 'MoveIssueSchema', 'UpdateCommentSchema', 'UpdateLabelSchema', 'DeleteLabelSchema',
   'RemoveRelationSchema', 'RemoveBlockedBySchema', 'RepairParentLinksSchema',
@@ -203,7 +204,7 @@ test('every registered tool except list_workspaces accepts workspace', () => {
     const shape = tools[name].inputSchema?.shape
     assert.ok(shape?.workspace !== undefined, `${name} does not accept workspace`)
   }
-  const mutationTools = names.filter((n) => /^(create|update|delete|add|remove|set|log|link|send|attach|start|bulk|move|repair|mark|reply|pin|schedule|generic)_/.test(n))
+  const mutationTools = names.filter((n) => /^(create|update|delete|add|remove|set|log|link|send|attach|start|bulk|move|repair|mark|reply|pin|schedule|generic|finish|claim|release)_/.test(n))
   assert.equal(mutationTools.length, MUTATION_SCHEMAS.length)
   for (const name of mutationTools) {
     assert.equal(tools[name].inputSchema.shape.workspace.isOptional(), false, `${name}.workspace must be required`)

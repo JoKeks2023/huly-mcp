@@ -60,7 +60,21 @@
         },
         {
           "name": "HULY_TOOLSETS",
-          "description": "Optional: comma-separated toolsets (tracker, documents, chat, contacts, inbox, activity, planner, calendar, github, generic, generic-write) or 'all'",
+          "description": "Optional: comma-separated toolsets (agent, tracker, tracker-admin, documents, chat, contacts, inbox, activity, planner, calendar, github, generic, generic-write) or 'all'",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string"
+        },
+        {
+          "name": "HULY_WRITE_PROJECTS",
+          "description": "Optional: only allow changes in these projects, e.g. TSK,WEB",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string"
+        },
+        {
+          "name": "HULY_AUDIT_LOG",
+          "description": "Optional: file to append every change to (JSON lines)",
           "isRequired": false,
           "isSecret": false,
           "format": "string"
