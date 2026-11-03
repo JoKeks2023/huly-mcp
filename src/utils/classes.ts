@@ -25,7 +25,8 @@ export const IDS = {
   ToDoNotAttached: 'time:ids:NotAttached',
   CalendarSpace: 'calendar:space:Calendar',
   EventNotAttached: 'calendar:ids:NoAttached',
-  GithubIssueMixin: 'github:mixin:GithubIssue'
+  GithubIssueMixin: 'github:mixin:GithubIssue',
+  GithubProject: 'github:mixin:GithubProject'
 } as const
 
 /** Huly's ToDoPriority enum (time plugin). */

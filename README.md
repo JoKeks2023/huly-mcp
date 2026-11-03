@@ -33,7 +33,7 @@ This is a fork of [varaprasadreddy9676/huly-mcp](https://github.com/varaprasadre
 
 ---
 
-## Tools (104 total, grouped in toolsets)
+## Tools (105 total, grouped in toolsets)
 
 All tools except `list_workspaces` take a `workspace` argument — required for every change, optional for reads when only one workspace is available.
 
@@ -48,7 +48,7 @@ HULY_TOOLSETS=tracker,documents,planner # just these ('core' = list_workspaces i
 
 | Toolset | Default | Tools | Contents |
 |---------|:-:|--:|----------|
-| `agent` | ✓ | 7 | agent workflow: issue context in one call, start/finish work, plan → issue tree, changes since, claims — plus [resources and prompts](#agent-workflow) |
+| `agent` | ✓ | 8 | agent workflow: issue context in one call, start/finish work, plan → issue tree, changes since, claims, repo → project — plus [resources and prompts](#agent-workflow) |
 | `tracker` | ✓ | 37 | projects, issues, comments, time, labels, relations, milestones, components, statuses, attachments, search |
 | `documents` | ✓ | 8 | teamspaces and documents |
 | `chat` | ✓ | 12 | channels, DMs, threads, edit/delete, reactions, pins |
@@ -62,7 +62,7 @@ HULY_TOOLSETS=tracker,documents,planner # just these ('core' = list_workspaces i
 | `github` | | 2 | pull requests synced by Huly's GitHub integration (read-only) |
 | `generic-write` | | 3 | create/update/delete any class — dry run by default, deletes need `confirm` |
 
-Context cost of `tools/list` (≈3.5 chars/token): default set ~39k chars ≈ **11k tokens** (87 tools), `all` ~47k chars ≈ **13k tokens** (104 tools). For comparison, 2.2.0 needed ≈12.8k tokens for 64 tools. Claude Code loads MCP tools on demand, so there the toolset choice matters less.
+Context cost of `tools/list` (≈3.5 chars/token): default set ~39k chars ≈ **11k tokens** (88 tools), `all` ~47k chars ≈ **13.5k tokens** (105 tools). For comparison, 2.2.0 needed ≈12.8k tokens for 64 tools. Claude Code loads MCP tools on demand, so there the toolset choice matters less.
 
 ### Agent workflow
 
@@ -75,6 +75,7 @@ Tools, resources and prompts for AI agents working on Huly issues (toolset `agen
 | `finish_work` | Work summary as comment, PR (`#12`, URL or Huly id) linked as sub-issue, status → Review in progress, claim released. Validates the PR before changing anything |
 | `create_issue_tree` | Plan → epic + sub-issues with priorities, components, milestones, assignees, labels and blockers (`"#2"` = second child). Same-title issues are reused, dry run by default |
 | `changes_since` | Issues/PRs changed since `24h`, `7d` or an ISO time — which fields changed, new comments, by whom |
+| `find_project_for_repo` | Workspace + project linked to a GitHub repo (`owner/name`, URL or git remote) via Huly's GitHub integration |
 | `claim_issue` / `release_issue` | Lease an issue to an agent (label `agent:working` + comment marker) so parallel agents skip it; expires after `minutes` |
 
 **Resources** — `huly://<workspace>/issue/<PROJ-12>` and `huly://<workspace>/document/<id>`. Your open assigned issues are listed, so in Claude Code you can `@`-mention them.
@@ -274,6 +275,30 @@ A single Huly account can belong to several workspaces — e.g. a personal one a
 | `HULY_AGENT_NAME` | no | Default agent name for `claim_issue` (default `claude`) |
 
 ---
+
+## Claude Code plugin
+
+The repo is also a Claude Code plugin marketplace. The plugin bundles the MCP server with a workflow skill, hooks and commands:
+
+```
+/plugin marketplace add JoKeks2023/huly-mcp
+/plugin install huly@huly-mcp
+```
+
+Claude Code then asks for your Huly settings (e-mail + password or token, and for self-hosted Huly the accounts and front URL; passwords and tokens go to the OS keychain).
+
+| Part | What it does |
+|------|--------------|
+| MCP server | `huly-mcp-selfhost` via `npx`, configured from the plugin settings (toolsets and writable projects included) |
+| Skill `huly-workflow` | When and how to use Huly while coding: find the project for the repo, duplicate check before new issues, component + milestone, status flow, PR → issue links, epics for plans |
+| Hook on session start | Reports the GitHub repo and branch; a branch like `proj-12-login` points Claude to issue `PROJ-12` (no network, no credentials) |
+| Hook after `gh pr create` / `gh pr merge` | Reminds Claude to link the new PR to its issue (`finish_work`) or to check the status after a merge |
+| `/huly:start [PROJ-12]` | Pick up an issue (from the argument or the branch), load the context, plan |
+| `/huly:finish [PROJ-12] [PR]` | Honest summary, PR link, status to review |
+| `/huly:plan <goal>` | Plan → epic + sub-issues (dry run first) |
+| `/huly:triage`, `/huly:standup [24h]` | Inbox triage, stand-up from recent changes |
+
+Without the plugin, the same server works in Claude Code as a plain MCP server (see below); the MCP prompts `start`, `finish`, `plan`, `triage`, `standup` are available there too.
 
 ## Compatible Clients
 
@@ -667,6 +692,12 @@ See [`src/connection.ts`](src/connection.ts).
 ---
 
 ## Changelog
+
+### 3.2.0 — Claude Code plugin
+
+- **New: Claude Code plugin** (`/plugin marketplace add JoKeks2023/huly-mcp`, `/plugin install huly@huly-mcp`) — bundled MCP server with settings, `huly-workflow` skill, session-start and PR hooks, `/huly:start`, `/huly:finish`, `/huly:plan`, `/huly:triage`, `/huly:standup`
+- **New: `find_project_for_repo`** — GitHub repo → Huly workspace and project via the GitHub integration
+- Empty or unresolved `HULY_*` variables (e.g. plugin settings left blank) now count as not set
 
 ### 3.1.0 — agent workflow
 

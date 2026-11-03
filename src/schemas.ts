@@ -729,3 +729,8 @@ export const ReleaseIssueSchema = z.object({
   identifier: z.string().describe('Issue id'),
   agent: z.string().optional()
 })
+
+export const FindProjectForRepoSchema = z.object({
+  workspace: ReadWorkspaceArg.describe('Default: search all workspaces'),
+  repository: z.string().describe('owner/name, GitHub URL or git remote')
+})
