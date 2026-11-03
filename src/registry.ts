@@ -24,7 +24,7 @@ import { listClasses, describeClass, queryDocuments, genericCreate, genericUpdat
 import { attachFile, listAttachments, deleteAttachment } from './tools/attachments'
 import { listIssueStatuses, createIssueStatus } from './tools/statuses'
 import { listOrganizations, getOrganization, createOrganization, updateOrganization } from './tools/organizations'
-import { getIssueContext, startWork, finishWork, createIssueTree, changesSince, claimIssue, releaseIssue } from './tools/agent'
+import { getIssueContext, startWork, finishWork, createIssueTree, changesSince, claimIssue, releaseIssue, findProjectForRepo } from './tools/agent'
 import * as S from './schemas'
 
 export const TOOLSETS = ['core', 'agent', 'tracker', 'tracker-admin', 'documents', 'chat', 'contacts', 'inbox', 'activity', 'planner', 'calendar', 'github', 'generic', 'generic-write'] as const
@@ -146,6 +146,7 @@ export const TOOLS: ToolDef[] = [
   { name: 'create_issue_tree', toolset: 'agent', description: 'Plan → epic + sub-issues with blockers; skips duplicates; dry run first', schema: S.CreateIssueTreeSchema, handler: createIssueTree },
   { name: 'changes_since', toolset: 'agent', description: 'Issues/PRs changed since a time: fields, comments, who', schema: S.ChangesSinceSchema, handler: changesSince },
   { name: 'claim_issue', toolset: 'agent', description: 'Lease an issue so parallel agents skip it', schema: S.ClaimIssueSchema, handler: claimIssue },
+  { name: 'find_project_for_repo', toolset: 'agent', description: 'Huly workspace + project linked to a GitHub repo', schema: S.FindProjectForRepoSchema, handler: findProjectForRepo },
   { name: 'release_issue', toolset: 'agent', description: 'Release an agent claim', schema: S.ReleaseIssueSchema, handler: releaseIssue },
   // Generic access to any class
   { name: 'list_classes', toolset: 'generic', description: 'Huly data classes (for modules without dedicated tools)', schema: S.ListClassesSchema, handler: listClasses },

@@ -3,7 +3,7 @@
 // status lookup) apply unchanged.
 import tracker, { type Issue } from '@hcengineering/tracker'
 import { SortingOrder } from '@hcengineering/core'
-import { getConnection } from '../connection'
+import { getConnection, listWorkspaces } from '../connection'
 import { wrapToolHandler } from '../utils/errors'
 import { formatDate, priorityLabel } from '../utils/format'
 import { currentPerson, peopleNames, socialIdNames } from '../utils/people'
@@ -14,7 +14,7 @@ import { addComment, listComments } from './comments'
 import { setParent, addBlockedBy } from './relations'
 import { addLabel, removeLabel } from './labels'
 import type { z } from 'zod'
-import type { GetIssueContextSchema, StartWorkSchema, FinishWorkSchema, CreateIssueTreeSchema, ChangesSinceSchema, ClaimIssueSchema, ReleaseIssueSchema } from '../schemas'
+import type { GetIssueContextSchema, StartWorkSchema, FinishWorkSchema, CreateIssueTreeSchema, ChangesSinceSchema, ClaimIssueSchema, ReleaseIssueSchema, FindProjectForRepoSchema } from '../schemas'
 
 const text = (r: { content: Array<{ text: string }> }): string => r.content[0]?.text ?? ''
 const PR_STATE = ['open', 'closed', 'merged']
@@ -354,4 +354,31 @@ export const releaseIssue = wrapToolHandler<z.infer<typeof ReleaseIssueSchema>>(
   const labels: any[] = await client.findAll('tags:class:TagReference', { attachedTo: issue._id })
   if (labels.some((l) => l.title === CLAIM_LABEL)) await removeLabel({ workspace: args.workspace, identifier: args.identifier, labelName: CLAIM_LABEL } as any)
   return `🔓 **${args.identifier}** released by ${agent}.`
+})
+
+// ── Repository → project (Huly GitHub integration) ───────────────────────────
+
+/** "owner/repo" from a slug, https URL or git@ remote. */
+export function repoSlug (value: string): string {
+  const v = value.trim().replace(/\.git$/, '').replace(/\/$/, '')
+  const m = /github\.com[:/]([^/]+\/[^/]+)$/i.exec(v)
+  return (m?.[1] ?? v).toLowerCase()
+}
+
+export const findProjectForRepo = wrapToolHandler<z.infer<typeof FindProjectForRepoSchema>>(async (args) => {
+  const slug = repoSlug(args.repository)
+  if (!/^[^/\s]+\/[^/\s]+$/.test(slug)) throw new Error(`'${args.repository}' is not a GitHub repository (owner/name, URL or git remote).`)
+  const targets = args.workspace != null ? [{ url: args.workspace, name: args.workspace }] : await listWorkspaces()
+  const hits: string[] = []
+  for (const ws of targets) {
+    let client: any
+    try { client = await getConnection(ws.url) } catch { continue }
+    const repos: any[] = (await client.findAll('github:class:GithubIntegrationRepository', {})).filter((r: any) => String(r.resourcePath ?? '').toLowerCase() === slug)
+    if (repos.length === 0) continue
+    const repoIds = new Set(repos.map((r) => r._id))
+    const projects: any[] = (await client.findAll(tracker.class.Project, {})).filter((p: any) => (p[IDS.GithubProject]?.repositories ?? []).some((id: string) => repoIds.has(id)))
+    for (const p of projects) hits.push(`- workspace \`${ws.url}\` · project **${p.identifier as string}** (${p.name as string})`)
+  }
+  if (hits.length === 0) return `No Huly project is linked to GitHub repository ${slug}. (Link it in Huly → Settings → GitHub, or pass workspace and project explicitly.)`
+  return `## Huly project(s) for ${slug}\n\n${hits.join('\n')}`
 })

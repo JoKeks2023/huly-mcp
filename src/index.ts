@@ -2,8 +2,10 @@
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { createServer } from './server'
 import { closeConnection } from './connection'
+import { normalizeEnv } from './env'
 
 async function main (): Promise<void> {
+  normalizeEnv()
   const server = createServer()
   const transport = new StdioServerTransport()
 

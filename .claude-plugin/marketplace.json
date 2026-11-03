@@ -1,0 +1,12 @@
+{
+  "name": "huly-mcp",
+  "owner": { "name": "JoKeks2023" },
+  "metadata": { "description": "Huly for Claude Code: MCP server, workflow skill, hooks and commands" },
+  "plugins": [
+    {
+      "name": "huly",
+      "source": "./plugin",
+      "description": "Work on Huly issues from Claude Code: issue context, start/finish work, plans to epics, PR linking, inbox and stand-ups"
+    }
+  ]
+}

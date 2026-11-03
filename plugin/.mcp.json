@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "huly": {
+      "command": "npx",
+      "args": ["-y", "huly-mcp-selfhost@^3.2.0"],
+      "env": {
+        "HULY_EMAIL": "${user_config.huly_email}",
+        "HULY_PASSWORD": "${user_config.huly_password}",
+        "HULY_TOKEN": "${user_config.huly_token}",
+        "HULY_ACCOUNTS_URL": "${user_config.huly_accounts_url}",
+        "HULY_FRONT_URL": "${user_config.huly_front_url}",
+        "HULY_TOOLSETS": "${user_config.huly_toolsets}",
+        "HULY_WRITE_PROJECTS": "${user_config.huly_write_projects}"
+      }
+    }
+  }
+}
