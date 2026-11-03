@@ -1,5 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { TOOLS, TOOLSETS, DEFAULT_TOOLSETS, type Toolset } from './registry'
+import { guard } from './guard'
+import { registerResources, registerPrompts } from './resources'
 
 const SERVER_INSTRUCTIONS = `
 Huly workspaces (tracker, docs, chat, planner, …), self-hosted or cloud. One account, possibly several workspaces.
@@ -10,6 +12,11 @@ Conventions
 - Project key: short ALL-CAPS (PROJ). Issue id: PROJ-123. Dates: ISO 8601 (2026-06-01).
 - People: by name ("Joris", "Joris Conrad"), case-insensitive; ambiguous names are rejected.
 - A field set to null is cleared. Descriptions/content are Markdown.
+
+Agent workflow
+- start_work → work → finish_work. get_issue_context gives everything about an issue in one call.
+- Plans become issues with create_issue_tree (dry run first). changes_since catches up after a break.
+- With several agents in parallel: claim_issue before working, finish_work releases the claim.
 
 Tips
 - Read before writing: get_issue before update_issue, get_document before update_document (it replaces all).
@@ -37,9 +44,13 @@ export function parseToolsets (value: string | undefined): Set<Toolset> {
 
 export function createServer (options: { toolsets?: string } = {}): McpServer {
   const enabled = parseToolsets(options.toolsets ?? process.env.HULY_TOOLSETS)
-  const server = new McpServer({ name: 'huly-mcp-selfhost', version: '3.0.0' }, { instructions: SERVER_INSTRUCTIONS })
+  const server = new McpServer({ name: 'huly-mcp-selfhost', version: '3.1.0' }, { instructions: SERVER_INSTRUCTIONS })
   for (const tool of TOOLS) {
-    if (enabled.has(tool.toolset)) server.tool(tool.name, tool.description, tool.schema.shape, tool.handler)
+    if (enabled.has(tool.toolset)) server.tool(tool.name, tool.description, tool.schema.shape, guard(tool))
+  }
+  if (enabled.has('agent')) {
+    registerResources(server)
+    registerPrompts(server)
   }
   slimToolList(server)
   return server

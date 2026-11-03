@@ -16,7 +16,7 @@ export function wrapToolHandler<T extends Record<string, unknown>> (
       return { content: [{ type: 'text', text }] }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err)
-      throw new Error(`Huly MCP: ${message}`)
+      throw new Error(message.startsWith('Huly MCP: ') ? message : `Huly MCP: ${message}`)
     }
   }
 }

@@ -662,3 +662,70 @@ export const GenericDeleteSchema = z.object({
   dryRun: z.boolean().default(true),
   confirm: z.boolean().default(false).describe('Must be true to delete')
 })
+
+// ── 3.1: agent workflow ──────────────────────────────────────────────────────
+export const GetIssueContextSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  identifier: z.string().describe('Issue id'),
+  commentLimit: z.number().int().min(0).max(100).default(20)
+})
+
+export const StartWorkSchema = z.object({
+  workspace: WorkspaceArg,
+  identifier: z.string().describe('Issue id'),
+  statusName: z.string().default('In Progress'),
+  assignToMe: z.boolean().default(true),
+  claimAs: z.string().optional().describe('Also claim it under this agent name')
+})
+
+export const FinishWorkSchema = z.object({
+  workspace: WorkspaceArg,
+  identifier: z.string().describe('Issue id'),
+  summary: z.string().min(1).describe('Markdown'),
+  pullRequest: z.string().optional().describe('#12, URL or Huly id'),
+  statusName: z.string().nullable().default('Review in progress').describe('null keeps status')
+})
+
+const PlannedIssue = z.object({
+  title: z.string().min(1),
+  description: z.string().optional().describe('Markdown'),
+  priority: PriorityEnum.optional(),
+  componentLabel: z.string().optional(),
+  milestoneLabel: z.string().optional(),
+  assignee: z.string().optional().describe('Person name'),
+  labels: z.array(z.string()).optional(),
+  blockedBy: z.array(z.string()).optional().describe('"#2" (2nd child) or issue id')
+})
+
+export const CreateIssueTreeSchema = z.object({
+  workspace: WorkspaceArg,
+  projectIdentifier: z.string().describe('Project key'),
+  epic: PlannedIssue.pick({ title: true, description: true, priority: true, labels: true }).optional().describe('New epic'),
+  epicIdentifier: z.string().optional().describe('Or an existing epic'),
+  children: z.array(PlannedIssue).min(1).max(50),
+  componentLabel: z.string().optional().describe('Default for children'),
+  milestoneLabel: z.string().optional().describe('Default for children'),
+  skipDuplicates: z.boolean().default(true).describe('Reuse same-title issues'),
+  dryRun: z.boolean().default(true)
+})
+
+export const ChangesSinceSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  since: z.string().describe('ISO date/time or relative: 90m, 24h, 7d'),
+  projectIdentifiers: z.array(z.string()).optional().describe('Default: all projects'),
+  limit: z.number().int().min(1).max(200).default(50)
+})
+
+export const ClaimIssueSchema = z.object({
+  workspace: WorkspaceArg,
+  identifier: z.string().describe('Issue id'),
+  agent: z.string().optional().describe('Default: HULY_AGENT_NAME or claude'),
+  minutes: z.number().int().min(5).max(1440).default(120).describe('Lease length'),
+  force: z.boolean().default(false).describe('Take over a foreign claim')
+})
+
+export const ReleaseIssueSchema = z.object({
+  workspace: WorkspaceArg,
+  identifier: z.string().describe('Issue id'),
+  agent: z.string().optional()
+})
