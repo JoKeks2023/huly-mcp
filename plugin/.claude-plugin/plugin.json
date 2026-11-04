@@ -14,6 +14,7 @@
     "huly_accounts_url": { "type": "string", "title": "Accounts URL", "description": "Self-hosted: e.g. https://huly.example.com/_accounts — leave empty for Huly Cloud" },
     "huly_front_url": { "type": "string", "title": "Front URL", "description": "Self-hosted: e.g. https://huly.example.com — needed to read/write descriptions and files" },
     "huly_toolsets": { "type": "string", "title": "Toolsets", "description": "Comma-separated toolsets or 'all'; empty = defaults" },
-    "huly_write_projects": { "type": "string", "title": "Writable projects", "description": "Only allow changes in these project keys, e.g. TSK,WEB; empty = all" }
+    "huly_write_projects": { "type": "string", "title": "Writable projects", "description": "Only allow changes in these project keys, e.g. TSK,WEB; empty = all" },
+    "huly_file_root": { "type": "string", "title": "Local file folder", "description": "Drive uploads/downloads may use local paths inside this folder; empty = off" }
   }
 }

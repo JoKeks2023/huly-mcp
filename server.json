@@ -60,7 +60,7 @@
         },
         {
           "name": "HULY_TOOLSETS",
-          "description": "Optional: comma-separated toolsets (agent, tracker, tracker-admin, documents, chat, contacts, inbox, activity, planner, calendar, github, generic, generic-write) or 'all'",
+          "description": "Optional: comma-separated toolsets (agent, tracker, tracker-admin, documents, chat, contacts, inbox, activity, planner, calendar, github, generic, generic-write, collaboration, cards, fields, drive, templates, testing, products) or 'all'",
           "isRequired": false,
           "isSecret": false,
           "format": "string"
@@ -75,6 +75,13 @@
         {
           "name": "HULY_AUDIT_LOG",
           "description": "Optional: file to append every change to (JSON lines)",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string"
+        },
+        {
+          "name": "HULY_FILE_ROOT",
+          "description": "Optional: directory for local file upload/download (off when unset)",
           "isRequired": false,
           "isSecret": false,
           "format": "string"
