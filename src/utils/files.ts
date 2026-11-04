@@ -13,10 +13,21 @@ export function localPath (path: string, env: NodeJS.ProcessEnv = process.env): 
   const root = fileRoot(env)
   if (root == null) throw new Error('Local file paths are disabled. Set HULY_FILE_ROOT to a directory to allow them, or pass contentBase64.')
   const abs = resolve(root, path)
-  // Resolve symlinks of the existing part so a link cannot point outside the root.
-  const existing = existsSync(abs) ? realpathSync(abs) : resolve(realpathSync(dirname(abs)), abs.split(sep).pop() ?? '')
-  if (existing !== root && !existing.startsWith(root + sep)) throw new Error(`'${path}' is outside HULY_FILE_ROOT.`)
-  return existing
+  // Resolve symlinks of the deepest existing ancestor so a link cannot point outside the root;
+  // folders that do not exist yet (a download into a new subfolder) are appended unresolved.
+  let base = abs
+  const rest: string[] = []
+  while (!existsSync(base)) {
+    const parent = dirname(base)
+    if (parent === base) break
+    rest.unshift(base.slice(parent.length).replace(/^[\\/]+/, ''))
+    base = parent
+  }
+  const real = resolve(existsSync(base) ? realpathSync(base) : base, ...rest)
+  // Windows paths are case-insensitive.
+  const norm = (p: string): string => process.platform === 'win32' ? p.toLowerCase() : p
+  if (norm(real) !== norm(root) && !norm(real).startsWith(norm(root) + sep)) throw new Error(`'${path}' is outside HULY_FILE_ROOT.`)
+  return real
 }
 
 const TEXT_TYPES = /^(text\/|application\/(json|xml|javascript|x-yaml|yaml|sql|x-sh|toml)|image\/svg)/

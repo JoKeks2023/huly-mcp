@@ -1,0 +1,119 @@
+name: Scheduled checks
+
+# Nightly: live smoke test against a sandbox Huly workspace.
+# Weekly:  latest Huly packages, Huly modules without tools.
+# Failures open (or comment on) an issue instead of failing silently.
+#
+# Secrets for the live jobs, in the environment "sandbox" (a throwaway workspace, never a real one):
+#   HULY_SMOKE_WORKSPACE, HULY_SMOKE_PROJECT (project key for write tests),
+#   HULY_SMOKE_EMAIL + HULY_SMOKE_PASSWORD or HULY_SMOKE_TOKEN,
+#   HULY_SMOKE_ACCOUNTS_URL and HULY_SMOKE_FRONT_URL (self-hosted; empty = Huly Cloud).
+# Without HULY_SMOKE_WORKSPACE the live jobs skip.
+
+on:
+  schedule:
+    - cron: '37 2 * * *'   # nightly
+  workflow_dispatch:
+    inputs:
+      job:
+        description: Which check
+        type: choice
+        options: [all, live-smoke, huly-modules, huly-upstream]
+        default: all
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  HULY_EMAIL: ${{ secrets.HULY_SMOKE_EMAIL }}
+  HULY_PASSWORD: ${{ secrets.HULY_SMOKE_PASSWORD }}
+  HULY_TOKEN: ${{ secrets.HULY_SMOKE_TOKEN }}
+  HULY_ACCOUNTS_URL: ${{ secrets.HULY_SMOKE_ACCOUNTS_URL }}
+  HULY_FRONT_URL: ${{ secrets.HULY_SMOKE_FRONT_URL }}
+  HULY_SMOKE_WORKSPACE: ${{ secrets.HULY_SMOKE_WORKSPACE }}
+  HULY_SMOKE_PROJECT: ${{ secrets.HULY_SMOKE_PROJECT }}
+
+jobs:
+  live-smoke:
+    if: github.event_name == 'schedule' || inputs.job == 'all' || inputs.job == 'live-smoke'
+    runs-on: ubuntu-latest
+    environment: sandbox
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - id: smoke
+        run: npx tsx .github/scripts/live-smoke.ts 2>&1 | grep -v 'failed to apply model'; exit "${PIPESTATUS[0]}"
+      - if: always() && hashFiles('smoke-report.md') != ''
+        run: cat smoke-report.md >> "$GITHUB_STEP_SUMMARY"
+      - if: failure() && hashFiles('smoke-report.md') != ''
+        run: .github/scripts/report-issue.sh "Nightly live smoke test failed" smoke-report.md bug
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  huly-modules:
+    if: github.event_name == 'schedule' || inputs.job == 'all' || inputs.job == 'huly-modules'
+    runs-on: ubuntu-latest
+    environment: sandbox
+    steps:
+      - name: Weekly only (Mondays) when scheduled
+        id: day
+        run: echo "run=$([ "${{ github.event_name }}" != schedule ] || [ "$(date -u +%u)" = 1 ] && echo yes || echo no)" >> "$GITHUB_OUTPUT"
+      - if: steps.day.outputs.run == 'yes'
+        uses: actions/checkout@v4
+      - if: steps.day.outputs.run == 'yes'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - if: steps.day.outputs.run == 'yes'
+        run: npm ci
+      - if: steps.day.outputs.run == 'yes'
+        run: npx tsx .github/scripts/huly-modules.ts 2>&1 | grep -v 'failed to apply model'; exit "${PIPESTATUS[0]}"
+      - if: steps.day.outputs.run == 'yes' && hashFiles('modules-report.md') != ''
+        run: |
+          cat modules-report.md >> "$GITHUB_STEP_SUMMARY"
+          if [ -s modules-new.txt ]; then .github/scripts/report-issue.sh "Huly modules without tools" modules-report.md enhancement; fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  huly-upstream:
+    if: github.event_name == 'schedule' || inputs.job == 'all' || inputs.job == 'huly-upstream'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Weekly only (Mondays) when scheduled
+        id: day
+        run: echo "run=$([ "${{ github.event_name }}" != schedule ] || [ "$(date -u +%u)" = 1 ] && echo yes || echo no)" >> "$GITHUB_OUTPUT"
+      - if: steps.day.outputs.run == 'yes'
+        uses: actions/checkout@v4
+      - if: steps.day.outputs.run == 'yes'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - if: steps.day.outputs.run == 'yes'
+        run: npm ci
+      - name: Install the latest Huly packages
+        if: steps.day.outputs.run == 'yes'
+        id: up
+        run: |
+          pkgs=$(node -p "Object.keys(require('./package.json').dependencies).filter((n) => n.startsWith('@hcengineering/')).map((n) => n + '@latest').join(' ')")
+          before=$(npm ls --depth=0 --json | node -p "const d=JSON.parse(require('fs').readFileSync(0,'utf8')).dependencies; Object.entries(d).filter(([n])=>n.startsWith('@hcengineering/')).map(([n,v])=>n+'@'+v.version).join('\n')")
+          # shellcheck disable=SC2086 # one argument per package on purpose
+          npm install --no-save $pkgs
+          after=$(npm ls --depth=0 --json | node -p "const d=JSON.parse(require('fs').readFileSync(0,'utf8')).dependencies; Object.entries(d).filter(([n])=>n.startsWith('@hcengineering/')).map(([n,v])=>n+'@'+v.version).join('\n')")
+          { echo '## Huly packages'; echo; echo '```diff'; diff <(echo "$before") <(echo "$after") || true; echo '```'; } > upstream.md
+          cat upstream.md >> "$GITHUB_STEP_SUMMARY"
+      - if: steps.day.outputs.run == 'yes'
+        run: npm run build && npm test
+      - if: failure() && steps.day.outputs.run == 'yes'
+        run: |
+          # shellcheck disable=SC2016 # backticks are Markdown here
+          { echo 'Build or tests fail with the latest `@hcengineering/*` packages.'; echo; cat upstream.md 2>/dev/null; } > body.md
+          .github/scripts/report-issue.sh "Latest Huly packages break the build or tests" body.md bug
+        env:
+          GH_TOKEN: ${{ github.token }}
