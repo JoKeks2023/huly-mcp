@@ -285,6 +285,8 @@ The repo is also a Claude Code plugin marketplace. The plugin bundles the MCP se
 /plugin install huly@huly-mcp
 ```
 
+> **Note:** the plugin starts `huly-mcp-selfhost@^3.0.0` from npm, which is published once 3.0 is complete. Until then, run it from a local checkout: `npm run build`, then point `plugin/.mcp.json` at `dist/index.js` and start `claude --plugin-dir ./plugin`.
+
 Claude Code then asks for your Huly settings (e-mail + password or token, and for self-hosted Huly the accounts and front URL; passwords and tokens go to the OS keychain).
 
 | Part | What it does |
@@ -693,33 +695,43 @@ See [`src/connection.ts`](src/connection.ts).
 
 ## Changelog
 
-### 3.2.0 — Claude Code plugin
+### 3.0.0 — unreleased (in progress)
 
-- **New: Claude Code plugin** (`/plugin marketplace add JoKeks2023/huly-mcp`, `/plugin install huly@huly-mcp`) — bundled MCP server with settings, `huly-workflow` skill, session-start and PR hooks, `/huly:start`, `/huly:finish`, `/huly:plan`, `/huly:triage`, `/huly:standup`
-- **New: `find_project_for_repo`** — GitHub repo → Huly workspace and project via the GitHub integration
-- Empty or unresolved `HULY_*` variables (e.g. plugin settings left blank) now count as not set
+One large release instead of several small ones. It is built in stages (see [#11](https://github.com/JoKeks2023/huly-mcp/issues/11)) and published to npm once all of them are done.
 
-### 3.1.0 — agent workflow
+Breaking:
+- Tools are grouped into toolsets.
+- `calendar`, `github`, `generic-write` and `tracker-admin` are not enabled by default.
+- `HULY_TOOLSETS=all` enables everything.
 
-- **New: agent workflow** (toolset `agent`, on by default) — `get_issue_context`, `start_work`, `finish_work`, `create_issue_tree`, `changes_since`, `claim_issue`, `release_issue`
-- **New: MCP resources** (`huly://…/issue/…`, `huly://…/document/…`) and **prompts** (`start`, `finish`, `plan`, `triage`, `standup`)
-- **New: guard rails** — `HULY_WRITE_PROJECTS` limits changes to listed projects, `HULY_AUDIT_LOG` records every change
-- **Changed: toolset `tracker-admin`** — `create_project`, `update_project`, `create_issue_status`, `update_label`, `delete_label`, `delete_milestone`, `delete_component`, `repair_parent_links` moved out of the default set to make room for the agent tools within the context budget. Enable with `HULY_TOOLSETS=…,tracker-admin` or `all`
-- Fixed: nested tool errors no longer repeat the "Huly MCP:" prefix
-
-### 3.0.0 — toolsets, inbox, planner, calendar, chat, GitHub, contacts, generic access
-
-Breaking: tools are grouped into toolsets; `calendar`, `github` and `generic-write` are not enabled by default (`HULY_TOOLSETS=all` enables everything).
-
-- **New: toolsets** (`HULY_TOOLSETS`) and slimmer tool schemas — the same 64 tools as 2.2.0 now cost ~36 % fewer tokens; all 97 tools together cost less than 2.2.0's 64
+**Toolsets and the core modules**
+- **New: toolsets** (`HULY_TOOLSETS`) and slimmer tool schemas. The 64 tools of 2.2.0 now cost about 36 % fewer tokens.
 - **New: inbox** — `list_notifications`, `mark_notifications_read`
 - **New: activity** — `get_activity`
 - **New: planner** — `list_todos`, `create_todo`, `update_todo`, `delete_todo`, `schedule_todo`
 - **New: calendar** — `list_events`, `create_event`, `update_event`, `delete_event`
-- **New: chat** — `list_thread`, `reply_to_message`, `update_message`, `delete_message`, `add_reaction`, `remove_reaction`, `pin_message`; `list_messages` now shows authors and message ids
+- **New: chat** — `list_thread`, `reply_to_message`, `update_message`, `delete_message`, `add_reaction`, `remove_reaction`, `pin_message`. `list_messages` now shows authors and message ids.
 - **New: GitHub** — `list_pull_requests`, `get_pull_request`
 - **New: persons** — `list_persons`, `get_person`, `create_person`, `update_person`, `add_contact_channel`, `remove_contact_channel`
-- **New: generic access** — `list_classes`, `describe_class`, `query_documents` (secrets redacted); `generic_create`/`generic_update`/`generic_delete` (opt-in, dry run by default)
+- **New: generic access** — `list_classes`, `describe_class` and `query_documents` (secrets redacted). `generic_create`, `generic_update` and `generic_delete` are opt-in and run as a dry run by default.
+
+**Agent workflow**
+- **New: agent workflow** (toolset `agent`, on by default) — `get_issue_context`, `start_work`, `finish_work`, `create_issue_tree`, `changes_since`, `claim_issue`, `release_issue`, `find_project_for_repo`
+- **New: MCP resources** (`huly://…/issue/…`, `huly://…/document/…`)
+- **New: MCP prompts** (`start`, `finish`, `plan`, `triage`, `standup`)
+- **New: guard rails** — `HULY_WRITE_PROJECTS` limits changes to the listed projects, and `HULY_AUDIT_LOG` records every change.
+- **Changed: toolset `tracker-admin`.** These tools are no longer in the default set: `create_project`, `update_project`, `create_issue_status`, `update_label`, `delete_label`, `delete_milestone`, `delete_component`, `repair_parent_links`. Enable them with `HULY_TOOLSETS=…,tracker-admin` or `all`.
+
+**Claude Code plugin**
+- **New: Claude Code plugin** (`/plugin marketplace add JoKeks2023/huly-mcp`, `/plugin install huly@huly-mcp`). It bundles:
+  - the MCP server with its settings
+  - the `huly-workflow` skill
+  - session-start and PR hooks
+  - the commands `/huly:start`, `/huly:finish`, `/huly:plan`, `/huly:triage`, `/huly:standup`
+
+**Fixes**
+- Empty or unresolved `HULY_*` variables (for example plugin settings left blank) now count as not set.
+- Nested tool errors no longer repeat the "Huly MCP:" prefix.
 
 ### 2.2.0 — planning, bulk edits, fixes for Huly 0.7
 
