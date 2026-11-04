@@ -271,6 +271,8 @@ export const TOOLS: ToolDef[] = [
   { name: 'get_training', toolset: 'qms', description: 'Training questions and trainee results', schema: S.GetTrainingSchema, handler: QMST.getTraining },
   { name: 'list_processes', toolset: 'process', description: 'Process definitions: states and transitions', schema: S.ListProcessesSchema, handler: PROC.listProcesses },
   { name: 'list_executions', toolset: 'process', description: 'Running/finished process executions with current state', schema: S.ListExecutionsSchema, handler: PROC.listExecutions },
+  { name: 'start_process', toolset: 'process', description: 'Run a process on a card', schema: S.StartProcessSchema, handler: PROC.startProcess },
+  { name: 'cancel_execution', toolset: 'process', description: 'Cancel a running process execution', schema: S.CancelExecutionSchema, handler: PROC.cancelExecution },
   { name: 'list_surveys', toolset: 'surveys', description: 'Surveys with poll counts', schema: S.ListSurveysSchema, handler: SURV.listSurveys },
   { name: 'get_survey', toolset: 'surveys', description: 'Survey questions with aggregated poll answers', schema: S.GetSurveySchema, handler: SURV.getSurvey }
 ]

@@ -95,3 +95,26 @@ test('message templates: placeholders listed, markdown stored as markup', async 
   assert.equal(created.space, 'templates:space:Templates')
   assert.equal(JSON.parse(created.data.message).type, 'doc')
 })
+
+test('start_process: creates an execution like the Huly menu; guards parallel runs and UI-only input', async () => {
+  client.docs.push(
+    { _id: 'p-1', _class: 'process:class:Process', name: 'Onboarding', masterTag: 'card:class:Card', parallelExecutionForbidden: true },
+    { _id: 't-1', _class: 'process:class:Transition', process: 'p-1', from: null, to: 's1', actions: [] },
+    { _id: 'p-2', _class: 'process:class:Process', name: 'Ask', masterTag: 'card:class:Card' },
+    { _id: 't-2', _class: 'process:class:Transition', process: 'p-2', from: null, to: 's1', actions: [{ params: { title: '${"type":"userRequest","id":"x"}' } }] },
+    { _id: 'c-1', _class: 'card:class:Card', space: 'card:space:Default', title: 'Jane' }
+  )
+  assert.match(await run('start_process', { process: 'onboarding', card: 'c-1', dryRun: true }), /Dry run/)
+  assert.equal(client.mutations.length, 0)
+  assert.match(await run('start_process', { process: 'onboarding', card: 'c-1' }), /Started \*\*Onboarding\*\*/)
+  const m = client.mutations.find((x: any) => x.op === 'createDoc')
+  assert.equal(m._class, 'process:class:Execution'); assert.equal(m.space, 'card:space:Default')
+  assert.deepEqual(m.data, { process: 'p-1', currentState: null, card: 'c-1', rollback: [], context: {}, status: 'active' })
+  client.docs.push({ _id: 'e-1', _class: 'process:class:Execution', space: 'card:space:Default', process: 'p-1', card: 'c-1', status: 'active' })
+  await assert.rejects(run('start_process', { process: 'onboarding', card: 'c-1' }), /already running/)
+  await assert.rejects(run('start_process', { process: 'ask', card: 'c-1' }), /only the Huly app/)
+  assert.match(await run('cancel_execution', { execution: 'e-1' }), /Cancelled/)
+  assert.deepEqual(client.mutations.at(-1).data ?? client.mutations.at(-1).update, { status: 'cancelled' })
+  client.docs.find((d: any) => d._id === 'e-1').status = 'cancelled'
+  await assert.rejects(run('cancel_execution', { execution: 'e-1' }), /already cancelled/)
+})

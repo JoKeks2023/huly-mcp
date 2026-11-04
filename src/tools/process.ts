@@ -1,6 +1,6 @@
 // Processes (process plugin, read-only): process definitions on card types (states and
 // transitions) and their running executions. Executions are advanced by Huly's process service.
-import { SortingOrder } from '@hcengineering/core'
+import { generateId, SortingOrder } from '@hcengineering/core'
 import { getConnection } from '../connection'
 import { wrapToolHandler } from '../utils/errors'
 import { formatDate } from '../utils/format'
@@ -61,4 +61,54 @@ export const listExecutions = wrapToolHandler<z.infer<typeof S.ListExecutionsSch
     return `- **${String(processes.find((p) => p._id === e.process)?.name ?? '?')}** on "${String(card?.title ?? e.card)}" — ${String(e.status)} · state ${state}${err} · ${formatDate(e.modifiedOn)} — \`${String(e._id)}\``
   })
   return `## Executions (${execs.length})\n\n${lines.join('\n')}`
+})
+
+/** True when a transition needs input that only Huly's UI can ask for (a "${...userRequest...}" param). */
+export function needsUserInput (transition: any): boolean {
+  const asks = (v: unknown): boolean => {
+    if (typeof v === 'string') {
+      const i = v.indexOf('${'); const j = v.lastIndexOf('}')
+      if (i === -1 || j <= i) return false
+      try { return JSON.parse(v.substring(i + 1, j + 1))?.type === 'userRequest' } catch { return false }
+    }
+    if (Array.isArray(v)) return v.some(asks)
+    if (v != null && typeof v === 'object') return Object.values(v).some(asks)
+    return false
+  }
+  return (transition?.actions ?? []).some((a: any) => a != null && asks(a.params))
+}
+
+// Like Huly's "Run process" menu (process-resources createExecution): a new Execution in the card's
+// space without a state; Huly's process service then follows the start transition.
+export const startProcess = wrapToolHandler<z.infer<typeof S.StartProcessSchema>>(async (args) => {
+  const client: any = await getConnection(args.workspace)
+  const proc = await findProcess(client, args.process)
+  if (proc.automationOnly === true) throw new Error(`Process '${String(proc.name)}' only runs from automations.`)
+  const card = await client.findOne('card:class:Card', { _id: args.card })
+  if (card == null) throw new Error(`Card '${args.card}' not found (pass its id, see list_cards).`)
+  const h = client.getHierarchy()
+  const fits = h.isDerived(card._class, proc.masterTag) || (h.isMixin(proc.masterTag) === true && h.hasMixin(card, proc.masterTag) === true)
+  if (!fits) throw new Error(`Process '${String(proc.name)}' does not apply to this card's type.`)
+  const start = (await client.findAll(PR.Transition, { process: proc._id, from: null }))[0]
+  if (start == null) throw new Error(`Process '${String(proc.name)}' has no start transition.`)
+  if (needsUserInput(start)) throw new Error(`Starting '${String(proc.name)}' asks for input that only the Huly app can collect — start it there.`)
+  if (proc.parallelExecutionForbidden === true) {
+    const running = await client.findOne(PR.Execution, { process: proc._id, card: card._id, status: 'active' })
+    if (running != null) throw new Error(`'${String(proc.name)}' is already running on this card (\`${String(running._id)}\`).`)
+  }
+  if (args.dryRun === true) return `Dry run: would start **${String(proc.name)}** on "${String(card.title)}". Nothing was changed.`
+  const id = generateId()
+  await client.createDoc(PR.Execution, card.space, { process: proc._id, currentState: null, card: card._id, rollback: [], context: {}, status: 'active' }, id)
+  return `✅ Started **${String(proc.name)}** on "${String(card.title)}" — \`${id}\`. Huly's process service moves it on; check with list_executions.`
+})
+
+export const cancelExecution = wrapToolHandler<z.infer<typeof S.CancelExecutionSchema>>(async (args) => {
+  const client: any = await getConnection(args.workspace)
+  const exec = await client.findOne(PR.Execution, { _id: args.execution })
+  if (exec == null) throw new Error(`Execution '${args.execution}' not found (ids from list_executions).`)
+  if (exec.status !== 'active') throw new Error(`Execution is already ${String(exec.status)}.`)
+  const proc = await client.findOne(PR.Process, { _id: exec.process })
+  if (args.dryRun === true) return `Dry run: would cancel **${String(proc?.name ?? '?')}** \`${String(exec._id)}\`. Nothing was changed.`
+  await client.updateDoc(PR.Execution, exec.space, exec._id, { status: 'cancelled' })
+  return `🛑 Cancelled **${String(proc?.name ?? '?')}** \`${String(exec._id)}\`.`
 })

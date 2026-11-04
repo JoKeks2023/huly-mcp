@@ -62,7 +62,7 @@ export function audit (path: string | undefined, tool: ToolDef, args: unknown, o
 
 // ── Confirmation for destructive tools ───────────────────────────────────────
 
-const RISKY = new Set(['bulk_update_issues', 'move_issue', 'generic_update', 'generic_delete', 'revoke_public_link', 'restore_file_version', 'send_invite', 'set_member_role'])
+const RISKY = new Set(['bulk_update_issues', 'move_issue', 'generic_update', 'generic_delete', 'revoke_public_link', 'restore_file_version', 'send_invite', 'set_member_role', 'cancel_execution'])
 
 /** Deletes and bulk/structural changes that are hard to undo. */
 export function isRisky (name: string): boolean {
