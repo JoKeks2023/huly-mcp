@@ -46,7 +46,7 @@
   },
   "dependencies": {
     "@hcengineering/account-client": "^0.7.0",
-    "@hcengineering/attachment": "0.7.0",
+    "@hcengineering/attachment": "0.7.423",
     "@hcengineering/chunter": "^0.7.0",
     "@hcengineering/contact": "^0.7.0",
     "@hcengineering/core": "^0.7.0",
