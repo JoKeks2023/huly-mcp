@@ -2,6 +2,7 @@
 // and prompts (ready-made workflows, shown as slash commands in Claude Code).
 import { McpServer, ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { completable } from '@modelcontextprotocol/sdk/server/completable.js'
+import { SubscribeRequestSchema, UnsubscribeRequestSchema } from '@modelcontextprotocol/sdk/types.js'
 import { z } from 'zod'
 import tracker from '@hcengineering/tracker'
 import task from '@hcengineering/task'
@@ -150,4 +151,71 @@ export function registerPrompts (server: McpServer): void {
     `Write my stand-up for Huly workspace ${workspace}: call changes_since with since="${since ?? '24h'}", ` +
     'then my open assigned issues. Format: Done / In progress / Blocked / Next — short bullet points with issue ids.'
   ))
+}
+
+// ── Resource subscriptions (resources/subscribe → notifications/resources/updated) ──
+// Huly pushes no per-document events to this client, so subscribed issues/documents are
+// polled for a newer modifiedOn. The timer only runs while something is subscribed.
+
+/** modifiedOn of the object behind a huly:// URI, or undefined if it cannot be read. */
+export async function modifiedOn (uri: string): Promise<number | undefined> {
+  const m = /^huly:\/\/([^/]+)\/(issue|document)\/(.+)$/.exec(uri)
+  if (m == null) return undefined
+  try {
+    const client: any = await getConnection(decodeURIComponent(m[1]))
+    const id = decodeURIComponent(m[3])
+    const doc = m[2] === 'issue'
+      ? await client.findOne(tracker.class.Issue, { identifier: id })
+      : await client.findOne('document:class:Document', { _id: id })
+    return doc?.modifiedOn
+  } catch {
+    return undefined
+  }
+}
+
+export function registerSubscriptions (server: McpServer, pollMs = Number(process.env.HULY_SUBSCRIBE_POLL_MS ?? 30_000)): { poll: () => Promise<void>, subscriptions: Map<string, number | undefined> } {
+  const subscriptions = new Map<string, number | undefined>()
+  let timer: NodeJS.Timeout | undefined
+  let polling = false
+
+  const poll = async (): Promise<void> => {
+    if (polling) return
+    polling = true
+    try {
+      for (const [uri, last] of subscriptions) {
+        const now = await modifiedOn(uri)
+        if (now != null && last != null && now > last) {
+          subscriptions.set(uri, now)
+          await server.server.sendResourceUpdated({ uri }).catch(() => {})
+        } else if (last == null && now != null) {
+          subscriptions.set(uri, now)
+        }
+      }
+    } finally {
+      polling = false
+    }
+  }
+  const sync = (): void => {
+    if (subscriptions.size > 0 && timer == null) {
+      timer = setInterval(() => { void poll() }, Math.max(5_000, pollMs))
+      timer.unref()
+    } else if (subscriptions.size === 0 && timer != null) {
+      clearInterval(timer)
+      timer = undefined
+    }
+  }
+
+  server.server.registerCapabilities({ resources: { subscribe: true, listChanged: true } })
+  server.server.setRequestHandler(SubscribeRequestSchema, async (req) => {
+    subscriptions.set(req.params.uri, await modifiedOn(req.params.uri))
+    sync()
+    return {}
+  })
+  server.server.setRequestHandler(UnsubscribeRequestSchema, async (req) => {
+    subscriptions.delete(req.params.uri)
+    sync()
+    return {}
+  })
+  server.server.onclose = () => { subscriptions.clear(); sync() }
+  return { poll, subscriptions }
 }
