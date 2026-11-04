@@ -9,7 +9,8 @@
 # you don't need this image at all — see the main README's "Installing this
 # fork" section.
 
-FROM node:22-slim AS builder
+# The build output (plain JS) is platform-independent: build natively, even for arm64 images.
+FROM --platform=$BUILDPLATFORM node:22-slim AS builder
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
