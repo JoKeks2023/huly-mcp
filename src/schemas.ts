@@ -737,6 +737,12 @@ export const MyDaySchema = z.object({
   limit: z.number().int().min(1).max(50).default(10).describe('Per section')
 })
 
+export const ProjectReportSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  projectIdentifier: z.string().describe('Project key'),
+  since: z.string().optional().describe('Default 7d')
+})
+
 export const ChangesSinceSchema = z.object({
   workspace: ReadWorkspaceArg,
   since: z.string().describe('ISO date/time or relative: 90m, 24h, 7d'),

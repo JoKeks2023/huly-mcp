@@ -33,7 +33,7 @@ This is a fork of [varaprasadreddy9676/huly-mcp](https://github.com/varaprasadre
 
 ---
 
-## Tools (218 total, grouped in toolsets)
+## Tools (219 total, grouped in toolsets)
 
 All tools except `list_workspaces` take a `workspace` argument — required for every change, optional for reads when only one workspace is available.
 
@@ -48,7 +48,7 @@ HULY_TOOLSETS=tracker,documents,planner # just these ('core' = list_workspaces i
 
 | Toolset | Default | Tools | Contents |
 |---------|:-:|--:|----------|
-| `agent` | ✓ | 9 | agent workflow: my day at a glance, issue context in one call, start/finish work, plan → issue tree, changes since, claims, repo → project — plus [resources and prompts](#agent-workflow) |
+| `agent` | ✓ | 10 | agent workflow: my day at a glance, project report, issue context in one call, start/finish work, plan → issue tree, changes since, claims, repo → project — plus [resources and prompts](#agent-workflow) |
 | `tracker` | ✓ | 37 | projects, issues, comments, time, labels, relations, milestones, components, statuses, attachments, search |
 | `documents` | ✓ | 8 | teamspaces and documents (tree, move, rename) |
 | `chat` | ✓ | 12 | channels, DMs, threads, edit/delete, reactions, pins |
@@ -78,7 +78,7 @@ HULY_TOOLSETS=tracker,documents,planner # just these ('core' = list_workspaces i
 | `process` | | 4 | process definitions and executions; start and cancel |
 | `surveys` | | 2 | surveys and aggregated poll answers (read-only) |
 
-Context cost of `tools/list` (≈3.5 chars/token): default set ~40k chars ≈ **11k tokens** (90 tools), `all` ~93k chars ≈ **26k tokens** (218 tools). For comparison, 2.2.0 needed ≈12.8k tokens for 64 tools. Claude Code loads MCP tools on demand, so there the toolset choice matters less.
+Context cost of `tools/list` (≈3.5 chars/token): default set ~40k chars ≈ **11k tokens** (91 tools), `all` ~93k chars ≈ **27k tokens** (219 tools). For comparison, 2.2.0 needed ≈12.8k tokens for 64 tools. Claude Code loads MCP tools on demand, so there the toolset choice matters less.
 
 ### Agent workflow
 
@@ -87,6 +87,7 @@ Tools, resources and prompts for AI agents working on Huly issues (toolset `agen
 | Tool | What it does |
 |------|--------------|
 | `my_day` | Today (or `date`) in one call: own calendar events and work slots, open to-dos (overdue and due first), open issues assigned to me (in progress first), PRs waiting for my review and my own open PRs, unread inbox grouped by object. Times in UTC |
+| `project_report` | Weekly (or `since`: `14d`, ISO date) report of a project: done in the period (status changed to done — not just touched by sync), new, in progress (flagged when untouched), blocked by open issues, overdue, PRs merged and open, open milestones with progress and target, time logged per person. To keep it in Huly, pass the text to `create_document` + `update_document` |
 | `get_issue_context` | Everything about an issue in one call: fields, description, parent chain, sub-issues, blocked by / blocks, related, PRs, comments, suggested branch name |
 | `start_work` | Status → In Progress, assign to me, optionally claim — returns the full context |
 | `finish_work` | Work summary as comment, PR (`#12`, URL or Huly id) linked as sub-issue, status → Review in progress, claim released. Validates the PR before changing anything |
@@ -802,6 +803,7 @@ See [`src/connection.ts`](src/connection.ts).
 ### Unreleased
 
 - **New: `my_day`** (toolset `agent`, on by default) — "what's on today?" in one call: calendar, to-dos, my issues, reviews, unread inbox.
+- **New: `project_report`** (toolset `agent`) — weekly report of a project: done, new, in progress, blocked, overdue, PRs, milestones, time logged.
 - Read tools describe `workspace` more briefly (the rule for omitting it is in the server instructions), which keeps the default set within its context budget.
 - **New: test management, much more of it** — `import_test_results` and the CLI `huly-mcp junit` bring CI results (JUnit XML) into Huly as test runs; `get_test_report` shows failing, flaky, blocked and never-run cases over the latest runs; `create_issue_from_test_result` turns a failed test into a bug (steps and failure included, related to the test case); `create_test_cases` creates many cases at once; suites can be renamed, moved and deleted, runs renamed, dated and deleted, plans deleted, results assigned.
 - `get_issue` names related non-issue documents (e.g. a test case) instead of showing a bare id.

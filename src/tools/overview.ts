@@ -1,5 +1,6 @@
 // Overviews that combine several modules in one call: "my day" (calendar, to-dos, my issues,
-// reviews, inbox) so Claude can answer "what's on today?" without five round trips.
+// reviews, inbox) so Claude can answer "what's on today?" without five round trips, and a
+// project report for a period (weekly report).
 import tracker from '@hcengineering/tracker'
 import task from '@hcengineering/task'
 import { SortingOrder } from '@hcengineering/core'
@@ -7,7 +8,8 @@ import { getConnection } from '../connection'
 import { wrapToolHandler } from '../utils/errors'
 import { C, TODO_PRIORITY, TODO_PRIORITY_LABEL } from '../utils/classes'
 import { priorityLabel } from '../utils/format'
-import { currentAccountUuid, currentPerson } from '../utils/people'
+import { currentAccountUuid, currentPerson, peopleNames } from '../utils/people'
+import { parseSince } from './agent'
 import { loadLabel } from '../utils/resolve'
 import type { z } from 'zod'
 import type * as S from '../schemas'
@@ -72,7 +74,8 @@ export const myDay = wrapToolHandler<z.infer<typeof S.MyDaySchema>>(async (args)
   const statuses: any[] = issues.length > 0 ? await client.findAll('core:class:Status', { _id: { $in: [...new Set(issues.map((i) => i.status))] } }) : []
   const st = new Map(statuses.map((s) => [s._id, s]))
   const closed = new Set<string>([task.statusCategory.Won, task.statusCategory.Lost])
-  const open = issues.filter((i) => !closed.has(st.get(i.status)?.category))
+  // PRs are issues too (github:class:GithubPullRequest); they belong to the reviews section.
+  const open = issues.filter((i) => i._class !== C.PullRequest && !closed.has(st.get(i.status)?.category))
   const active = (i: any): number => st.get(i.status)?.category === task.statusCategory.Active ? 0 : 1
   open.sort((a, b) => active(a) - active(b) || (a.dueDate ?? Infinity) - (b.dueDate ?? Infinity) || (a.priority || 9) - (b.priority || 9))
   out.push('', `## My issues (${open.length} open, ${open.filter((i) => active(i) === 0).length} in progress)`)
@@ -104,5 +107,82 @@ export const myDay = wrapToolHandler<z.infer<typeof S.MyDaySchema>>(async (args)
     out.push(`- **${label}** — ${notes.length} unread`)
   }
   if (groups.size > limit) out.push(`_${groups.size - limit} more — list_notifications._`)
+  return out.join('\n')
+})
+
+// ── Project report: what happened in a project over a period (default: last 7 days) ──
+
+const pct = (part: number, total: number): string => total === 0 ? '—' : `${Math.round(100 * part / total)}%`
+
+export const projectReport = wrapToolHandler<z.infer<typeof S.ProjectReportSchema>>(async (args) => {
+  const client: any = await getConnection(args.workspace)
+  const project = await client.findOne(tracker.class.Project, { identifier: args.projectIdentifier })
+  if (project == null) throw new Error(`Project '${args.projectIdentifier}' not found.`)
+  const since = parseSince(args.since ?? '7d')
+  const now = Date.now()
+  const all: any[] = await client.findAll(tracker.class.Issue, { space: project._id })
+  const issues = all.filter((i) => i._class !== C.PullRequest)
+  const prs = all.filter((i) => i._class === C.PullRequest)
+  const ids = issues.map((i) => i._id)
+  const [statuses, milestones, reports, statusMsgs]: any[][] = await Promise.all([
+    client.findAll('core:class:Status', { _id: { $in: [...new Set(all.map((i) => i.status))] } }),
+    client.findAll(tracker.class.Milestone, { space: project._id }),
+    ids.length > 0 ? client.findAll(tracker.class.TimeSpendReport, { attachedTo: { $in: ids } }) : [],
+    ids.length > 0 ? client.findAll(C.DocUpdateMessage, { attachedTo: { $in: ids }, createdOn: { $gte: since } }) : []
+  ])
+  const names = await peopleNames(client)
+  const st = new Map(statuses.map((s) => [s._id, s]))
+  const cat = (i: any): string | undefined => st.get(i.status)?.category
+  const won = (i: any): boolean => cat(i) === task.statusCategory.Won
+  const isOpen = (i: any): boolean => !won(i) && cat(i) !== task.statusCategory.Lost
+  const who = (i: any): string => i.assignee != null ? ` · ${names.get(i.assignee) ?? '?'}` : ''
+  const line = (i: any, extra = ''): string => `- **${String(i.identifier)}** ${String(i.title)}${extra}${who(i)}`
+
+  // Done in the period: done now and its status changed in the period. modifiedOn is no use here —
+  // GitHub sync touches closed issues long after they were finished.
+  const statusChanged = new Set(statusMsgs.filter((m) => m.attributeUpdates?.attrKey === 'status').map((m) => m.attachedTo))
+  const done = issues.filter((i) => won(i) && statusChanged.has(i._id))
+  const created = issues.filter((i) => (i.createdOn ?? 0) >= since)
+  const open = issues.filter(isOpen)
+  const active = open.filter((i) => cat(i) === task.statusCategory.Active)
+  const openIds = new Set(open.map((i) => i._id))
+  const blocked = open.filter((i) => (i.blockedBy ?? []).some((b: any) => openIds.has(b._id ?? b)))
+  const overdue = open.filter((i) => i.dueDate != null && i.dueDate < now)
+  const stale = active.filter((i) => (i.modifiedOn ?? 0) < since)
+  const merged = prs.filter((p) => p.state === 2 && (p.mergedAt ?? p.modifiedOn ?? 0) >= since)
+  const openPrs = prs.filter((p) => p.state === 0)
+  const time = reports.filter((r) => (r.date ?? 0) >= since)
+  const hours = time.reduce((s, r) => s + (r.value ?? 0), 0)
+
+  const L = 15
+  const section = (title: string, list: any[], render: (i: any) => string = (i) => line(i)): void => {
+    if (list.length === 0) return
+    out.push('', `## ${title} (${list.length})`, ...list.slice(0, L).map(render))
+    if (list.length > L) out.push(`_…${list.length - L} more_`)
+  }
+  const out: string[] = [
+    `# ${String(project.name)} (${String(project.identifier)}) — ${day(since)} to ${day(now)}`,
+    '',
+    `**${done.length} done · ${created.length} new · ${open.length} open (${active.length} in progress) · ${blocked.length} blocked · ${overdue.length} overdue · ${merged.length} PRs merged · ${Math.round(hours * 10) / 10}h logged**`
+  ]
+  section('Done', done)
+  section('New', created, (i) => line(i, ` — ${String(st.get(i.status)?.name ?? '?')}`))
+  section('In progress', active, (i) => line(i, stale.includes(i) ? ' · ⚠️ no change in this period' : ''))
+  section('Blocked', blocked, (i) => line(i, ` — by ${(i.blockedBy as any[]).map((b) => String(all.find((x) => x._id === (b._id ?? b))?.identifier ?? '?')).join(', ')}`))
+  section('Overdue', overdue, (i) => line(i, ` — due ${day(i.dueDate)}`))
+  section('Pull requests merged', merged)
+  section('Pull requests open', openPrs, (p) => line(p, p.reviewDecision != null ? ` · ${['changes requested', 'approved', 'review required'][p.reviewDecision] ?? ''}` : ''))
+
+  const ms = milestones.filter((m) => m.status !== 2 && m.status !== 3).sort((a, b) => (a.targetDate ?? Infinity) - (b.targetDate ?? Infinity))
+  section('Milestones', ms, (m) => {
+    const of = issues.filter((i) => i.milestone === m._id)
+    const late = m.targetDate != null && m.targetDate < now ? ' ⚠️ past target' : ''
+    return `- **${String(m.label)}** — ${of.filter(won).length}/${of.length} done (${pct(of.filter(won).length, of.length)})${m.targetDate != null ? `, target ${day(m.targetDate)}${late}` : ''}`
+  })
+  if (time.length > 0) {
+    const per = new Map<string, number>()
+    for (const r of time) { const n = names.get(r.employee) ?? '?'; per.set(n, (per.get(n) ?? 0) + (r.value ?? 0)) }
+    out.push('', '## Time logged', ...[...per].sort((a, b) => b[1] - a[1]).map(([n, h]) => `- ${n}: ${Math.round(h * 10) / 10}h`))
+  }
   return out.join('\n')
 })
