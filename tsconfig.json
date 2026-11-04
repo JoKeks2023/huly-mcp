@@ -10,7 +10,9 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "declaration": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "types": ["node"],
+    "noUncheckedSideEffectImports": false
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
