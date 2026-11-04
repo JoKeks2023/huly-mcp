@@ -39,8 +39,10 @@ function writeEnv (token, accountsUrl) {
 
   // Merge with existing .env (don't overwrite unrelated vars)
   let existing = ''
-  if (fs.existsSync(envFile)) {
+  try {
     existing = fs.readFileSync(envFile, 'utf8')
+  } catch (e) {
+    if (e.code !== 'ENOENT') throw e
   }
 
   const keep = existing.split('\n').filter(line => {

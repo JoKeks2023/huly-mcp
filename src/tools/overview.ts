@@ -285,7 +285,7 @@ async function myBlockedIssues (client: any, me: string): Promise<string[]> {
 // ── Inbox triage: per unread object, what happened since I last looked ──
 
 /** One-line plain text of a comment: no HTML (bot comments), no entities, collapsed whitespace. */
-export const plain = (markup: string): string => markupToText(markup).replace(/<[^>]+>/g, ' ').replace(/&nbsp;|&#160;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/\s+/g, ' ').trim()
+export const plain = (markup: string): string => markupToText(markup).replace(/<[^>]+>/g, ' ').replace(/&nbsp;|&#160;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim()
 
 export const triageInbox = wrapToolHandler<z.infer<typeof S.TriageInboxSchema>>(async (args) => {
   const client: any = await getConnection(args.workspace)

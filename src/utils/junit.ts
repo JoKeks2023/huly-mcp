@@ -23,7 +23,9 @@ function attrs (tag: string): Record<string, string> {
 
 /** Parses JUnit XML into flat test cases; suite = innermost <testsuite name>. */
 export function parseJUnit (xml: string): JUnitCase[] {
-  const src = xml.replace(/<!--[\s\S]*?-->/g, '').replace(/<\?xml[\s\S]*?\?>/, '')
+  let src = xml
+  for (let prev = ''; prev !== src;) { prev = src; src = src.replace(/<!--[\s\S]*?-->/g, '') }
+  src = src.replace(/<\?xml[\s\S]*?\?>/, '')
   if (!/<testsuites?[\s>]|<testcase[\s>]/.test(src)) throw new Error('Not JUnit XML: no <testsuite> or <testcase> element found.')
   const out: JUnitCase[] = []
   const stack: string[] = []

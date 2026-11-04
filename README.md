@@ -850,6 +850,11 @@ Secrets:
 
 ### Unreleased
 
+- **Security fixes from code scanning:**
+  - Docker image: `mcp-proxy` 0.14.0 with `mcp` 1.30.0 (fixes 5 CVEs); npm is removed from the runtime image (23 alerts in npm's bundled packages); Debian security updates are applied at build time.
+  - `uuid` is pinned to 11.1.1 via an npm override (a CVE in 8.3.2, pulled in by Huly's server client).
+  - Code: entity decoding in `triage_inbox` no longer double-unescapes (`&amp;lt;` stays `&lt;`); JUnit comment removal is repeated until nothing is left; a check-then-read race in `huly-mcp-setup` is gone.
+- `list_labels`: dead code for the ignored `projectIdentifier` removed. No behaviour change.
 - **Changed: Docker tags.** `latest` now means the latest *release* (before: the latest commit on `main`), and `main` builds are tagged `edge`. There are new tags `3` and `3.1` for release lines, and images are built for `linux/arm64` as well, with an SBOM and provenance.
 - **CI and automation:**
   - every PR is checked on three platforms, with a token report, a personal-data check, a Docker scan and CodeQL
