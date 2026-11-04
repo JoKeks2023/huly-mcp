@@ -6,7 +6,7 @@ import type { ProjectType } from '@hcengineering/task'
 import { getConnection } from '../connection'
 import { wrapToolHandler } from '../utils/errors'
 import type { z } from 'zod'
-import { findPerson } from '../utils/people'
+import { findPerson, currentAccountUuid } from '../utils/people'
 import type { ListProjectsSchema, GetProjectSchema, CreateProjectSchema, UpdateProjectSchema } from '../schemas'
 
 export const listProjects = wrapToolHandler<z.infer<typeof ListProjectsSchema>>(async (args) => {
@@ -65,7 +65,7 @@ export const createProject = wrapToolHandler<z.infer<typeof CreateProjectSchema>
       defaultTimeReportDay: 'CurrentWorkDay' as any,
       defaultIssueStatus: undefined as any,
       type: projectType._id,
-      members: [client.user],
+      members: [await currentAccountUuid(client)],
       archived: false,
       private: false
     } as any,

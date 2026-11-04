@@ -6,6 +6,9 @@ import { getConnection } from '../connection'
 import { wrapToolHandler } from '../utils/errors'
 import type { z } from 'zod'
 import type {
+  ListLabelCategoriesSchema,
+  CreateLabelCategorySchema,
+  SetLabelCategorySchema,
   ListLabelsSchema,
   CreateLabelSchema,
   AddLabelSchema,
@@ -212,4 +215,39 @@ export const deleteLabel = wrapToolHandler<z.infer<typeof DeleteLabelSchema>>(as
   await client.removeDoc(tags.class.TagElement, label.space, label._id)
 
   return `🗑️ Label **${label.title}** deleted${refs.length > 0 ? ` and removed from ${refs.length} issue(s)` : ''}.`
+})
+
+// ── Label categories (tags:class:TagCategory) ───────────────────────────────
+
+export const listLabelCategories = wrapToolHandler<z.infer<typeof ListLabelCategoriesSchema>>(async (args) => {
+  const client: any = await getConnection(args.workspace)
+  const categories: any[] = await client.findAll(tags.class.TagCategory, { targetClass: tracker.class.Issue })
+  const labels: any[] = await client.findAll(tags.class.TagElement, { targetClass: tracker.class.Issue })
+  if (categories.length === 0) return 'No label categories.'
+  const lines = categories.map((c) => {
+    const own = labels.filter((l) => l.category === c._id).map((l) => l.title)
+    return `- **${String(c.label)}**${c.default === true ? ' (default)' : ''} — ${own.length > 0 ? own.join(', ') : 'no labels'} — \`${String(c._id)}\``
+  })
+  const loose = labels.filter((l) => !categories.some((c) => c._id === l.category)).map((l) => l.title)
+  return `## Label categories (${categories.length})\n\n${lines.join('\n')}${loose.length > 0 ? `\n\nWithout category: ${loose.join(', ')}` : ''}`
+})
+
+export const createLabelCategory = wrapToolHandler<z.infer<typeof CreateLabelCategorySchema>>(async (args) => {
+  const client: any = await getConnection(args.workspace)
+  const existing: any[] = await client.findAll(tags.class.TagCategory, { targetClass: tracker.class.Issue })
+  const same = existing.find((c) => String(c.label).toLowerCase() === args.name.toLowerCase())
+  if (same != null) return `ℹ️ Category **${String(same.label)}** already exists — \`${String(same._id)}\`.`
+  const id = await client.createDoc(tags.class.TagCategory, core.space.Workspace, { label: args.name, targetClass: tracker.class.Issue, icon: tags.icon.Tags, tags: [], default: false })
+  return `✅ Label category **${args.name}** created — \`${String(id)}\`.`
+})
+
+export const setLabelCategory = wrapToolHandler<z.infer<typeof SetLabelCategorySchema>>(async (args) => {
+  const client: any = await getConnection(args.workspace)
+  const label = await client.findOne(tags.class.TagElement, { targetClass: tracker.class.Issue, title: args.labelName })
+  if (label == null) throw new Error(`Label '${args.labelName}' not found.`)
+  const categories: any[] = await client.findAll(tags.class.TagCategory, { targetClass: tracker.class.Issue })
+  const cat = categories.find((c) => c._id === args.category || String(c.label).toLowerCase() === args.category.toLowerCase())
+  if (cat == null) throw new Error(`Category '${args.category}' not found. Available: ${categories.map((c) => c.label).join(', ')}.`)
+  await client.updateDoc(tags.class.TagElement, label.space, label._id, { category: cat._id })
+  return `✅ Label **${args.labelName}** is now in category **${String(cat.label)}**.`
 })

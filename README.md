@@ -33,7 +33,7 @@ This is a fork of [varaprasadreddy9676/huly-mcp](https://github.com/varaprasadre
 
 ---
 
-## Tools (105 total, grouped in toolsets)
+## Tools (160 total, grouped in toolsets)
 
 All tools except `list_workspaces` take a `workspace` argument — required for every change, optional for reads when only one workspace is available.
 
@@ -50,19 +50,26 @@ HULY_TOOLSETS=tracker,documents,planner # just these ('core' = list_workspaces i
 |---------|:-:|--:|----------|
 | `agent` | ✓ | 8 | agent workflow: issue context in one call, start/finish work, plan → issue tree, changes since, claims, repo → project — plus [resources and prompts](#agent-workflow) |
 | `tracker` | ✓ | 37 | projects, issues, comments, time, labels, relations, milestones, components, statuses, attachments, search |
-| `documents` | ✓ | 8 | teamspaces and documents |
+| `documents` | ✓ | 8 | teamspaces and documents (tree, move, rename) |
 | `chat` | ✓ | 12 | channels, DMs, threads, edit/delete, reactions, pins |
 | `contacts` | ✓ | 11 | members, organizations, persons, contact channels |
 | `inbox` | ✓ | 2 | notifications, mark read/archive |
 | `activity` | ✓ | 1 | change history of an issue/object |
 | `planner` | ✓ | 5 | to-dos, time blocking |
-| `generic` | ✓ | 3 | read any Huly class |
-| `tracker-admin` | | 8 | rarely needed admin: create/update project, create status, update/delete label, delete milestone/component, repair parent links |
+| `generic` | ✓ | 4 | fulltext search across everything, read any Huly class |
+| `tracker-admin` | | 11 | rarely needed admin: create/update project, create status, update/delete label, label categories, delete milestone/component, repair parent links |
 | `calendar` | | 4 | calendar events |
 | `github` | | 2 | pull requests synced by Huly's GitHub integration (read-only) |
 | `generic-write` | | 3 | create/update/delete any class — dry run by default, deletes need `confirm` |
+| `collaboration` | | 8 | followers (collaborators) of issues/documents, public guest links, document comments |
+| `cards` | | 8 | cards: types and tags, create/edit/move/delete, nesting, field values |
+| `fields` | | 3 | custom fields on issues, project types, card types or any class; set values |
+| `drive` | | 10 | drives, folders, versioned files: upload, download, move, restore versions |
+| `templates` | | 6 | issue templates with sub-issues; new issue from template |
+| `testing` | | 14 | test management: projects, suites, cases, plans, runs, results |
+| `products` | | 2 | products and versions (read-only) |
 
-Context cost of `tools/list` (≈3.5 chars/token): default set ~39k chars ≈ **11k tokens** (88 tools), `all` ~47k chars ≈ **13.5k tokens** (105 tools). For comparison, 2.2.0 needed ≈12.8k tokens for 64 tools. Claude Code loads MCP tools on demand, so there the toolset choice matters less.
+Context cost of `tools/list` (≈3.5 chars/token): default set ~40k chars ≈ **11k tokens** (89 tools), `all` ~71k chars ≈ **20k tokens** (160 tools). For comparison, 2.2.0 needed ≈12.8k tokens for 64 tools. Claude Code loads MCP tools on demand, so there the toolset choice matters less.
 
 ### Agent workflow
 
@@ -149,7 +156,9 @@ Tools, resources and prompts for AI agents working on Huly issues (toolset `agen
 | | `create_document` | Create a new document in a teamspace |
 | | `update_document` | Write Markdown content to a document — Mermaid diagrams render natively |
 | | `link_document` | Link a document to an issue — appears in the Relations panel |
+| | `list_documents` | Shows the full document tree; `update_document` also renames and moves (incl. to another teamspace, with sub-documents) |
 | **Search** | `search_issues` | Full-text search across all issues of a workspace |
+| | `search` | Full-text search across everything — issues, documents, messages, cards, files, persons … (`kinds` filter) *(generic)* |
 | **Chat** | `list_channels` | List all channels in the workspace |
 | | `create_channel` | Create a new channel |
 | | `start_direct_message` | Start (or find) a 1:1 direct message with a workspace member |
@@ -186,6 +195,28 @@ Tools, resources and prompts for AI agents working on Huly issues (toolset `agen
 | | `describe_class` | Attributes and types of a class |
 | | `query_documents` | Read documents of any class; secrets are redacted |
 | **Generic write** (`generic-write`) | `generic_create` / `generic_update` / `generic_delete` | Any class; dry run by default, deletes also need `confirm: true`; system classes, spaces and credentials are blocked |
+| **Collaboration** (`collaboration`) | `list_collaborators` / `add_collaborator` / `remove_collaborator` | Who follows an issue/document (and gets its notifications) |
+| | `create_public_link` / `list_public_links` / `revoke_public_link` | Read-only guest links for issues and documents |
+| | `list_document_comments` / `add_document_comment` | Comments on documents |
+| **Cards** (`cards`) | `list_card_types` / `create_card_type` / `delete_card_type` | Card types (MasterTags) and tags |
+| | `list_cards` / `get_card` | Cards by type, parent or title; one card with fields, tags, children, content |
+| | `create_card` / `update_card` / `delete_card` | With content (Markdown), parent, tags and field values |
+| **Custom fields** (`fields`) | `list_custom_fields` | Fields of issues, a project type, card type or class — or the values on one object |
+| | `create_custom_field` | string, number, boolean, date, markup, enum (with values) or ref |
+| | `set_custom_fields` | Set values on an issue, card or document (validated against the type) |
+| **Drive** (`drive`) | `list_drives` / `create_drive` / `list_drive_files` | Drives and their folder tree |
+| | `create_folder` / `update_drive_item` / `delete_drive_item` | Folders; rename/move files and folders (across drives too) |
+| | `upload_file` / `download_file` | Base64 or local files under `HULY_FILE_ROOT`; same name → new version |
+| | `list_file_versions` / `restore_file_version` | File history |
+| **Issue templates** (`templates`) | `list_issue_templates` / `get_issue_template` | Templates with their sub-issues |
+| | `create_issue_template` / `update_issue_template` / `delete_issue_template` | Priority, assignee, component, milestone, estimation, labels, sub-issues |
+| | `create_issue_from_template` | New issue plus sub-issues from a template |
+| **Test management** (`testing`) | `list_test_projects` / `create_test_project` | Test projects |
+| | `list_test_cases` / `create_test_suite` / `get_test_case` / `create_test_case` / `update_test_case` / `delete_test_case` | Suites (nested) and cases |
+| | `list_test_plans` / `create_test_plan` | Plans from suites and/or cases |
+| | `create_test_run` / `list_test_runs` / `get_test_run` / `set_test_result` | Runs with Passed/Failed/Blocked results |
+| **Products** (`products`) | `list_products` / `get_product` | Products and their versions (read-only) |
+| **Labels** (`tracker-admin`) | `list_label_categories` / `create_label_category` / `set_label_category` | Group issue labels |
 
 ---
 
@@ -273,6 +304,8 @@ A single Huly account can belong to several workspaces — e.g. a personal one a
 | `HULY_WRITE_PROJECTS` | no | Only allow changes in these projects, e.g. `TSK,WEB` (see [Agent workflow](#agent-workflow)) |
 | `HULY_AUDIT_LOG` | no | Append every change as JSON line to this file |
 | `HULY_AGENT_NAME` | no | Default agent name for `claim_issue` (default `claude`) |
+| `HULY_FILE_ROOT` | no | Directory for local files: `upload_file` (`localPath`) and `download_file` (`savePath`) only work inside it. Off when unset — the server may run remotely |
+| `HULY_SUBSCRIBE_POLL_MS` | no | How often subscribed `huly://` resources are checked for changes (default 30000, minimum 5000) |
 
 ---
 
@@ -729,7 +762,22 @@ Breaking:
   - session-start and PR hooks
   - the commands `/huly:start`, `/huly:finish`, `/huly:plan`, `/huly:triage`, `/huly:standup`
 
+**More of Huly**
+- **New: fulltext search across everything** — `search` (issues, documents, messages, cards, files, persons …)
+- **New: toolset `collaboration`** — followers of issues/documents, public guest links, document comments
+- **New: toolset `cards`** — card types and tags, cards with content, nesting and field values
+- **New: toolset `fields`** — custom fields on issues, project types, card types or any class, and their values
+- **New: toolset `drive`** — drives, folders, versioned files (upload, download, move, restore)
+- **New: toolset `templates`** — issue templates; new issue with sub-issues from a template
+- **New: toolset `testing`** — test projects, suites, cases, plans, runs and results
+- **New: toolset `products`** — products and versions (read-only)
+- **New: label categories** (`tracker-admin`)
+- **New: documents** — `list_documents` shows the whole tree; `update_document` renames and moves (also to another teamspace); new documents are placed after their siblings
+- **New: MCP argument completions** for prompts and `huly://` resources (workspaces, projects, issue ids) and **resource subscriptions** (`notifications/resources/updated` when a subscribed issue or document changes)
+
 **Fixes**
+- `create_teamspace`, `create_channel`, `start_direct_message` and `create_project` stored the user's social id as member/owner; Huly 0.7 expects the account id. Spaces created with earlier versions may list you twice as member and have no proper owner.
+- Public links created on servers whose `FRONT_URL` is `localhost` are shown with `HULY_FRONT_URL` instead.
 - Empty or unresolved `HULY_*` variables (for example plugin settings left blank) now count as not set.
 - Nested tool errors no longer repeat the "Huly MCP:" prefix.
 

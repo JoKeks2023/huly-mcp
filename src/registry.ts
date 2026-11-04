@@ -6,13 +6,13 @@ import { listProjects, getProject, createProject, updateProject } from './tools/
 import { listIssues, getIssue, createIssue, updateIssue, deleteIssue, bulkUpdateIssues, moveIssue, listSubIssues } from './tools/issues'
 import { addComment, listComments, deleteComment, updateComment } from './tools/comments'
 import { logTime, listTimeReports } from './tools/log-time'
-import { listLabels, createLabel, addLabel, removeLabel, updateLabel, deleteLabel } from './tools/labels'
+import { listLabels, createLabel, addLabel, removeLabel, updateLabel, deleteLabel, listLabelCategories, createLabelCategory, setLabelCategory } from './tools/labels'
 import { addRelation, addBlockedBy, setParent, removeRelation, removeBlockedBy, repairParentLinks } from './tools/relations'
 import { listMembers } from './tools/members'
 import { listMilestones, createMilestone, getMilestone, updateMilestone, deleteMilestone } from './tools/milestones'
 import { listComponents, createComponent, updateComponent, deleteComponent } from './tools/components'
-import { listTeamspaces, createTeamspace, listDocuments, getDocument, createDocument, deleteDocument, updateDocument, linkDocument } from './tools/documents'
-import { searchIssues } from './tools/search'
+import { listTeamspaces, createTeamspace, listDocuments, getDocument, createDocument, deleteDocument, updateDocument, linkDocument, listDocumentComments, addDocumentComment } from './tools/documents'
+import { searchIssues, searchAll } from './tools/search'
 import { listChannels, createChannel, startDirectMessage, sendMessage, listMessages, listThread, replyToMessage, updateMessage, deleteMessage, addReaction, removeReaction, pinMessage } from './tools/channels'
 import { listNotifications, markNotificationsRead } from './tools/inbox'
 import { getActivity } from './tools/activity'
@@ -25,9 +25,16 @@ import { attachFile, listAttachments, deleteAttachment } from './tools/attachmen
 import { listIssueStatuses, createIssueStatus } from './tools/statuses'
 import { listOrganizations, getOrganization, createOrganization, updateOrganization } from './tools/organizations'
 import { getIssueContext, startWork, finishWork, createIssueTree, changesSince, claimIssue, releaseIssue, findProjectForRepo } from './tools/agent'
+import { listCollaborators, addCollaborator, removeCollaborator, createPublicLink, listPublicLinks, revokePublicLink } from './tools/sharing'
+import { listCardTypes, listCards, getCard, createCard, updateCard, deleteCard, createCardType, deleteCardType } from './tools/cards'
+import { listCustomFields, createCustomField, setCustomFields } from './tools/fields'
+import { listDrives, listDriveFiles, createFolder, uploadFile, downloadFile, updateDriveItem, deleteDriveItem, listFileVersions, restoreFileVersion, createDrive } from './tools/drive'
+import { listIssueTemplates, getIssueTemplate, createIssueTemplate, updateIssueTemplate, deleteIssueTemplate, createIssueFromTemplate } from './tools/templates'
+import * as TM from './tools/testing'
+import { listProducts, getProduct } from './tools/products'
 import * as S from './schemas'
 
-export const TOOLSETS = ['core', 'agent', 'tracker', 'tracker-admin', 'documents', 'chat', 'contacts', 'inbox', 'activity', 'planner', 'calendar', 'github', 'generic', 'generic-write'] as const
+export const TOOLSETS = ['core', 'agent', 'tracker', 'tracker-admin', 'documents', 'chat', 'contacts', 'inbox', 'activity', 'planner', 'calendar', 'github', 'generic', 'generic-write', 'collaboration', 'cards', 'fields', 'drive', 'templates', 'testing', 'products'] as const
 export type Toolset = typeof TOOLSETS[number]
 
 /** Enabled when HULY_TOOLSETS is not set. 'core' is always enabled. */
@@ -89,7 +96,9 @@ export const TOOLS: ToolDef[] = [
   { name: 'get_document', toolset: 'documents', description: 'Document metadata and content', schema: S.GetDocumentSchema, handler: getDocument },
   { name: 'create_document', toolset: 'documents', description: 'Create a new document in a teamspace', schema: S.CreateDocumentSchema, handler: createDocument },
   { name: 'delete_document', toolset: 'documents', description: 'Permanently delete a document by its ID', schema: S.DeleteDocumentSchema, handler: deleteDocument },
-  { name: 'update_document', toolset: 'documents', description: 'Replace document content with Markdown', schema: S.UpdateDocumentSchema, handler: updateDocument },
+  { name: 'update_document', toolset: 'documents', description: 'Replace content (Markdown), rename or move a document', schema: S.UpdateDocumentSchema, handler: updateDocument },
+  { name: 'list_document_comments', toolset: 'collaboration', description: 'Comments on a document', schema: S.ListDocumentCommentsSchema, handler: listDocumentComments },
+  { name: 'add_document_comment', toolset: 'collaboration', description: 'Comment on a document', schema: S.AddDocumentCommentSchema, handler: addDocumentComment },
   { name: 'link_document', toolset: 'documents', description: 'Link a document to an issue (Relations panel)', schema: S.LinkDocumentSchema, handler: linkDocument },
   { name: 'search_issues', toolset: 'tracker', description: 'Full-text search across all issues', schema: S.SearchIssuesSchema, handler: searchIssues },
   { name: 'list_channels', toolset: 'chat', description: 'List all channels in the workspace', schema: S.ListChannelsSchema, handler: listChannels },
@@ -149,10 +158,63 @@ export const TOOLS: ToolDef[] = [
   { name: 'find_project_for_repo', toolset: 'agent', description: 'Huly workspace + project linked to a GitHub repo', schema: S.FindProjectForRepoSchema, handler: findProjectForRepo },
   { name: 'release_issue', toolset: 'agent', description: 'Release an agent claim', schema: S.ReleaseIssueSchema, handler: releaseIssue },
   // Generic access to any class
+  { name: 'search', toolset: 'generic', description: 'Fulltext search across everything (issues, docs, messages, cards, files …)', schema: S.SearchAllSchema, handler: searchAll },
   { name: 'list_classes', toolset: 'generic', description: 'Huly data classes (for modules without dedicated tools)', schema: S.ListClassesSchema, handler: listClasses },
   { name: 'describe_class', toolset: 'generic', description: 'Attributes and types of a class', schema: S.DescribeClassSchema, handler: describeClass },
   { name: 'query_documents', toolset: 'generic', description: 'Read documents of any class (secrets redacted)', schema: S.QueryDocumentsSchema, handler: queryDocuments },
   { name: 'generic_create', toolset: 'generic-write', description: 'Create a document of any class (dry run by default)', schema: S.GenericCreateSchema, handler: genericCreate },
   { name: 'generic_update', toolset: 'generic-write', description: 'Update a document of any class (dry run by default)', schema: S.GenericUpdateSchema, handler: genericUpdate },
-  { name: 'generic_delete', toolset: 'generic-write', description: 'Delete a document of any class (dry run; needs confirm)', schema: S.GenericDeleteSchema, handler: genericDelete }
+  { name: 'generic_delete', toolset: 'generic-write', description: 'Delete a document of any class (dry run; needs confirm)', schema: S.GenericDeleteSchema, handler: genericDelete },
+  { name: 'list_collaborators', toolset: 'collaboration', description: 'Who follows an issue or document', schema: S.ListCollaboratorsSchema, handler: listCollaborators },
+  { name: 'add_collaborator', toolset: 'collaboration', description: 'Follow an issue/document (you or a member) to get its notifications', schema: S.AddCollaboratorSchema, handler: addCollaborator },
+  { name: 'remove_collaborator', toolset: 'collaboration', description: 'Stop following an issue/document', schema: S.RemoveCollaboratorSchema, handler: removeCollaborator },
+  { name: 'create_public_link', toolset: 'collaboration', description: 'Read-only guest link for an issue/document (anyone with the link can read)', schema: S.CreatePublicLinkSchema, handler: createPublicLink },
+  { name: 'list_public_links', toolset: 'collaboration', description: 'Public guest links', schema: S.ListPublicLinksSchema, handler: listPublicLinks },
+  { name: 'revoke_public_link', toolset: 'collaboration', description: 'Revoke a public link', schema: S.RevokePublicLinkSchema, handler: revokePublicLink },
+  { name: 'list_card_types', toolset: 'cards', description: 'Card types (MasterTags) and their tags', schema: S.ListCardTypesSchema, handler: listCardTypes },
+  { name: 'list_cards', toolset: 'cards', description: 'List cards by type, parent or title', schema: S.ListCardsSchema, handler: listCards },
+  { name: 'get_card', toolset: 'cards', description: 'Card with fields, tags, children and content', schema: S.GetCardSchema, handler: getCard },
+  { name: 'create_card', toolset: 'cards', description: 'Create a card (type, content, parent, tags, fields)', schema: S.CreateCardSchema, handler: createCard },
+  { name: 'update_card', toolset: 'cards', description: 'Edit, move or tag a card; set fields', schema: S.UpdateCardSchema, handler: updateCard },
+  { name: 'delete_card', toolset: 'cards', description: 'Delete a card without children', schema: S.DeleteCardSchema, handler: deleteCard },
+  { name: 'create_card_type', toolset: 'cards', description: 'New card type or tag', schema: S.CreateCardTypeSchema, handler: createCardType },
+  { name: 'delete_card_type', toolset: 'cards', description: 'Delete an unused card type or tag', schema: S.DeleteCardTypeSchema, handler: deleteCardType },
+  { name: 'list_custom_fields', toolset: 'fields', description: 'Custom fields of issues/cards/classes, or values on one object', schema: S.ListCustomFieldsSchema, handler: listCustomFields },
+  { name: 'create_custom_field', toolset: 'fields', description: 'Add a custom field to issues, a project type, card type or class', schema: S.CreateCustomFieldSchema, handler: createCustomField },
+  { name: 'set_custom_fields', toolset: 'fields', description: 'Set custom field values on an issue, card or document', schema: S.SetCustomFieldsSchema, handler: setCustomFields },
+  { name: 'list_drives', toolset: 'drive', description: 'Drives with file counts', schema: S.ListDrivesSchema, handler: listDrives },
+  { name: 'create_drive', toolset: 'drive', description: 'Create a drive', schema: S.CreateDriveSchema, handler: createDrive },
+  { name: 'list_drive_files', toolset: 'drive', description: 'Folder tree of a drive with files, sizes, versions', schema: S.ListDriveFilesSchema, handler: listDriveFiles },
+  { name: 'create_folder', toolset: 'drive', description: 'Create a drive folder', schema: S.CreateFolderSchema, handler: createFolder },
+  { name: 'upload_file', toolset: 'drive', description: 'Upload a file to a drive (same name → new version)', schema: S.UploadFileSchema, handler: uploadFile },
+  { name: 'download_file', toolset: 'drive', description: 'Read a drive file (text inline, binary base64) or save it locally', schema: S.DownloadFileSchema, handler: downloadFile },
+  { name: 'update_drive_item', toolset: 'drive', description: 'Rename or move a file/folder', schema: S.UpdateDriveItemSchema, handler: updateDriveItem },
+  { name: 'delete_drive_item', toolset: 'drive', description: 'Delete a file or folder (folders with content need recursive)', schema: S.DeleteDriveItemSchema, handler: deleteDriveItem },
+  { name: 'list_file_versions', toolset: 'drive', description: 'Versions of a drive file', schema: S.ListFileVersionsSchema, handler: listFileVersions },
+  { name: 'restore_file_version', toolset: 'drive', description: 'Make an older file version current', schema: S.RestoreFileVersionSchema, handler: restoreFileVersion },
+  { name: 'list_issue_templates', toolset: 'templates', description: 'Issue templates', schema: S.ListIssueTemplatesSchema, handler: listIssueTemplates },
+  { name: 'get_issue_template', toolset: 'templates', description: 'Issue template with its sub-issues', schema: S.GetIssueTemplateSchema, handler: getIssueTemplate },
+  { name: 'create_issue_template', toolset: 'templates', description: 'Create an issue template (with sub-issues)', schema: S.CreateIssueTemplateSchema, handler: createIssueTemplate },
+  { name: 'update_issue_template', toolset: 'templates', description: 'Update an issue template', schema: S.UpdateIssueTemplateSchema, handler: updateIssueTemplate },
+  { name: 'delete_issue_template', toolset: 'templates', description: 'Delete an issue template', schema: S.DeleteIssueTemplateSchema, handler: deleteIssueTemplate },
+  { name: 'create_issue_from_template', toolset: 'templates', description: 'New issue (and sub-issues) from a template', schema: S.CreateIssueFromTemplateSchema, handler: createIssueFromTemplate },
+  { name: 'list_test_projects', toolset: 'testing', description: 'Test projects with case/run counts', schema: S.ListTestProjectsSchema, handler: TM.listTestProjects },
+  { name: 'create_test_project', toolset: 'testing', description: 'Create a test project', schema: S.CreateTestProjectSchema, handler: TM.createTestProject },
+  { name: 'list_test_cases', toolset: 'testing', description: 'Suites and test cases of a test project', schema: S.ListTestCasesSchema, handler: TM.listTestCases },
+  { name: 'create_test_suite', toolset: 'testing', description: 'Create a (nested) test suite', schema: S.CreateTestSuiteSchema, handler: TM.createTestSuite },
+  { name: 'get_test_case', toolset: 'testing', description: 'Test case with steps and latest results', schema: S.GetTestCaseSchema, handler: TM.getTestCase },
+  { name: 'create_test_case', toolset: 'testing', description: 'Create a test case in a suite', schema: S.CreateTestCaseSchema, handler: TM.createTestCase },
+  { name: 'update_test_case', toolset: 'testing', description: 'Update a test case', schema: S.UpdateTestCaseSchema, handler: TM.updateTestCase },
+  { name: 'delete_test_case', toolset: 'testing', description: 'Delete a test case', schema: S.DeleteTestCaseSchema, handler: TM.deleteTestCase },
+  { name: 'list_test_plans', toolset: 'testing', description: 'Test plans of a project', schema: S.ListTestPlansSchema, handler: TM.listTestPlans },
+  { name: 'create_test_plan', toolset: 'testing', description: 'Test plan from suites and/or cases', schema: S.CreateTestPlanSchema, handler: TM.createTestPlan },
+  { name: 'create_test_run', toolset: 'testing', description: 'Start a test run from a plan, suites or cases', schema: S.CreateTestRunSchema, handler: TM.createTestRun },
+  { name: 'list_test_runs', toolset: 'testing', description: 'Test runs with pass/fail counts', schema: S.ListTestRunsSchema, handler: TM.listTestRuns },
+  { name: 'get_test_run', toolset: 'testing', description: 'Results of a test run', schema: S.GetTestRunSchema, handler: TM.getTestRun },
+  { name: 'set_test_result', toolset: 'testing', description: 'Record Passed/Failed/Blocked for a case in a run', schema: S.SetTestResultSchema, handler: TM.setTestResult },
+  { name: 'list_products', toolset: 'products', description: 'Products with their active versions', schema: S.ListProductsSchema, handler: listProducts },
+  { name: 'get_product', toolset: 'products', description: 'Product with all versions', schema: S.GetProductSchema, handler: getProduct },
+  { name: 'list_label_categories', toolset: 'tracker-admin', description: 'Issue label categories with their labels', schema: S.ListLabelCategoriesSchema, handler: listLabelCategories },
+  { name: 'create_label_category', toolset: 'tracker-admin', description: 'Create an issue label category', schema: S.CreateLabelCategorySchema, handler: createLabelCategory },
+  { name: 'set_label_category', toolset: 'tracker-admin', description: 'Move a label into a category', schema: S.SetLabelCategorySchema, handler: setLabelCategory }
 ]

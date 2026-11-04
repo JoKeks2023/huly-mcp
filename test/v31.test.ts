@@ -179,3 +179,46 @@ test('agent toolset exposes huly:// resources and workflow prompts', async () =>
   assert.match((start.messages[0].content as any).text, /call start_work/)
   await mcp.close()
 })
+
+test('completions suggest workspaces, projects and issue ids', async () => {
+  const server = createServer({ toolsets: 'agent' })
+  const [c, s] = InMemoryTransport.createLinkedPair()
+  await server.connect(s)
+  const mcp = new Client({ name: 't', version: '0' })
+  await mcp.connect(c)
+  const prompt = { type: 'ref/prompt' as const, name: 'start' }
+  const values = async (ref: any, name: string, value: string, args?: Record<string, string>): Promise<string[]> =>
+    (await mcp.complete({ ref, argument: { name, value }, ...(args != null ? { context: { arguments: args } } : {}) })).completion.values
+  assert.deepEqual(await values(prompt, 'workspace', 'jo'), [W])
+  assert.deepEqual(await values(prompt, 'identifier', 'pr', { workspace: W }), ['PROJ-'])
+  assert.deepEqual((await values(prompt, 'identifier', 'PROJ-1', { workspace: W })).sort(), ['PROJ-1'])
+  assert.deepEqual(await values({ type: 'ref/prompt', name: 'plan' }, 'projectIdentifier', 'p', { workspace: W }), ['PROJ'])
+  const tpl = { type: 'ref/resource' as const, uri: 'huly://{workspace}/issue/{identifier}' }
+  assert.deepEqual((await values(tpl, 'identifier', 'PROJ-', { workspace: W })).sort(), ['PROJ-1', 'PROJ-2', 'PROJ-3', 'PROJ-7'])
+  await mcp.close()
+})
+
+test('resource subscriptions notify when a subscribed issue changes', async () => {
+  const server = createServer({ toolsets: 'agent' })
+  const [c, s] = InMemoryTransport.createLinkedPair()
+  await server.connect(s)
+  const mcp = new Client({ name: 't', version: '0' })
+  const updated: string[] = []
+  const { ResourceUpdatedNotificationSchema } = await import('@modelcontextprotocol/sdk/types.js')
+  mcp.setNotificationHandler(ResourceUpdatedNotificationSchema, async (n) => { updated.push(n.params.uri) })
+  await mcp.connect(c)
+  assert.equal(mcp.getServerCapabilities()?.resources?.subscribe, true)
+  const uri = `huly://${W}/issue/PROJ-1`
+  await mcp.subscribeResource({ uri })
+  const subs = (server as any).hulySubscriptions
+  await subs.poll()
+  assert.deepEqual(updated, [])
+  const doc = env.clients.get(W)!.docs.find((d) => d._id === 'i-1')!
+  doc.modifiedOn = (doc.modifiedOn as number) + 1000
+  await subs.poll()
+  await new Promise((r) => setTimeout(r, 10))
+  assert.deepEqual(updated, [uri])
+  await mcp.unsubscribeResource({ uri })
+  assert.equal(subs.subscriptions.size, 0)
+  await mcp.close()
+})

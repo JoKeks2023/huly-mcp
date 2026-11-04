@@ -40,7 +40,10 @@ export class FakeTxClient {
   collections: Record<string, Array<{ name: string, of: string }>> = {}
 
   /** Model classes for tools that inspect the hierarchy (generic tools). */
-  classes: Record<string, { extends?: string, domain?: string, kind?: number, attrs?: Record<string, string> }> = {}
+  classes: Record<string, { extends?: string, domain?: string, kind?: number, attrs?: Record<string, string>, label?: string, [k: string]: unknown }> = {}
+
+  /** Custom attributes (core:class:Attribute docs) per class/mixin, returned by getAllAttributes. */
+  customAttrs: Record<string, any[]> = {}
 
   getHierarchy (): any {
     const isDerived = (a: string, b: string): boolean => {
@@ -54,12 +57,14 @@ export class FakeTxClient {
         let cur: string | undefined = _class
         while (cur != null) {
           for (const [k, t] of Object.entries(this.classes[cur]?.attrs ?? {})) if (!m.has(k)) m.set(k, { name: k, type: { _class: t } })
+          for (const a of this.customAttrs[cur] ?? []) if (!m.has(a.name)) m.set(a.name, a)
           cur = this.classes[cur]?.extends
         }
         return m
       },
       isDerived,
-      getClass: (id: string) => { const c = this.classes[id]; if (c == null) throw new Error('not found'); return { _id: id, kind: c.kind ?? 0, extends: c.extends } },
+      getClass: (id: string) => { const c = this.classes[id]; if (c == null) throw new Error('not found'); return { ...c, _id: id, kind: c.kind ?? 0, extends: c.extends } },
+      isMixin: (id: string) => this.classes[id]?.kind === 2,
       findDomain: (id: string) => { let cur: string | undefined = id; while (cur != null) { if (this.classes[cur]?.domain != null) return this.classes[cur].domain; cur = this.classes[cur]?.extends } return undefined },
       getDescendants: (id: string) => Object.keys(this.classes).filter((c) => isDerived(c, id)),
       hasMixin: (doc: any, mixin: string) => doc[mixin] != null
@@ -109,6 +114,22 @@ export class FakeTxClient {
 
   async removeCollection (_class: string, space: string, id: string): Promise<void> {
     this.mutations.push({ op: 'removeCollection', _class, space, attachedTo: id })
+  }
+
+  /** Canned fulltext result; the last query is kept for assertions. */
+  searchResult: { docs: any[], total?: number } = { docs: [] }
+  lastSearch: any
+  async searchFulltext (query: unknown, options: unknown): Promise<any> {
+    this.lastSearch = { query, options }
+    return this.searchResult
+  }
+
+  async createMixin (id: string, _class: string, space: string, mixin: string, data: unknown): Promise<void> {
+    this.mutations.push({ op: 'createMixin', _class: mixin, space, attachedTo: id, data })
+  }
+
+  async updateMixin (id: string, _class: string, space: string, mixin: string, data: unknown): Promise<void> {
+    this.mutations.push({ op: 'updateMixin', _class: mixin, space, attachedTo: id, data })
   }
 
   async removeDoc (_class: string, space: string, id: string): Promise<void> {

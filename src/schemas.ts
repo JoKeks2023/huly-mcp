@@ -189,6 +189,13 @@ export const SearchIssuesSchema = z.object({
   limit: z.number().int().min(1).max(50).default(20)
 })
 
+export const SearchAllSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  query: z.string().min(1),
+  kinds: z.array(z.string()).optional().describe('issue, document, message, card, file, person, organization, test-case, attachment or a class id'),
+  limit: z.number().int().min(1).max(50).default(20)
+})
+
 // ── Labels ────────────────────────────────────────────────────────────────────
 export const ListLabelsSchema = z.object({
   workspace: ReadWorkspaceArg,
@@ -248,7 +255,22 @@ export const LogTimeSchema = z.object({
 export const UpdateDocumentSchema = z.object({
   workspace: WorkspaceArg,
   documentId: z.string().describe('Document id'),
-  markdown: z.string().min(1).describe('Markdown body')
+  markdown: z.string().min(1).optional().describe('New body (replaces content)'),
+  title: z.string().min(1).optional(),
+  parentId: z.string().nullable().optional().describe('Move under this document; null = top level'),
+  teamspaceId: z.string().optional().describe('Move to this teamspace')
+})
+
+export const ListDocumentCommentsSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  documentId: z.string(),
+  limit: z.number().int().min(1).max(200).default(50)
+})
+
+export const AddDocumentCommentSchema = z.object({
+  workspace: WorkspaceArg,
+  documentId: z.string(),
+  message: z.string().min(1)
 })
 
 export const DeleteCommentSchema = z.object({
@@ -734,3 +756,273 @@ export const FindProjectForRepoSchema = z.object({
   workspace: ReadWorkspaceArg.describe('Default: search all workspaces'),
   repository: z.string().describe('owner/name, GitHub URL or git remote')
 })
+
+// ── Sharing: collaborators and public links ─────────────────────────────────
+const ObjectArg = z.string().describe('Issue id (PROJ-12) or document id')
+
+export const ListCollaboratorsSchema = z.object({ workspace: ReadWorkspaceArg, object: ObjectArg })
+
+export const AddCollaboratorSchema = z.object({
+  workspace: WorkspaceArg,
+  object: ObjectArg,
+  member: z.string().optional().describe('Name; default: you')
+})
+
+export const RemoveCollaboratorSchema = AddCollaboratorSchema
+
+export const CreatePublicLinkSchema = z.object({ workspace: WorkspaceArg, object: ObjectArg })
+
+export const ListPublicLinksSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  object: ObjectArg.optional().describe('Default: all links'),
+  limit: z.number().int().min(1).max(200).default(50)
+})
+
+export const RevokePublicLinkSchema = z.object({ workspace: WorkspaceArg, linkId: z.string() })
+
+// ── Cards ───────────────────────────────────────────────────────────────────
+const FieldValues = z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()])).describe('Field name → value')
+
+export const ListCardTypesSchema = z.object({ workspace: ReadWorkspaceArg })
+
+export const ListCardsSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  type: z.string().optional().describe('Card type name or id'),
+  parentId: z.string().nullable().optional().describe('Children of this card; null = top level'),
+  query: z.string().optional().describe('Title contains'),
+  limit: z.number().int().min(1).max(200).default(50)
+})
+
+export const GetCardSchema = z.object({ workspace: ReadWorkspaceArg, cardId: z.string() })
+
+export const CreateCardSchema = z.object({
+  workspace: WorkspaceArg,
+  type: z.string().describe('Card type name or id'),
+  title: z.string().min(1),
+  content: z.string().optional().describe('Markdown'),
+  parentId: z.string().optional(),
+  space: z.string().optional().describe('Card space id; default: Default'),
+  tags: z.array(z.string()).optional(),
+  fields: FieldValues.optional()
+})
+
+export const UpdateCardSchema = z.object({
+  workspace: WorkspaceArg,
+  cardId: z.string(),
+  title: z.string().min(1).optional(),
+  content: z.string().optional().describe('Markdown; replaces content'),
+  parentId: z.string().nullable().optional().describe('Move under this card; null = top level'),
+  addTags: z.array(z.string()).optional(),
+  fields: FieldValues.optional()
+})
+
+export const DeleteCardSchema = z.object({ workspace: WorkspaceArg, cardId: z.string() })
+
+export const CreateCardTypeSchema = z.object({
+  workspace: WorkspaceArg,
+  name: z.string().min(1),
+  kind: z.enum(['type', 'tag']).default('type'),
+  parentType: z.string().optional().describe('Subtype of / tag for this type')
+})
+
+export const DeleteCardTypeSchema = z.object({ workspace: WorkspaceArg, type: z.string().describe('Card type or tag') })
+
+// ── Custom fields ───────────────────────────────────────────────────────────
+const FieldTarget = z.string().describe('"issue", project key, card type/tag or class id')
+
+export const ListCustomFieldsSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  target: FieldTarget.optional(),
+  object: z.string().optional().describe('Show values of this issue/card instead')
+})
+
+export const CreateCustomFieldSchema = z.object({
+  workspace: WorkspaceArg,
+  target: FieldTarget,
+  label: z.string().min(1),
+  type: z.enum(['string', 'number', 'boolean', 'date', 'markup', 'enum', 'ref']),
+  enumValues: z.array(z.string()).optional(),
+  refClass: z.string().optional().describe('For ref, e.g. contact:mixin:Employee')
+})
+
+export const SetCustomFieldsSchema = z.object({
+  workspace: WorkspaceArg,
+  object: z.string().describe('Issue id, card id or document id'),
+  fields: FieldValues
+})
+
+// ── Drive ───────────────────────────────────────────────────────────────────
+const DriveArg = z.string().describe('Drive name or id')
+
+export const ListDrivesSchema = z.object({ workspace: ReadWorkspaceArg })
+
+export const CreateDriveSchema = z.object({ workspace: WorkspaceArg, name: z.string().min(1), description: z.string().optional(), isPrivate: z.boolean().default(false) })
+
+export const ListDriveFilesSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  drive: DriveArg,
+  folderId: z.string().optional().describe('Default: top level'),
+  recursive: z.boolean().default(true)
+})
+
+export const CreateFolderSchema = z.object({ workspace: WorkspaceArg, drive: DriveArg, title: z.string().min(1), parentId: z.string().optional() })
+
+export const UploadFileSchema = z.object({
+  workspace: WorkspaceArg,
+  drive: DriveArg,
+  folderId: z.string().optional(),
+  filename: z.string().optional().describe('Default: name of localPath'),
+  contentBase64: z.string().optional(),
+  localPath: z.string().optional().describe('File under HULY_FILE_ROOT'),
+  mimeType: z.string().optional(),
+  newVersion: z.boolean().default(true).describe('Same name in folder → new version')
+})
+
+export const DownloadFileSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  fileId: z.string(),
+  version: z.number().int().min(1).optional().describe('Default: current'),
+  savePath: z.string().optional().describe('Save under HULY_FILE_ROOT instead of returning it')
+})
+
+export const UpdateDriveItemSchema = z.object({
+  workspace: WorkspaceArg,
+  itemId: z.string().describe('File or folder id'),
+  title: z.string().min(1).optional(),
+  parentId: z.string().nullable().optional().describe('Move into this folder; null = top level')
+})
+
+export const DeleteDriveItemSchema = z.object({ workspace: WorkspaceArg, itemId: z.string(), recursive: z.boolean().default(false) })
+
+export const ListFileVersionsSchema = z.object({ workspace: ReadWorkspaceArg, fileId: z.string() })
+
+export const RestoreFileVersionSchema = z.object({ workspace: WorkspaceArg, fileId: z.string(), version: z.number().int().min(1) })
+
+// ── Issue templates ─────────────────────────────────────────────────────────
+const TemplateFields = {
+  description: z.string().optional().describe('Markdown'),
+  priority: PriorityEnum.optional(),
+  assignee: z.string().nullable().optional().describe('Person name'),
+  componentLabel: z.string().nullable().optional(),
+  milestoneLabel: z.string().nullable().optional(),
+  estimation: z.number().min(0).optional(),
+  labels: z.array(z.string()).optional()
+}
+const TemplateChild = z.object({ title: z.string().min(1), ...TemplateFields })
+const TemplateRef = z.string().describe('Template id or title')
+
+export const ListIssueTemplatesSchema = z.object({ workspace: ReadWorkspaceArg, projectIdentifier: z.string().optional() })
+
+export const GetIssueTemplateSchema = z.object({ workspace: ReadWorkspaceArg, template: TemplateRef, projectIdentifier: z.string().optional() })
+
+export const CreateIssueTemplateSchema = z.object({
+  workspace: WorkspaceArg,
+  projectIdentifier: z.string().describe('Project key'),
+  title: z.string().min(1),
+  ...TemplateFields,
+  children: z.array(TemplateChild).max(50).optional().describe('Sub-issues')
+})
+
+export const UpdateIssueTemplateSchema = z.object({
+  workspace: WorkspaceArg,
+  template: TemplateRef,
+  projectIdentifier: z.string().optional(),
+  title: z.string().min(1).optional(),
+  ...TemplateFields,
+  children: z.array(TemplateChild).max(50).optional().describe('Replaces all sub-issues')
+})
+
+export const DeleteIssueTemplateSchema = z.object({ workspace: WorkspaceArg, template: TemplateRef, projectIdentifier: z.string().optional() })
+
+export const CreateIssueFromTemplateSchema = z.object({
+  workspace: WorkspaceArg,
+  template: TemplateRef,
+  projectIdentifier: z.string().optional(),
+  title: z.string().min(1).optional().describe('Default: template title')
+})
+
+// ── Test management ─────────────────────────────────────────────────────────
+const TestProjectArg = z.string().describe('Test project name or id')
+const CaseType = z.enum(['Functional', 'Performance', 'Regression', 'Security', 'Smoke', 'Usability'])
+const CasePriority = z.enum(['Low', 'Medium', 'High', 'Urgent'])
+const CaseStatus = z.enum(['Draft', 'ReadyForReview', 'FixReviewComments', 'Approved', 'Rejected'])
+
+export const ListTestProjectsSchema = z.object({ workspace: ReadWorkspaceArg })
+
+export const CreateTestProjectSchema = z.object({ workspace: WorkspaceArg, name: z.string().min(1), description: z.string().optional(), isPrivate: z.boolean().default(false) })
+
+export const ListTestCasesSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  project: TestProjectArg,
+  suite: z.string().optional().describe('Suite name or id; default: all'),
+  status: CaseStatus.optional()
+})
+
+export const CreateTestSuiteSchema = z.object({ workspace: WorkspaceArg, project: TestProjectArg, name: z.string().min(1), description: z.string().optional(), parent: z.string().optional().describe('Parent suite') })
+
+export const GetTestCaseSchema = z.object({ workspace: ReadWorkspaceArg, caseId: z.string() })
+
+export const CreateTestCaseSchema = z.object({
+  workspace: WorkspaceArg,
+  project: TestProjectArg,
+  suite: z.string().describe('Suite name or id'),
+  name: z.string().min(1),
+  description: z.string().optional().describe('Steps/expected result, Markdown'),
+  type: CaseType.default('Functional'),
+  priority: CasePriority.default('Medium'),
+  status: CaseStatus.default('Draft'),
+  assignee: z.string().optional()
+})
+
+export const UpdateTestCaseSchema = z.object({
+  workspace: WorkspaceArg,
+  caseId: z.string(),
+  name: z.string().min(1).optional(),
+  description: z.string().optional(),
+  type: CaseType.optional(),
+  priority: CasePriority.optional(),
+  status: CaseStatus.optional(),
+  assignee: z.string().nullable().optional()
+})
+
+export const DeleteTestCaseSchema = z.object({ workspace: WorkspaceArg, caseId: z.string() })
+
+export const ListTestPlansSchema = z.object({ workspace: ReadWorkspaceArg, project: TestProjectArg })
+
+export const CreateTestPlanSchema = z.object({
+  workspace: WorkspaceArg,
+  project: TestProjectArg,
+  name: z.string().min(1),
+  suites: z.array(z.string()).optional().describe('All cases of these suites (incl. nested)'),
+  caseIds: z.array(z.string()).optional()
+})
+
+export const CreateTestRunSchema = z.object({
+  workspace: WorkspaceArg,
+  project: TestProjectArg,
+  name: z.string().min(1),
+  plan: z.string().optional().describe('Plan name or id'),
+  suites: z.array(z.string()).optional(),
+  caseIds: z.array(z.string()).optional(),
+  dueDate: z.string().optional()
+})
+
+export const ListTestRunsSchema = z.object({ workspace: ReadWorkspaceArg, project: TestProjectArg, limit: z.number().int().min(1).max(100).default(20) })
+
+export const GetTestRunSchema = z.object({ workspace: ReadWorkspaceArg, runId: z.string() })
+
+export const SetTestResultSchema = z.object({
+  workspace: WorkspaceArg,
+  result: z.string().describe('Result id, or case id/name with runId'),
+  runId: z.string().optional(),
+  status: z.enum(['Untested', 'Blocked', 'Passed', 'Failed']),
+  comment: z.string().optional().describe('Markdown')
+})
+
+// ── Products (read-only) and label categories ───────────────────────────────
+export const ListProductsSchema = z.object({ workspace: ReadWorkspaceArg })
+export const GetProductSchema = z.object({ workspace: ReadWorkspaceArg, product: z.string().describe('Product name or id') })
+
+export const ListLabelCategoriesSchema = z.object({ workspace: ReadWorkspaceArg })
+export const CreateLabelCategorySchema = z.object({ workspace: WorkspaceArg, name: z.string().min(1) })
+export const SetLabelCategorySchema = z.object({ workspace: WorkspaceArg, labelName: z.string().min(1), category: z.string().describe('Category name or id') })

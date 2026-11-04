@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>huly-mcp-selfhost — MCP server for Huly</title>
-  <meta name="description" content="MCP server for Huly. Self-hosted + cloud, multi-workspace, 105 tools for agent workflows, issues, documents, chat, planner, inbox and more. Open source, EPL-2.0.">
+  <meta name="description" content="MCP server for Huly. Self-hosted + cloud, multi-workspace, 160 tools for agent workflows, issues, documents, chat, planner, inbox and more. Open source, EPL-2.0.">
   <meta name="theme-color" content="#fafaf9" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0c0c0c" media="(prefers-color-scheme: dark)">
   <meta property="og:title" content="huly-mcp-selfhost">
-  <meta property="og:description" content="MCP server for Huly. Self-hosted + cloud. Multi-workspace. 105 tools.">
+  <meta property="og:description" content="MCP server for Huly. Self-hosted + cloud. Multi-workspace. 160 tools.">
   <meta property="og:type" content="website">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
@@ -47,7 +47,7 @@
         <li>MCP server for Huly.</li>
         <li>Self-hosted + cloud.</li>
         <li>Multi-workspace.</li>
-        <li>105 tools in toolsets.</li>
+        <li>160 tools in toolsets.</li>
       </ul>
       <p class="byline"><em>for Claude, by Claude.</em></p>
       <div class="actions">
@@ -189,7 +189,7 @@
       <span class="label"><b>04</b> — Tools</span>
       <h2>Every tool, by category.</h2>
       <div class="stats">
-        <div class="stat"><b>105</b><span>tools</span></div>
+        <div class="stat"><b>160</b><span>tools</span></div>
         <div class="stat"><b>16</b><span>categories</span></div>
         <div class="stat"><b>28</b><span>write — workspace required</span></div>
         <div class="stat"><b>19</b><span>read — workspace optional*</span></div>
@@ -231,7 +231,7 @@
       <p class="lede">No database, no cache service, no extra infrastructure. All state is in process memory: one account session, the discovered workspace list and one connection per workspace in use.</p>
       <div class="layers">
         <div class="layer"><div class="name">MCP client<small>Claude · Codex · Cursor · Zed</small></div><p>Calls tools over stdio — or HTTP when running the Docker image behind mcp-proxy.</p></div>
-        <div class="layer"><div class="name">MCP tools<small>src/tools/*.ts</small></div><p>105 handlers in toolsets (HULY_TOOLSETS). Each resolves its own connection from its <code>workspace</code> argument; inputs are validated against zod schemas first.</p></div>
+        <div class="layer"><div class="name">MCP tools<small>src/tools/*.ts</small></div><p>160 handlers in toolsets (HULY_TOOLSETS). Each resolves its own connection from its <code>workspace</code> argument; inputs are validated against zod schemas first.</p></div>
         <div class="layer"><div class="name">Account client<small>HULY_ACCOUNTS_URL · account token</small></div><p><code>login</code> / <code>getLoginInfoByToken</code>, then <code>getUserWorkspaces()</code> and <code>selectWorkspace()</code>. Never holds a workspace token.</p></div>
         <div class="layer"><div class="name">Workspace connection manager<small>src/connection.ts</small></div><p>Caches the session, the workspace list and one connection per workspace id. Failed attempts are not cached; shutdown closes everything.</p></div>
         <div class="layer"><div class="name">Workspace client<small>per workspace · workspace token</small></div><p><code>TxOperations</code> for all reads and writes, plus a workspace-scoped account client for <code>getWorkspaceMembers()</code>.</p></div>

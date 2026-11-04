@@ -27,3 +27,14 @@ export async function writeMarkup (workspace: string | undefined, idHint: string
   const { wsToken, workspaceUuid } = await getWorkspaceInfo(workspace)
   return await uploadMarkupBlob(wsToken, workspaceUuid, `${idHint}-${Date.now()}`, JSON.stringify(markdownToProseMirror(markdown)))
 }
+
+/** Raw bytes of a blob (files, attachments) — via the self-hosted front service. */
+export async function downloadBlob (workspace: string | undefined, blobRef: string): Promise<Buffer> {
+  const frontUrl = process.env.HULY_FRONT_URL
+  if (frontUrl == null || frontUrl === '') throw new Error('Downloading files needs HULY_FRONT_URL.')
+  const { wsToken, workspaceUuid } = await getWorkspaceInfo(workspace)
+  const url = `${frontUrl.replace(/\/$/, '')}/files?file=${encodeURIComponent(blobRef)}&workspace=${workspaceUuid}`
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${wsToken}` } })
+  if (!res.ok) throw new Error(`File download failed: HTTP ${res.status}`)
+  return Buffer.from(await res.arrayBuffer())
+}

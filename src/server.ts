@@ -1,7 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { TOOLS, TOOLSETS, DEFAULT_TOOLSETS, type Toolset } from './registry'
 import { guard } from './guard'
-import { registerResources, registerPrompts } from './resources'
+import { registerResources, registerPrompts, registerSubscriptions } from './resources'
 
 const SERVER_INSTRUCTIONS = `
 Huly workspaces (tracker, docs, chat, planner, …), self-hosted or cloud. One account, possibly several workspaces.
@@ -50,6 +50,7 @@ export function createServer (options: { toolsets?: string } = {}): McpServer {
   }
   if (enabled.has('agent')) {
     registerResources(server)
+    ;(server as any).hulySubscriptions = registerSubscriptions(server)
     registerPrompts(server)
   }
   slimToolList(server)
