@@ -78,7 +78,14 @@ HULY_TOOLSETS=tracker,documents,planner # just these ('core' = list_workspaces i
 | `process` | | 4 | process definitions and executions; start and cancel |
 | `surveys` | | 2 | surveys and aggregated poll answers (read-only) |
 
-Context cost of `tools/list` (≈3.5 chars/token): default set ~40k chars ≈ **11k tokens** (91 tools), `all` ~93k chars ≈ **27k tokens** (219 tools). For comparison, 2.2.0 needed ≈12.8k tokens for 64 tools. Claude Code loads MCP tools on demand, so there the toolset choice matters less.
+Context cost of `tools/list` (≈3.5 chars/token):
+
+| | default (91 tools) | `all` (219 tools) |
+|---|--:|--:|
+| several workspaces | ~37.6k chars ≈ **10.7k tokens** | ~87.7k chars ≈ **25k tokens** |
+| pinned with `HULY_WORKSPACE` | ~30.7k chars ≈ **8.8k tokens** | ~71k chars ≈ **20.3k tokens** |
+
+For comparison, 2.2.0 needed ≈12.8k tokens for 64 tools. **Using one workspace? Set `HULY_WORKSPACE`** — the `workspace` argument then disappears from every tool (−20%). **Claude Code** loads MCP tools on demand, so there even `HULY_TOOLSETS=all` costs little up front.
 
 ### Agent workflow
 
@@ -358,7 +365,7 @@ A single Huly account can belong to several workspaces — e.g. a personal one a
 
 **Workspace slug:** the part of the Huly URL after the domain: `huly.app/workbench/`**`myteam`** → `myteam`. You don't need to look it up — `list_workspaces` (or `npm run setup`) prints it.
 
-**Legacy `HULY_WORKSPACE`:** still honoured, but only as an optional *restriction*: if set, this server exposes just that one workspace (as before). Leave it unset to use all workspaces.
+**`HULY_WORKSPACE`:** pins the server to that one workspace. Tools then have no `workspace` argument at all, which saves ~20% of the tool-list tokens. Leave it unset to use all workspaces of the account.
 
 ---
 
@@ -370,7 +377,7 @@ A single Huly account can belong to several workspaces — e.g. a personal one a
 | `HULY_TOKEN` | one auth option | Account token for SSO accounts (Google/GitHub) — get it with `npm run setup` |
 | `HULY_ACCOUNTS_URL` | self-hosted only | Account service — login and workspace discovery. Default `https://account.huly.app`. Self-hosted: your instance's accounts URL, e.g. `https://huly.example.com/_accounts` |
 | `HULY_FRONT_URL` | self-hosted (optional on Cloud) | Front service — document/description content and file uploads. Not involved in login or workspace discovery. Self-hosted: e.g. `https://huly.example.com` |
-| `HULY_WORKSPACE` | no (legacy) | Restrict the server to a single workspace |
+| `HULY_WORKSPACE` | no | Pin the server to one workspace; tools then take no `workspace` argument (fewer tokens) |
 | `HULY_TOOLSETS` | no | Comma-separated toolsets to enable, or `all` (see [Toolsets](#toolsets)). Default: `agent,tracker,documents,chat,contacts,inbox,activity,planner,generic` |
 | `HULY_WRITE_PROJECTS` | no | Only allow changes in these projects, e.g. `TSK,WEB` (see [Agent workflow](#agent-workflow)) |
 | `HULY_AUDIT_LOG` | no | Append every change as JSON line to this file |
@@ -802,6 +809,11 @@ See [`src/connection.ts`](src/connection.ts).
 
 ### Unreleased
 
+- **Fewer tokens:**
+  - With `HULY_WORKSPACE` set, tools take no `workspace` argument (−20% tool-list size). Changes still go to exactly that workspace.
+  - Validation limits (`minLength`, `maximum` …) are no longer sent in tool schemas. They are still enforced, with a clear error.
+  - `list_issues` uses one line per issue and leaves out "No priority".
+  - `list_notifications` shows notification ids only with `ids: true`. Marking read by object (`PROJ-12`) does not need them.
 - **New: `my_day`** (toolset `agent`, on by default) — "what's on today?" in one call: calendar, to-dos, my issues, reviews, unread inbox.
 - **New: `project_report`** (toolset `agent`) — weekly report of a project: done, new, in progress, blocked, overdue, PRs, milestones, time logged.
 - Read tools describe `workspace` more briefly (the rule for omitting it is in the server instructions), which keeps the default set within its context budget.

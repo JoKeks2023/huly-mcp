@@ -466,7 +466,8 @@ const ProviderEnum = z.enum(['Email', 'Phone', 'LinkedIn', 'Twitter', 'GitHub', 
 export const ListNotificationsSchema = z.object({
   workspace: ReadWorkspaceArg,
   unreadOnly: z.boolean().default(true),
-  limit: z.number().int().min(1).max(200).default(30)
+  limit: z.number().int().min(1).max(200).default(30),
+  ids: z.boolean().optional().describe('Show notification ids')
 })
 
 export const MarkNotificationsReadSchema = z.object({

@@ -53,7 +53,7 @@
         },
         {
           "name": "HULY_WORKSPACE",
-          "description": "Optional: restrict the server to one workspace (slug, name or id)",
+          "description": "Optional: pin the server to one workspace (slug, name or id); tools then need no workspace argument",
           "isRequired": false,
           "isSecret": false,
           "format": "string"
