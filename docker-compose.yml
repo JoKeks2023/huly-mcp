@@ -15,7 +15,7 @@ services:
     # build: .
     restart: unless-stopped
     env_file:
-      - .env
+      - .env   # behind a reverse proxy, set MCP_ALLOWED_HOSTS there (see .env.example)
     ports:
       - "8000:8000"
     security_opt:

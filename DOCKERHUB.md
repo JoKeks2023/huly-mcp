@@ -30,6 +30,8 @@ docker run --rm -p 8000:8000 \
   jokeks2023/huly-mcp
 ```
 
+Behind a reverse proxy or on a public hostname, add `-e MCP_ALLOWED_HOSTS=huly-mcp.example.com` (comma-separated; every Host name clients use). Without it only `localhost` is accepted, and other requests fail with `421 Invalid Host header`.
+
 Or with Compose — see [`docker-compose.yml`](https://github.com/JoKeks2023/huly-mcp/blob/main/docker-compose.yml) and [`.env.example`](https://github.com/JoKeks2023/huly-mcp/blob/main/.env.example) in the repo.
 
 ## Tags
