@@ -94,6 +94,15 @@ jobs:
           cache-to: type=gha,mode=max
       - name: Server in the image answers over stdio
         run: node .github/scripts/stdio-smoke.mjs docker run -i --rm --entrypoint node huly-mcp:ci dist/index.js
+      - name: The image's HTTP entrypoint (mcp-proxy) answers on :8000/sse
+        run: |
+          docker run -d --name proxy -p 8000:8000 -e HULY_EMAIL=ci@example.com -e HULY_PASSWORD=x huly-mcp:ci
+          for _ in $(seq 1 30); do
+            if curl -s -m 3 -o /dev/null -D headers.txt http://localhost:8000/sse || grep -q ' 200' headers.txt 2>/dev/null; then break; fi
+            sleep 1
+          done
+          grep -i -E '^HTTP/[0-9.]+ 200|^content-type: text/event-stream' headers.txt || { docker logs proxy; exit 1; }
+          docker rm -f proxy
       - name: Trivy scan
         uses: aquasecurity/trivy-action@v0.36.0
         with:

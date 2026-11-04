@@ -68,6 +68,7 @@
     "typescript": "^5.7.0"
   },
   "overrides": {
-    "dompurify": "^3.4.17"
+    "dompurify": "^3.4.17",
+    "uuid": "^11.1.1"
   }
 }

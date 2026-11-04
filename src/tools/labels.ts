@@ -20,10 +20,6 @@ import type {
 export const listLabels = wrapToolHandler<z.infer<typeof ListLabelsSchema>>(async (args) => {
   const client = await getConnection(args.workspace)
 
-  const query = args.projectIdentifier != null
-    ? { targetClass: tracker.class.Issue }
-    : { targetClass: tracker.class.Issue }
-
   const allLabels = await client.findAll(tags.class.TagElement, { targetClass: tracker.class.Issue })
 
   if (allLabels.length === 0) return 'No labels found in this workspace.'
