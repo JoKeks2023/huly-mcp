@@ -40,8 +40,8 @@ jobs:
     runs-on: ubuntu-latest
     environment: sandbox
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -64,9 +64,9 @@ jobs:
         id: day
         run: echo "run=$([ "${{ github.event_name }}" != schedule ] || [ "$(date -u +%u)" = 1 ] && echo yes || echo no)" >> "$GITHUB_OUTPUT"
       - if: steps.day.outputs.run == 'yes'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - if: steps.day.outputs.run == 'yes'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -89,9 +89,9 @@ jobs:
         id: day
         run: echo "run=$([ "${{ github.event_name }}" != schedule ] || [ "$(date -u +%u)" = 1 ] && echo yes || echo no)" >> "$GITHUB_OUTPUT"
       - if: steps.day.outputs.run == 'yes'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - if: steps.day.outputs.run == 'yes'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
