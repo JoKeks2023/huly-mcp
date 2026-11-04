@@ -366,7 +366,7 @@ The repo is also a Claude Code plugin marketplace. The plugin bundles the MCP se
 /plugin install huly@huly-mcp
 ```
 
-> **Note:** the plugin starts `huly-mcp-selfhost@^3.0.0` from npm, which is published once 3.0 is complete. Until then, run it from a local checkout: `npm run build`, then point `plugin/.mcp.json` at `dist/index.js` and start `claude --plugin-dir ./plugin`.
+> **Note:** the plugin starts `huly-mcp-selfhost@^3.0.0` from npm. To try a local checkout instead: `npm run build`, then point `plugin/.mcp.json` at `dist/index.js` and start `claude --plugin-dir ./plugin`.
 
 Claude Code then asks for your Huly settings (e-mail + password or token, and for self-hosted Huly the accounts and front URL; passwords and tokens go to the OS keychain).
 
@@ -599,7 +599,7 @@ For network access (HTTP/SSE) use the [Docker image](#docker-network-reachable-s
 - *"Create a to-do 'Review PR' on PROJ-7 due Friday and block 45 minutes tomorrow at 9"*
 - *"What's on my calendar this week?"*
 - *"Show the history of PROJ-12 — who moved it to Done?"*
-- *"Which pull requests are waiting for review in TRACR?"*
+- *"Which pull requests are waiting for review in PROJ?"*
 
 **Labels & relations:**
 - *"Add the label 'bug' to PROJ-42"*
@@ -776,9 +776,9 @@ See [`src/connection.ts`](src/connection.ts).
 
 ## Changelog
 
-### 3.0.0 — unreleased (in progress)
+### 3.0.0 — 2026-11-04
 
-One large release instead of several small ones. It is built in stages (see [#11](https://github.com/JoKeks2023/huly-mcp/issues/11)) and published to npm once all of them are done.
+One large release instead of several small ones, built in stages (see [#11](https://github.com/JoKeks2023/huly-mcp/issues/11)).
 
 Breaking:
 - Tools are grouped into toolsets.
