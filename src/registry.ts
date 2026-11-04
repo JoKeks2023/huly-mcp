@@ -6,7 +6,7 @@ import { listProjects, getProject, createProject, updateProject } from './tools/
 import { listIssues, getIssue, createIssue, updateIssue, deleteIssue, bulkUpdateIssues, moveIssue, listSubIssues } from './tools/issues'
 import { addComment, listComments, deleteComment, updateComment } from './tools/comments'
 import { logTime, listTimeReports } from './tools/log-time'
-import { listLabels, createLabel, addLabel, removeLabel, updateLabel, deleteLabel } from './tools/labels'
+import { listLabels, createLabel, addLabel, removeLabel, updateLabel, deleteLabel, listLabelCategories, createLabelCategory, setLabelCategory } from './tools/labels'
 import { addRelation, addBlockedBy, setParent, removeRelation, removeBlockedBy, repairParentLinks } from './tools/relations'
 import { listMembers } from './tools/members'
 import { listMilestones, createMilestone, getMilestone, updateMilestone, deleteMilestone } from './tools/milestones'
@@ -31,9 +31,10 @@ import { listCustomFields, createCustomField, setCustomFields } from './tools/fi
 import { listDrives, listDriveFiles, createFolder, uploadFile, downloadFile, updateDriveItem, deleteDriveItem, listFileVersions, restoreFileVersion, createDrive } from './tools/drive'
 import { listIssueTemplates, getIssueTemplate, createIssueTemplate, updateIssueTemplate, deleteIssueTemplate, createIssueFromTemplate } from './tools/templates'
 import * as TM from './tools/testing'
+import { listProducts, getProduct } from './tools/products'
 import * as S from './schemas'
 
-export const TOOLSETS = ['core', 'agent', 'tracker', 'tracker-admin', 'documents', 'chat', 'contacts', 'inbox', 'activity', 'planner', 'calendar', 'github', 'generic', 'generic-write', 'collaboration', 'cards', 'fields', 'drive', 'templates', 'testing'] as const
+export const TOOLSETS = ['core', 'agent', 'tracker', 'tracker-admin', 'documents', 'chat', 'contacts', 'inbox', 'activity', 'planner', 'calendar', 'github', 'generic', 'generic-write', 'collaboration', 'cards', 'fields', 'drive', 'templates', 'testing', 'products'] as const
 export type Toolset = typeof TOOLSETS[number]
 
 /** Enabled when HULY_TOOLSETS is not set. 'core' is always enabled. */
@@ -210,5 +211,10 @@ export const TOOLS: ToolDef[] = [
   { name: 'create_test_run', toolset: 'testing', description: 'Start a test run from a plan, suites or cases', schema: S.CreateTestRunSchema, handler: TM.createTestRun },
   { name: 'list_test_runs', toolset: 'testing', description: 'Test runs with pass/fail counts', schema: S.ListTestRunsSchema, handler: TM.listTestRuns },
   { name: 'get_test_run', toolset: 'testing', description: 'Results of a test run', schema: S.GetTestRunSchema, handler: TM.getTestRun },
-  { name: 'set_test_result', toolset: 'testing', description: 'Record Passed/Failed/Blocked for a case in a run', schema: S.SetTestResultSchema, handler: TM.setTestResult }
+  { name: 'set_test_result', toolset: 'testing', description: 'Record Passed/Failed/Blocked for a case in a run', schema: S.SetTestResultSchema, handler: TM.setTestResult },
+  { name: 'list_products', toolset: 'products', description: 'Products with their active versions', schema: S.ListProductsSchema, handler: listProducts },
+  { name: 'get_product', toolset: 'products', description: 'Product with all versions', schema: S.GetProductSchema, handler: getProduct },
+  { name: 'list_label_categories', toolset: 'tracker-admin', description: 'Issue label categories with their labels', schema: S.ListLabelCategoriesSchema, handler: listLabelCategories },
+  { name: 'create_label_category', toolset: 'tracker-admin', description: 'Create an issue label category', schema: S.CreateLabelCategorySchema, handler: createLabelCategory },
+  { name: 'set_label_category', toolset: 'tracker-admin', description: 'Move a label into a category', schema: S.SetLabelCategorySchema, handler: setLabelCategory }
 ]

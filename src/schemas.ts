@@ -1018,3 +1018,11 @@ export const SetTestResultSchema = z.object({
   status: z.enum(['Untested', 'Blocked', 'Passed', 'Failed']),
   comment: z.string().optional().describe('Markdown')
 })
+
+// ── Products (read-only) and label categories ───────────────────────────────
+export const ListProductsSchema = z.object({ workspace: ReadWorkspaceArg })
+export const GetProductSchema = z.object({ workspace: ReadWorkspaceArg, product: z.string().describe('Product name or id') })
+
+export const ListLabelCategoriesSchema = z.object({ workspace: ReadWorkspaceArg })
+export const CreateLabelCategorySchema = z.object({ workspace: WorkspaceArg, name: z.string().min(1) })
+export const SetLabelCategorySchema = z.object({ workspace: WorkspaceArg, labelName: z.string().min(1), category: z.string().describe('Category name or id') })
