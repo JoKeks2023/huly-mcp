@@ -34,8 +34,12 @@ Or with Compose — see [`docker-compose.yml`](https://github.com/JoKeks2023/hul
 
 ## Tags
 
-- `latest` — most recent build from `main`
+- `latest` — the most recent release
+- `3`, `3.1`, `3.1.0` — a release line (`3` follows every 3.x release, `3.1` every 3.1.x patch) or one exact release
+- `edge` — the most recent build from `main` (untested between releases)
 - `<git-sha>` — pinned to a specific commit
+
+Images are built for `linux/amd64` and `linux/arm64` (Apple Silicon, Raspberry Pi, ARM servers), with an SBOM and build provenance.
 
 ## Also on
 

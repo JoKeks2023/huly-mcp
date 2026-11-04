@@ -337,11 +337,12 @@ npm run build
 
 ### Docker (network-reachable server, not local stdio)
 
-For deployments where the MCP server needs to be reachable over the network (behind a reverse proxy, remote MCP clients, etc.) rather than launched locally per-client, a prebuilt image is published to GHCR on every push to `main`:
+For deployments where the MCP server needs to be reachable over the network (behind a reverse proxy, remote MCP clients, etc.) rather than launched locally per-client, a prebuilt image is published to Docker Hub and GHCR for every release, for `linux/amd64` and `linux/arm64`:
 
 ```bash
-docker pull jokeks2023/huly-mcp:latest
+docker pull jokeks2023/huly-mcp:latest   # latest release; also :3, :3.1, :3.1.0
 # also mirrored at ghcr.io/jokeks2023/huly-mcp:latest
+# :edge = latest build from main
 ```
 
 Or with Compose — copy `.env.example` to `.env`, fill in your credentials (no workspace needed), then:
@@ -845,6 +846,7 @@ Security reports: see [SECURITY.md](SECURITY.md).
 
 ### Unreleased
 
+- **Changed: Docker tags.** `latest` now means the latest *release* (before: the latest commit on `main`), and `main` builds are tagged `edge`. There are new tags `3` and `3.1` for release lines, and images are built for `linux/arm64` as well, with an SBOM and provenance.
 - **CI and automation:**
   - every PR is checked on three platforms, with a token report, a personal-data check, a Docker scan and CodeQL
   - releases publish themselves from a tag
