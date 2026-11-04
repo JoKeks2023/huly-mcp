@@ -80,7 +80,7 @@ async function main (): Promise<void> {
     `${results.length} tool calls against the sandbox workspace${PROJECT != null && PROJECT !== '' ? ` (writes in ${PROJECT})` : ' (reads only)'}.`,
     ''
   ]
-  if (failed.length > 0) lines.push('| Tool | Error |', '|---|---|', ...failed.map((r) => `| \`${r.tool}\` | ${r.note.replace(/\|/g, '\\|').replace(/\n/g, ' ')} |`), '')
+  if (failed.length > 0) lines.push('| Tool | Error |', '|---|---|', ...failed.map((r) => `| \`${r.tool}\` | ${r.note.replace(/\\/g, '\\\\').replace(/\|/g, '\\|').replace(/\n/g, ' ')} |`), '')
   const slow = results.filter((r) => r.ok && r.ms > 5000)
   if (slow.length > 0) lines.push(`Slow (> 5 s): ${slow.map((r) => `\`${r.tool}\` ${(r.ms / 1000).toFixed(1)} s`).join(', ')}`, '')
   writeFileSync('smoke-report.md', lines.join('\n') + '\n')

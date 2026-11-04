@@ -101,6 +101,7 @@ jobs:
         run: |
           pkgs=$(node -p "Object.keys(require('./package.json').dependencies).filter((n) => n.startsWith('@hcengineering/')).map((n) => n + '@latest').join(' ')")
           before=$(npm ls --depth=0 --json | node -p "const d=JSON.parse(require('fs').readFileSync(0,'utf8')).dependencies; Object.entries(d).filter(([n])=>n.startsWith('@hcengineering/')).map(([n,v])=>n+'@'+v.version).join('\n')")
+          # shellcheck disable=SC2086 # one argument per package on purpose
           npm install --no-save $pkgs
           after=$(npm ls --depth=0 --json | node -p "const d=JSON.parse(require('fs').readFileSync(0,'utf8')).dependencies; Object.entries(d).filter(([n])=>n.startsWith('@hcengineering/')).map(([n,v])=>n+'@'+v.version).join('\n')")
           { echo '## Huly packages'; echo; echo '```diff'; diff <(echo "$before") <(echo "$after") || true; echo '```'; } > upstream.md
@@ -109,6 +110,7 @@ jobs:
         run: npm run build && npm test
       - if: failure() && steps.day.outputs.run == 'yes'
         run: |
+          # shellcheck disable=SC2016 # backticks are Markdown here
           { echo 'Build or tests fail with the latest `@hcengineering/*` packages.'; echo; cat upstream.md 2>/dev/null; } > body.md
           .github/scripts/report-issue.sh "Latest Huly packages break the build or tests" body.md bug
         env:

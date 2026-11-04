@@ -7,7 +7,9 @@ import { join } from 'node:path'
 import { TOOLS, TOOLSETS, DEFAULT_TOOLSETS } from '../src/registry'
 
 const ROOT = join(__dirname, '..')
-const read = (p: string): string => readFileSync(join(ROOT, p), 'utf8')
+// Windows checkouts may have CRLF line endings.
+const read = (p: string): string => readFileSync(join(ROOT, p), 'utf8').replace(/\r\n/g, '\n')
+const escapeRe = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 const json = (p: string): any => JSON.parse(read(p))
 
 const total = TOOLS.length
@@ -52,7 +54,7 @@ test('version is the same in package.json, server.json, the plugin and the MCP s
   assert.equal(server.version, version, 'server.json version')
   for (const p of server.packages ?? []) assert.equal(p.version, version, `server.json package ${String(p.identifier)} version`)
   assert.equal(json('plugin/.claude-plugin/plugin.json').version, version, 'plugin.json version')
-  assert.match(read('src/server.ts'), new RegExp(`name: 'huly-mcp-selfhost', version: '${version.replace(/\./g, '\\.')}'`), 'McpServer version in src/server.ts')
+  assert.match(read('src/server.ts'), new RegExp(`name: 'huly-mcp-selfhost', version: '${escapeRe(version)}'`), 'McpServer version in src/server.ts')
 })
 
 test('plugin: manifests parse, commands and skills have frontmatter, hook scripts exist', () => {

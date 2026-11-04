@@ -825,6 +825,8 @@ GitHub Actions check every pull request:
 | `scheduled.yml` | nightly live smoke test against a sandbox workspace; weekly: the latest `@hcengineering/*` packages, and Huly modules that have no tools yet (see `.github/huly-modules-ignore.txt`). Failures open or update an issue |
 | `release.yml` | on a `vX.Y.Z` tag: version and changelog check, tests, personal-data check, `npm publish --provenance` (Trusted Publishing), GitHub release from the changelog section, MCP registry entry |
 
+Security reports: see [SECURITY.md](SECURITY.md).
+
 `test/repo.test.ts` keeps the docs honest: tool counts in this README, the site and `DOCKERHUB.md` must match the registry, the version must match everywhere, and the plugin must be well-formed.
 
 **Releasing:**
