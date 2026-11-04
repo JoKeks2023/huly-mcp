@@ -73,7 +73,12 @@ jobs:
           else
             # Trusted Publishing (OIDC) first; a classic token only if the NPM_TOKEN secret exists.
             if [ -n "$NPM_TOKEN" ]; then npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"; fi
-            npm publish --provenance --access public
+            npm publish --provenance --access public --loglevel verbose || {
+              echo "::group::npm debug log (OIDC / auth lines)"
+              grep -ihE "oidc|trusted|id-token|provenance|auth|token|403|404|E4[0-9][0-9]" ~/.npm/_logs/*-debug-0.log | grep -viE "authorization: |bearer " | tail -60 || true
+              echo "::endgroup::"
+              exit 1
+            }
           fi
 
       - name: GitHub release
