@@ -84,7 +84,7 @@ test('extractText keeps inline marks on one line (#5)', () => {
 
 test('list_issues filters by milestone, component, label, assignee and parent', async () => {
   const ids = async (args: Record<string, unknown>): Promise<string[]> =>
-    [...text(await listIssues({ projectIdentifier: 'PROJ', limit: 50, ...args } as any)).matchAll(/\*\*(PROJ-\d+)\*\*/g)].map((m) => m[1]).sort()
+    [...text(await listIssues({ projectIdentifier: 'PROJ', limit: 50, status: 'all', ...args } as any)).matchAll(/\*\*(PROJ-\d+)\*\*/g)].map((m) => m[1]).sort()
   assert.deepEqual(await ids({ milestoneLabel: 'v1' }), ['PROJ-1', 'PROJ-2'])
   assert.deepEqual(await ids({ milestoneLabel: null }), ['PROJ-3', 'PROJ-4', 'PROJ-5'])
   assert.deepEqual(await ids({ componentLabel: 'API' }), ['PROJ-2'])
@@ -95,6 +95,24 @@ test('list_issues filters by milestone, component, label, assignee and parent', 
   assert.deepEqual(await ids({ parentIdentifier: null }), ['PROJ-1', 'PROJ-3', 'PROJ-5'])
   assert.deepEqual(await ids({ milestoneLabel: 'v1', labelName: 'bug' }), ['PROJ-2'])
   await assert.rejects(listIssues({ projectIdentifier: 'PROJ', limit: 50, milestoneLabel: 'nope' }), /Milestone 'nope' not found/)
+})
+
+test('list_issues: open issues by default, "all" and status names, offset with "x–y of n" header', async () => {
+  const ids = (out: string): string[] => [...out.matchAll(/\*\*(PROJ-\d+)\*\*/g)].map((m) => m[1]).sort()
+  const all = text(await listIssues({ projectIdentifier: 'PROJ', limit: 50, status: 'all' } as any))
+  const open = text(await listIssues({ projectIdentifier: 'PROJ', limit: 50 } as any))
+  assert.match(open, /^## Open issues in PROJ \(\d+\)/)
+  assert.ok(ids(open).length < ids(all).length)
+  for (const id of ids(open)) assert.doesNotMatch(open, new RegExp(`\\*\\*${id}\\*\\*[^\\n]*— (Done|Canceled)`))
+  const done = text(await listIssues({ projectIdentifier: 'PROJ', limit: 50, status: 'done' } as any))
+  assert.match(done, /Issues in status done in PROJ/)
+  assert.deepEqual([...ids(open), ...ids(done)].sort(), ids(all).filter((id) => !/— Canceled/.test(all.split('\n').find((l) => l.includes(`**${id}**`)) ?? '')).sort())
+  const page1 = text(await listIssues({ projectIdentifier: 'PROJ', limit: 2, status: 'all' } as any))
+  const page2 = text(await listIssues({ projectIdentifier: 'PROJ', limit: 2, offset: 2, status: 'all' } as any))
+  assert.match(page1, /\(1–2 of 5\)[\s\S]*_More: offset 2\._/)
+  assert.match(page2, /\(3–4 of 5\)[\s\S]*_More: offset 4\._/)
+  assert.equal(new Set([...ids(page1), ...ids(page2)]).size, 4)
+  await assert.rejects(listIssues({ projectIdentifier: 'PROJ', limit: 50, status: 'Nope' } as any), /Status 'Nope' not found/)
 })
 
 test('get_issue shows assignee, milestone, component, labels, parent and links', async () => {

@@ -33,9 +33,16 @@ export const listIssues = wrapToolHandler<z.infer<typeof ListIssuesSchema>>(asyn
 
   const query: Record<string, unknown> = { space: project._id }
 
-  if (args.status != null) {
-    const status = await client.findOne(tracker.class.IssueStatus, { name: args.status })
-    if (status == null) throw new Error(`Status '${args.status}' not found in project '${args.projectIdentifier}'.`)
+  // Statuses are workspace-wide; resolve them once (filter and output).
+  const statuses = await client.findAll(tracker.class.IssueStatus, {})
+  const statusMap = new Map(statuses.map((s) => [s._id, s.name]))
+  // Default: open issues only — in a mature project most issues are done, and listing them costs tokens.
+  const scope = args.status ?? 'open'
+  if (scope === 'open') {
+    query.status = { $in: statuses.filter((s) => s.category !== task.statusCategory.Won && s.category !== task.statusCategory.Lost).map((s) => s._id) }
+  } else if (scope !== 'all') {
+    const status = statuses.find((s) => s.name.toLowerCase() === scope.toLowerCase())
+    if (status == null) throw new Error(`Status '${scope}' not found. Use a status name, "open" or "all".`)
     query.status = status._id
   }
 
@@ -81,17 +88,16 @@ export const listIssues = wrapToolHandler<z.infer<typeof ListIssuesSchema>>(asyn
     query._id = { $in: refs.map((r) => r.attachedTo) }
   }
 
-  const issues = await client.findAll(
+  const offset = args.offset ?? 0
+  const found = await client.findAll(
     tracker.class.Issue,
     query as any,
-    { limit: args.limit, sort: { modifiedOn: SortingOrder.Descending } }
+    { limit: args.limit + offset, sort: { modifiedOn: SortingOrder.Descending }, total: true }
   )
-
-  if (issues.length === 0) return `No issues found in project ${args.projectIdentifier}.`
-
-  // Resolve all statuses in one call
-  const statuses = await client.findAll(tracker.class.IssueStatus, {})
-  const statusMap = new Map(statuses.map((s) => [s._id, s.name]))
+  const total: number = (found as any).total ?? found.length
+  const issues = found.slice(offset)
+  const what = scope === 'open' ? 'open issues' : scope === 'all' ? 'issues' : `issues in status ${scope}`
+  if (issues.length === 0) return `No ${what} in project ${args.projectIdentifier}${offset > 0 ? ` after offset ${offset}` : ''}.${scope === 'open' ? ' (status: "all" includes done ones.)' : ''}`
 
   const lines = issues.map((issue) => {
     const statusName = statusMap.get(issue.status) ?? 'Unknown'
@@ -101,7 +107,9 @@ export const listIssues = wrapToolHandler<z.infer<typeof ListIssuesSchema>>(asyn
     return `- **${issue.identifier}** ${issue.title} — ${statusName}${prio}${due}`
   })
 
-  return `## Issues in ${args.projectIdentifier} (${issues.length})\n\n${lines.join('\n')}`
+  const shown = total > issues.length ? `${offset + 1}–${offset + issues.length} of ${total}` : String(total)
+  const more = offset + issues.length < total ? `\n\n_More: offset ${offset + issues.length}._` : ''
+  return `## ${what[0].toUpperCase()}${what.slice(1)} in ${args.projectIdentifier} (${shown})\n\n${lines.join('\n')}${more}`
 })
 
 export const getIssue = wrapToolHandler<z.infer<typeof GetIssueSchema>>(async (args) => {

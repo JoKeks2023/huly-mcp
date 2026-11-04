@@ -163,7 +163,7 @@ Options: `--run <name>`, `--parent-suite <suite>`, `--no-create` (only existing 
 | | `get_project` | Get project details + available statuses |
 | | `create_project` | Create a new tracker project with a unique identifier *(tracker-admin)* |
 | | `update_project` | Change name, description, default assignee or default status *(tracker-admin)* |
-| **Issues** | `list_issues` | List issues, filterable by status, priority, milestone, component, label, assignee, parent |
+| **Issues** | `list_issues` | List issues — open ones by default (`status: "all"` or a status name for others), filterable by priority, milestone, component, label, assignee, parent; `offset` pages through long lists ("51–100 of 118") |
 | | `get_issue` | Full details of an issue (e.g. `PROJ-42`): assignee, milestone, component, labels, parent, links |
 | | `create_issue` | Create a new issue (with optional Markdown description) |
 | | `update_issue` | Update title, description, status, priority, assignee, due date, component, milestone |
@@ -172,7 +172,7 @@ Options: `--run <name>`, `--parent-suite <suite>`, `--no-create` (only existing 
 | | `move_issue` | Move an issue (with sub-issues, comments, attachments, labels, time) to another project |
 | | `list_sub_issues` | Sub-issue tree of an epic with status and progress |
 | **Comments** | `add_comment` | Add a comment to an issue |
-| | `list_comments` | List all comments on an issue (includes IDs for `delete_comment`) |
+| | `list_comments` | Newest comments on an issue, oldest first (includes IDs for `delete_comment`); comments over 1,500 chars are shortened with a marker unless `full: true` |
 | | `update_comment` | Edit a comment |
 | | `delete_comment` | Delete a specific comment by ID |
 | **Time Tracking** | `log_time` | Log hours spent on an issue |
@@ -814,6 +814,8 @@ See [`src/connection.ts`](src/connection.ts).
   - Validation limits (`minLength`, `maximum` …) are no longer sent in tool schemas. They are still enforced, with a clear error.
   - `list_issues` uses one line per issue and leaves out "No priority".
   - `list_notifications` shows notification ids only with `ids: true`. Marking read by object (`PROJ-12`) does not need them.
+- **Changed: `list_issues` lists open issues by default.** Pass `status: "all"` for every issue, or a status name. Long lists show `51–100 of 118` and page with `offset`. In a mature project this cuts the answer by ~80%.
+- **Changed: `list_comments` returns the newest comments** (before: the oldest), still in chronological order. Comments over 1,500 characters are shortened with a visible marker; `full: true` shows them whole. Issue descriptions are never shortened, because `update_issue` replaces them.
 - **New: `my_day`** (toolset `agent`, on by default) — "what's on today?" in one call: calendar, to-dos, my issues, reviews, unread inbox.
 - **New: `project_report`** (toolset `agent`) — weekly report of a project: done, new, in progress, blocked, overdue, PRs, milestones, time logged.
 - Read tools describe `workspace` more briefly (the rule for omitting it is in the server instructions), which keeps the default set within its context budget.

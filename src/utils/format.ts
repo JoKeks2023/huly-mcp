@@ -42,3 +42,9 @@ export function textToMarkup (text: string | null): string {
   return JSON.stringify(markdownToProseMirror(text))
 }
 
+
+/** Shortens long text for listings, with a visible marker so nobody edits the shortened version. */
+export function clip (text: string, max: number, hint: string): string {
+  if (text.length <= max) return text
+  return `${text.slice(0, max).trimEnd()}… _[${text.length - max} more chars — ${hint}]_`
+}
