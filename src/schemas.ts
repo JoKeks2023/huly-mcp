@@ -1026,3 +1026,159 @@ export const GetProductSchema = z.object({ workspace: ReadWorkspaceArg, product:
 export const ListLabelCategoriesSchema = z.object({ workspace: ReadWorkspaceArg })
 export const CreateLabelCategorySchema = z.object({ workspace: WorkspaceArg, name: z.string().min(1) })
 export const SetLabelCategorySchema = z.object({ workspace: WorkspaceArg, labelName: z.string().min(1), category: z.string().describe('Category name or id') })
+
+// ── Workspace administration ──────────────────────────────────────────────────
+
+const RoleArg = z.enum(['guest', 'user', 'maintainer', 'owner'])
+
+export const CreateInviteLinkSchema = z.object({
+  workspace: WorkspaceArg,
+  email: z.string().optional().describe('Personal one-use link for this address (nothing is sent)'),
+  role: RoleArg.optional().describe('Default user'),
+  expiresHours: z.number().int().min(1).max(8760).optional().describe('Default 48'),
+  limit: z.number().int().min(1).max(1000).optional().describe('Uses, without email; default 1'),
+  emailMask: z.string().optional().describe('Only addresses matching, e.g. *@acme.com')
+})
+
+export const SendInviteSchema = z.object({
+  workspace: WorkspaceArg,
+  email: z.string(),
+  role: RoleArg.optional().describe('Default user')
+})
+
+export const SetMemberRoleSchema = z.object({
+  workspace: WorkspaceArg,
+  member: z.string().describe('Name or account id'),
+  role: RoleArg
+})
+
+export const GetWorkspaceSettingsSchema = z.object({ workspace: ReadWorkspaceArg })
+
+export const ListProjectTypesSchema = z.object({ workspace: ReadWorkspaceArg })
+
+// ── Recruiting ────────────────────────────────────────────────────────────────
+
+export const ListVacanciesSchema = z.object({ workspace: ReadWorkspaceArg, includeArchived: z.boolean().optional() })
+export const CreateVacancySchema = z.object({
+  workspace: WorkspaceArg,
+  name: z.string(),
+  description: z.string().optional().describe('Short plain-text description'),
+  company: z.string().optional().describe('Organization name'),
+  location: z.string().optional(),
+  dueDate: z.string().optional()
+})
+export const UpdateVacancySchema = z.object({
+  workspace: WorkspaceArg,
+  vacancy: z.string().describe('Name or id'),
+  name: z.string().optional(),
+  description: z.string().nullable().optional(),
+  location: z.string().nullable().optional(),
+  dueDate: z.string().nullable().optional(),
+  archived: z.boolean().optional()
+})
+export const ListCandidatesSchema = z.object({ workspace: ReadWorkspaceArg, query: z.string().optional().describe('Name or title contains'), limit: z.number().int().min(1).max(500).optional() })
+export const CreateCandidateSchema = z.object({
+  workspace: WorkspaceArg,
+  firstName: z.string(),
+  lastName: z.string(),
+  title: z.string().optional().describe('e.g. Senior iOS developer'),
+  city: z.string().optional(),
+  email: z.string().optional(),
+  onsite: z.boolean().optional(),
+  remote: z.boolean().optional()
+})
+export const ListApplicationsSchema = z.object({ workspace: ReadWorkspaceArg, vacancy: z.string().optional(), status: z.string().optional(), limit: z.number().int().min(1).max(500).optional() })
+export const CreateApplicationSchema = z.object({
+  workspace: WorkspaceArg,
+  vacancy: z.string().describe('Name or id'),
+  candidate: z.string().describe('Person name or id (create_candidate first for new people)'),
+  status: z.string().optional().describe('Default: first status'),
+  assignee: z.string().optional().describe('Recruiter')
+})
+export const UpdateApplicationSchema = z.object({ workspace: WorkspaceArg, identifier: z.string().describe('APP-12'), status: z.string().optional(), assignee: z.string().nullable().optional() })
+export const DeleteApplicationSchema = z.object({ workspace: WorkspaceArg, identifier: z.string().describe('APP-12') })
+
+// ── CRM ───────────────────────────────────────────────────────────────────────
+
+export const ListLeadsSchema = z.object({ workspace: ReadWorkspaceArg, funnel: z.string().optional(), status: z.string().optional(), limit: z.number().int().min(1).max(500).optional() })
+export const ListCustomersSchema = z.object({ workspace: ReadWorkspaceArg })
+export const CreateLeadSchema = z.object({
+  workspace: WorkspaceArg,
+  title: z.string(),
+  customer: z.string().describe('Existing person/organization (name or id), or the new one\'s name with newCustomer'),
+  newCustomer: z.enum(['organization', 'person']).optional().describe('Create the customer first'),
+  funnel: z.string().optional().describe('Default: the default funnel'),
+  status: z.string().optional(),
+  assignee: z.string().optional()
+})
+export const UpdateLeadSchema = z.object({ workspace: WorkspaceArg, identifier: z.string().describe('LEAD-12'), title: z.string().optional(), status: z.string().optional(), assignee: z.string().nullable().optional() })
+export const DeleteLeadSchema = z.object({ workspace: WorkspaceArg, identifier: z.string().describe('LEAD-12') })
+
+// ── HR ────────────────────────────────────────────────────────────────────────
+
+export const ListDepartmentsSchema = z.object({ workspace: ReadWorkspaceArg })
+export const CreateDepartmentSchema = z.object({ workspace: WorkspaceArg, name: z.string(), parent: z.string().optional().describe('Default: Organization (root)'), teamLead: z.string().optional() })
+export const DeleteDepartmentSchema = z.object({ workspace: WorkspaceArg, department: z.string() })
+export const SetDepartmentSchema = z.object({ workspace: WorkspaceArg, member: z.string(), department: z.string() })
+export const ListTimeOffSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  from: z.string().optional().describe('YYYY-MM-DD'),
+  to: z.string().optional().describe('YYYY-MM-DD'),
+  member: z.string().optional(),
+  department: z.string().optional()
+})
+export const CreateTimeOffSchema = z.object({
+  workspace: WorkspaceArg,
+  type: z.enum(['vacation', 'sick', 'pto', 'pto-half-day', 'overtime', 'overtime-half-day', 'remote']),
+  from: z.string().describe('YYYY-MM-DD'),
+  to: z.string().optional().describe('Last day, inclusive; default from'),
+  member: z.string().optional().describe('Default: me'),
+  description: z.string().optional()
+})
+export const DeleteTimeOffSchema = z.object({ workspace: WorkspaceArg, id: z.string() })
+
+// ── Inventory ─────────────────────────────────────────────────────────────────
+
+export const ListInventorySchema = z.object({ workspace: ReadWorkspaceArg })
+export const CreateInventoryCategorySchema = z.object({ workspace: WorkspaceArg, name: z.string(), parent: z.string().optional().describe('Parent category') })
+export const CreateInventoryProductSchema = z.object({
+  workspace: WorkspaceArg,
+  name: z.string(),
+  category: z.string(),
+  variants: z.array(z.object({ name: z.string(), sku: z.string() })).optional()
+})
+export const UpdateInventoryItemSchema = z.object({ workspace: WorkspaceArg, id: z.string(), name: z.string().optional(), sku: z.string().optional().describe('Variants'), category: z.string().optional().describe('Move a product') })
+export const DeleteInventoryItemSchema = z.object({ workspace: WorkspaceArg, id: z.string(), recursive: z.boolean().optional() })
+
+// ── Message templates ─────────────────────────────────────────────────────────
+
+export const ListMessageTemplatesSchema = z.object({ workspace: ReadWorkspaceArg })
+export const GetMessageTemplateSchema = z.object({ workspace: ReadWorkspaceArg, template: z.string().describe('Title or id') })
+export const CreateMessageTemplateSchema = z.object({
+  workspace: WorkspaceArg,
+  title: z.string(),
+  message: z.string().describe('Markdown; ${field} placeholders allowed'),
+  category: z.string().optional().describe('Default: public templates'),
+  newCategory: z.boolean().optional().describe('Create category first')
+})
+export const UpdateMessageTemplateSchema = z.object({ workspace: WorkspaceArg, template: z.string(), title: z.string().optional(), message: z.string().optional() })
+export const DeleteMessageTemplateSchema = z.object({ workspace: WorkspaceArg, template: z.string() })
+
+// ── Meetings, QMS, processes, surveys (read-only) ─────────────────────────────
+
+export const ListMeetingsSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  room: z.string().optional(),
+  since: z.string().optional(),
+  limit: z.number().int().min(1).max(200).optional(),
+  includeOffices: z.boolean().optional().describe('List personal offices too')
+})
+export const GetMeetingSchema = z.object({ workspace: ReadWorkspaceArg, id: z.string(), transcript: z.boolean().optional().describe('Default true'), limit: z.number().int().min(1).max(5000).optional() })
+export const ListControlledDocumentsSchema = z.object({ workspace: ReadWorkspaceArg, space: z.string().optional(), includeTemplates: z.boolean().optional() })
+export const GetControlledDocumentSchema = z.object({ workspace: ReadWorkspaceArg, document: z.string().describe('Code (SOP-12), title or id'), content: z.boolean().optional().describe('Default true') })
+export const ListTrainingsSchema = z.object({ workspace: ReadWorkspaceArg, includeArchived: z.boolean().optional() })
+export const GetTrainingSchema = z.object({ workspace: ReadWorkspaceArg, training: z.string().describe('Code, title or id'), showAnswers: z.boolean().optional() })
+export const ListProcessesSchema = z.object({ workspace: ReadWorkspaceArg })
+export const ListExecutionsSchema = z.object({ workspace: ReadWorkspaceArg, process: z.string().optional(), status: z.enum(['active', 'done', 'cancelled']).optional(), limit: z.number().int().min(1).max(200).optional() })
+export const ListSurveysSchema = z.object({ workspace: ReadWorkspaceArg })
+export const GetSurveySchema = z.object({ workspace: ReadWorkspaceArg, survey: z.string(), maxTextAnswers: z.number().int().min(0).max(100).optional() })

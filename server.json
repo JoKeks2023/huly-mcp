@@ -60,7 +60,7 @@
         },
         {
           "name": "HULY_TOOLSETS",
-          "description": "Optional: comma-separated toolsets (agent, tracker, tracker-admin, documents, chat, contacts, inbox, activity, planner, calendar, github, generic, generic-write, collaboration, cards, fields, drive, templates, testing, products) or 'all'",
+          "description": "Optional: comma-separated toolsets (agent, tracker, tracker-admin, documents, chat, contacts, inbox, activity, planner, calendar, github, generic, generic-write, collaboration, cards, fields, drive, templates, testing, products, members, recruiting, crm, hr, inventory, meetings, qms, process, surveys) or 'all'",
           "isRequired": false,
           "isSecret": false,
           "format": "string"

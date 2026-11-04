@@ -27,6 +27,16 @@ import { listOrganizations, getOrganization, createOrganization, updateOrganizat
 import { getIssueContext, startWork, finishWork, createIssueTree, changesSince, claimIssue, releaseIssue, findProjectForRepo } from './tools/agent'
 import { listCollaborators, addCollaborator, removeCollaborator, createPublicLink, listPublicLinks, revokePublicLink } from './tools/sharing'
 import { listCardTypes, listCards, getCard, createCard, updateCard, deleteCard, createCardType, deleteCardType } from './tools/cards'
+import { createInviteLink, sendInvite, setMemberRole, getWorkspaceSettings, listProjectTypes } from './tools/workspace-admin'
+import * as REC from './tools/recruiting'
+import * as CRM from './tools/crm'
+import * as HRT from './tools/hr'
+import * as INVT from './tools/inventory'
+import * as MTT from './tools/message-templates'
+import * as MEET from './tools/meetings'
+import * as QMST from './tools/qms'
+import * as PROC from './tools/process'
+import * as SURV from './tools/surveys'
 import { listCustomFields, createCustomField, setCustomFields } from './tools/fields'
 import { listDrives, listDriveFiles, createFolder, uploadFile, downloadFile, updateDriveItem, deleteDriveItem, listFileVersions, restoreFileVersion, createDrive } from './tools/drive'
 import { listIssueTemplates, getIssueTemplate, createIssueTemplate, updateIssueTemplate, deleteIssueTemplate, createIssueFromTemplate } from './tools/templates'
@@ -34,7 +44,7 @@ import * as TM from './tools/testing'
 import { listProducts, getProduct } from './tools/products'
 import * as S from './schemas'
 
-export const TOOLSETS = ['core', 'agent', 'tracker', 'tracker-admin', 'documents', 'chat', 'contacts', 'inbox', 'activity', 'planner', 'calendar', 'github', 'generic', 'generic-write', 'collaboration', 'cards', 'fields', 'drive', 'templates', 'testing', 'products'] as const
+export const TOOLSETS = ['core', 'agent', 'tracker', 'tracker-admin', 'documents', 'chat', 'contacts', 'inbox', 'activity', 'planner', 'calendar', 'github', 'generic', 'generic-write', 'collaboration', 'cards', 'fields', 'drive', 'templates', 'testing', 'products', 'members', 'recruiting', 'crm', 'hr', 'inventory', 'meetings', 'qms', 'process', 'surveys'] as const
 export type Toolset = typeof TOOLSETS[number]
 
 /** Enabled when HULY_TOOLSETS is not set. 'core' is always enabled. */
@@ -216,5 +226,51 @@ export const TOOLS: ToolDef[] = [
   { name: 'get_product', toolset: 'products', description: 'Product with all versions', schema: S.GetProductSchema, handler: getProduct },
   { name: 'list_label_categories', toolset: 'tracker-admin', description: 'Issue label categories with their labels', schema: S.ListLabelCategoriesSchema, handler: listLabelCategories },
   { name: 'create_label_category', toolset: 'tracker-admin', description: 'Create an issue label category', schema: S.CreateLabelCategorySchema, handler: createLabelCategory },
-  { name: 'set_label_category', toolset: 'tracker-admin', description: 'Move a label into a category', schema: S.SetLabelCategorySchema, handler: setLabelCategory }
+  { name: 'set_label_category', toolset: 'tracker-admin', description: 'Move a label into a category', schema: S.SetLabelCategorySchema, handler: setLabelCategory },
+  { name: 'list_project_types', toolset: 'tracker-admin', description: 'Project types with task types and their status workflows', schema: S.ListProjectTypesSchema, handler: listProjectTypes },
+  { name: 'get_workspace_settings', toolset: 'members', description: 'Workspace info: your role, members per role, invite defaults, integrations', schema: S.GetWorkspaceSettingsSchema, handler: getWorkspaceSettings },
+  { name: 'create_invite_link', toolset: 'members', description: 'Create an invite link (personal for an e-mail, or with use limit/e-mail mask); sends nothing', schema: S.CreateInviteLinkSchema, handler: createInviteLink },
+  { name: 'send_invite', toolset: 'members', description: 'Send an invitation e-mail to join the workspace', schema: S.SendInviteSchema, handler: sendInvite },
+  { name: 'set_member_role', toolset: 'members', description: 'Change a member\'s workspace role', schema: S.SetMemberRoleSchema, handler: setMemberRole },
+  { name: 'list_vacancies', toolset: 'recruiting', description: 'Vacancies with application counts per status', schema: S.ListVacanciesSchema, handler: REC.listVacancies },
+  { name: 'create_vacancy', toolset: 'recruiting', description: 'Create a vacancy', schema: S.CreateVacancySchema, handler: REC.createVacancy },
+  { name: 'update_vacancy', toolset: 'recruiting', description: 'Rename, describe, set location/due date, archive a vacancy', schema: S.UpdateVacancySchema, handler: REC.updateVacancy },
+  { name: 'list_candidates', toolset: 'recruiting', description: 'Candidates (talents) with title and application count', schema: S.ListCandidatesSchema, handler: REC.listCandidates },
+  { name: 'create_candidate', toolset: 'recruiting', description: 'Create a candidate (person with title, e-mail, onsite/remote)', schema: S.CreateCandidateSchema, handler: REC.createCandidate },
+  { name: 'list_applications', toolset: 'recruiting', description: 'Applications (APP-n) by vacancy/status', schema: S.ListApplicationsSchema, handler: REC.listApplications },
+  { name: 'create_application', toolset: 'recruiting', description: 'Apply a candidate to a vacancy', schema: S.CreateApplicationSchema, handler: REC.createApplication },
+  { name: 'update_application', toolset: 'recruiting', description: 'Move an application to a status or assign a recruiter', schema: S.UpdateApplicationSchema, handler: REC.updateApplication },
+  { name: 'delete_application', toolset: 'recruiting', description: 'Delete an application', schema: S.DeleteApplicationSchema, handler: REC.deleteApplication },
+  { name: 'list_leads', toolset: 'crm', description: 'Leads (LEAD-n) by funnel/status with customer', schema: S.ListLeadsSchema, handler: CRM.listLeads },
+  { name: 'list_customers', toolset: 'crm', description: 'Customers with lead counts', schema: S.ListCustomersSchema, handler: CRM.listCustomers },
+  { name: 'create_lead', toolset: 'crm', description: 'Create a lead for a customer (optionally creating the customer)', schema: S.CreateLeadSchema, handler: CRM.createLead },
+  { name: 'update_lead', toolset: 'crm', description: 'Rename, move to a status or assign a lead', schema: S.UpdateLeadSchema, handler: CRM.updateLead },
+  { name: 'delete_lead', toolset: 'crm', description: 'Delete a lead', schema: S.DeleteLeadSchema, handler: CRM.deleteLead },
+  { name: 'list_departments', toolset: 'hr', description: 'Department tree with team leads and members', schema: S.ListDepartmentsSchema, handler: HRT.listDepartments },
+  { name: 'create_department', toolset: 'hr', description: 'Create a department', schema: S.CreateDepartmentSchema, handler: HRT.createDepartment },
+  { name: 'delete_department', toolset: 'hr', description: 'Delete a department without sub-departments', schema: S.DeleteDepartmentSchema, handler: HRT.deleteDepartment },
+  { name: 'set_department', toolset: 'hr', description: 'Move a member to a department', schema: S.SetDepartmentSchema, handler: HRT.setDepartment },
+  { name: 'list_time_off', toolset: 'hr', description: 'Vacation, sick days, PTO, overtime, remote days in a date range', schema: S.ListTimeOffSchema, handler: HRT.listTimeOff },
+  { name: 'create_time_off', toolset: 'hr', description: 'Record vacation/sick/PTO/overtime/remote days', schema: S.CreateTimeOffSchema, handler: HRT.createTimeOff },
+  { name: 'delete_time_off', toolset: 'hr', description: 'Delete a time-off entry', schema: S.DeleteTimeOffSchema, handler: HRT.deleteTimeOff },
+  { name: 'list_inventory', toolset: 'inventory', description: 'Inventory tree: categories, products, variants (SKU)', schema: S.ListInventorySchema, handler: INVT.listInventory },
+  { name: 'create_inventory_category', toolset: 'inventory', description: 'Create an inventory category', schema: S.CreateInventoryCategorySchema, handler: INVT.createInventoryCategory },
+  { name: 'create_inventory_product', toolset: 'inventory', description: 'Create a product (with variants) in a category', schema: S.CreateInventoryProductSchema, handler: INVT.createInventoryProduct },
+  { name: 'update_inventory_item', toolset: 'inventory', description: 'Rename, change SKU or move an inventory item', schema: S.UpdateInventoryItemSchema, handler: INVT.updateInventoryItem },
+  { name: 'delete_inventory_item', toolset: 'inventory', description: 'Delete a category, product or variant', schema: S.DeleteInventoryItemSchema, handler: INVT.deleteInventoryItem },
+  { name: 'list_message_templates', toolset: 'templates', description: 'Message templates by category', schema: S.ListMessageTemplatesSchema, handler: MTT.listMessageTemplates },
+  { name: 'get_message_template', toolset: 'templates', description: 'Full text and placeholders of a message template', schema: S.GetMessageTemplateSchema, handler: MTT.getMessageTemplate },
+  { name: 'create_message_template', toolset: 'templates', description: 'Create a message template', schema: S.CreateMessageTemplateSchema, handler: MTT.createMessageTemplate },
+  { name: 'update_message_template', toolset: 'templates', description: 'Change a message template', schema: S.UpdateMessageTemplateSchema, handler: MTT.updateMessageTemplate },
+  { name: 'delete_message_template', toolset: 'templates', description: 'Delete a message template', schema: S.DeleteMessageTemplateSchema, handler: MTT.deleteMessageTemplate },
+  { name: 'list_meetings', toolset: 'meetings', description: 'Office rooms and meeting minutes', schema: S.ListMeetingsSchema, handler: MEET.listMeetings },
+  { name: 'get_meeting', toolset: 'meetings', description: 'Meeting minutes: participants, notes, action items, transcript', schema: S.GetMeetingSchema, handler: MEET.getMeeting },
+  { name: 'list_controlled_documents', toolset: 'qms', description: 'Controlled (QMS) documents per space with version and state', schema: S.ListControlledDocumentsSchema, handler: QMST.listControlledDocuments },
+  { name: 'get_controlled_document', toolset: 'qms', description: 'Controlled document: state, people, requests, versions, content', schema: S.GetControlledDocumentSchema, handler: QMST.getControlledDocument },
+  { name: 'list_trainings', toolset: 'qms', description: 'Trainings (latest revision)', schema: S.ListTrainingsSchema, handler: QMST.listTrainings },
+  { name: 'get_training', toolset: 'qms', description: 'Training questions and trainee results', schema: S.GetTrainingSchema, handler: QMST.getTraining },
+  { name: 'list_processes', toolset: 'process', description: 'Process definitions: states and transitions', schema: S.ListProcessesSchema, handler: PROC.listProcesses },
+  { name: 'list_executions', toolset: 'process', description: 'Running/finished process executions with current state', schema: S.ListExecutionsSchema, handler: PROC.listExecutions },
+  { name: 'list_surveys', toolset: 'surveys', description: 'Surveys with poll counts', schema: S.ListSurveysSchema, handler: SURV.listSurveys },
+  { name: 'get_survey', toolset: 'surveys', description: 'Survey questions with aggregated poll answers', schema: S.GetSurveySchema, handler: SURV.getSurvey }
 ]

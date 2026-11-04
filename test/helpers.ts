@@ -144,6 +144,8 @@ export interface FakeAccountCalls {
   selectWorkspace: Array<{ slug: string, token?: string }>
   getUserWorkspacesTokens: Array<string | undefined>
   getWorkspaceMembersTokens: Array<string | undefined>
+  /** Invite and role calls: [method, ...args]. */
+  admin: unknown[][]
   opened: Array<{ endpoint: string, token: string, socialId: string }>
 }
 
@@ -173,6 +175,7 @@ export function createFakeEnv (opts: FakeEnvOptions): {
     selectWorkspace: [],
     getUserWorkspacesTokens: [],
     getWorkspaceMembersTokens: [],
+    admin: [],
     opened: []
   }
   const clients = new Map<string, FakeTxClient>()
@@ -203,7 +206,11 @@ export function createFakeEnv (opts: FakeEnvOptions): {
     getWorkspaceMembers: async () => {
       calls.getWorkspaceMembersTokens.push(token)
       return [{ person: `member-via-${token ?? 'none'}`, role: 'USER' }]
-    }
+    },
+    createInvite: async (...a: unknown[]) => { calls.admin.push(['createInvite', ...a]); return 'inv-1' },
+    createInviteLink: async (...a: unknown[]) => { calls.admin.push(['createInviteLink', ...a]); return 'http://localhost:8087/login/join?inviteId=inv-2' },
+    sendInvite: async (...a: unknown[]) => { calls.admin.push(['sendInvite', ...a]) },
+    updateWorkspaceRole: async (...a: unknown[]) => { calls.admin.push(['updateWorkspaceRole', ...a]) }
   }) as any
 
   const openConnection: ConnectionManagerOptions['openConnection'] = async (endpoint, token, socialId) => {
