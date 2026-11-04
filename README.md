@@ -353,7 +353,7 @@ Or with Compose — copy `.env.example` to `.env`, fill in your credentials (no 
 docker compose up -d
 ```
 
-The container wraps the server with [`mcp-proxy`](https://github.com/sparfenyuk/mcp-proxy) to expose it over HTTP/SSE at `:8000/sse`, since standard MCP stdio transport can't be reached over a network directly. See [`Dockerfile`](Dockerfile) / [`docker-compose.yml`](docker-compose.yml).
+The container wraps the server with [`mcp-proxy`](https://github.com/sparfenyuk/mcp-proxy) to expose it over HTTP/SSE at `:8000/sse`, since standard MCP stdio transport can't be reached over a network directly. **Behind a reverse proxy or on a public hostname, set `MCP_ALLOWED_HOSTS`** to the host name(s) clients use, e.g. `MCP_ALLOWED_HOSTS=huly-mcp.example.com`. Otherwise mcp-proxy only accepts `localhost` and answers `421 Invalid Host header`. See [`Dockerfile`](Dockerfile) / [`docker-compose.yml`](docker-compose.yml).
 
 ---
 
@@ -854,6 +854,11 @@ Secrets:
 ### Unreleased
 
 _Nothing yet._
+
+### 3.1.1 — 2026-11-04
+
+- **Fixed: Docker image behind a reverse proxy.** The `mcp-proxy` update in 3.1.0 made the server reject every Host name except `localhost` (`421 Invalid Host header`). New variable `MCP_ALLOWED_HOSTS` (comma-separated) lists the host names clients use, e.g. `MCP_ALLOWED_HOSTS=huly-mcp.example.com`. Without it the container logs a warning. CI now tests allowed and rejected Host headers.
+- Release workflow: when `npm publish` fails, the OIDC/auth lines of npm's debug log are shown (3.1.0 had to be published to npm by hand).
 
 ### 3.1.0 — 2026-11-04
 

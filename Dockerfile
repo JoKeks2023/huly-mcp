@@ -38,14 +38,11 @@ RUN npm ci --omit=dev && npm cache clean --force \
     && rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \
               /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack
 
+COPY docker-entrypoint.sh ./
+
 USER node
 
 EXPOSE 8000
 
-ENTRYPOINT ["mcp-proxy", \
-            "--host=0.0.0.0", \
-            "--port=8000", \
-            "--stateless", \
-            "--pass-environment", \
-            "--", \
-            "node", "dist/index.js"]
+# mcp-proxy with --allowed-host entries from MCP_ALLOWED_HOSTS (see docker-entrypoint.sh).
+ENTRYPOINT ["/app/docker-entrypoint.sh"]

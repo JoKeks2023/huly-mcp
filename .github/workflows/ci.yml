@@ -94,15 +94,27 @@ jobs:
           cache-to: type=gha,mode=max
       - name: Server in the image answers over stdio
         run: node .github/scripts/stdio-smoke.mjs docker run -i --rm --entrypoint node huly-mcp:ci dist/index.js
-      - name: The image's HTTP entrypoint (mcp-proxy) answers on :8000/sse
+      - name: HTTP entrypoint (mcp-proxy) answers, and checks the Host header
         run: |
-          docker run -d --name proxy -p 8000:8000 -e HULY_EMAIL=ci@example.com -e HULY_PASSWORD=x huly-mcp:ci
-          for _ in $(seq 1 30); do
-            if curl -s -m 3 -o /dev/null -D headers.txt http://localhost:8000/sse || grep -q ' 200' headers.txt 2>/dev/null; then break; fi
-            sleep 1
+          docker run -d --name proxy -p 8000:8000 -e HULY_EMAIL=ci@example.com -e HULY_PASSWORD=x \
+            -e MCP_ALLOWED_HOSTS=mcp.example.com,mcp.example.com:8443 huly-mcp:ci
+          # SSE never ends: curl times out (exit 28) after printing the headers, hence || true (bash runs with pipefail).
+          status () { { curl -s -m 3 -o /dev/null -D - -H "Host: $1" http://localhost:8000/sse || true; } | head -1 | awk '{print $2}'; }
+          for _ in $(seq 1 30); do [ -n "$(status localhost:8000)" ] && break; sleep 1; done
+          fail=0
+          for case in "localhost:8000 200" "mcp.example.com 200" "mcp.example.com:8443 200" "evil.example.com 421"; do
+            host=${case% *}; want=${case#* }
+            got=$(status "$host")
+            echo "Host: $host → $got (expected $want)"
+            [ "$got" = "$want" ] || fail=1
           done
-          grep -i -E '^HTTP/[0-9.]+ 200|^content-type: text/event-stream' headers.txt || { docker logs proxy; exit 1; }
+          docker logs proxy 2>&1 | grep -q 'MCP_ALLOWED_HOSTS' && echo 'unexpected warning' && fail=1
           docker rm -f proxy
+          # Without MCP_ALLOWED_HOSTS the container warns in its log.
+          docker run -d --name proxy2 -e HULY_EMAIL=ci@example.com -e HULY_PASSWORD=x huly-mcp:ci
+          sleep 3; docker logs proxy2 2>&1 | grep -q 'MCP_ALLOWED_HOSTS is not set' || { echo 'missing warning'; fail=1; }
+          docker rm -f proxy2
+          exit $fail
       - name: Trivy scan
         uses: aquasecurity/trivy-action@v0.36.0
         with:
