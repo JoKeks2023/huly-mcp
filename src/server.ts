@@ -1,6 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { TOOLS, TOOLSETS, DEFAULT_TOOLSETS, type Toolset } from './registry'
-import { guard } from './guard'
+import { guard, elicitationAsker } from './guard'
 import { registerResources, registerPrompts, registerSubscriptions } from './resources'
 
 const SERVER_INSTRUCTIONS = `
@@ -17,6 +17,7 @@ Agent workflow
 - start_work → work → finish_work. get_issue_context gives everything about an issue in one call.
 - Plans become issues with create_issue_tree (dry run first). changes_since catches up after a break.
 - With several agents in parallel: claim_issue before working, finish_work releases the claim.
+- Deletes and other risky tools may ask the user first. If they decline, do not retry.
 
 Tips
 - Read before writing: get_issue before update_issue, get_document before update_document (it replaces all).
@@ -45,8 +46,9 @@ export function parseToolsets (value: string | undefined): Set<Toolset> {
 export function createServer (options: { toolsets?: string } = {}): McpServer {
   const enabled = parseToolsets(options.toolsets ?? process.env.HULY_TOOLSETS)
   const server = new McpServer({ name: 'huly-mcp-selfhost', version: '3.0.0' }, { instructions: SERVER_INSTRUCTIONS })
+  const asker = elicitationAsker(server)
   for (const tool of TOOLS) {
-    if (enabled.has(tool.toolset)) server.tool(tool.name, tool.description, tool.schema.shape, guard(tool))
+    if (enabled.has(tool.toolset)) server.tool(tool.name, tool.description, tool.schema.shape, guard(tool, process.env, asker))
   }
   if (enabled.has('agent')) {
     registerResources(server)
