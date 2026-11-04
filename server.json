@@ -73,6 +73,13 @@
           "format": "string"
         },
         {
+          "name": "HULY_CONFIRM",
+          "description": "Optional: auto (default), strict or off — ask before deletes and other risky tools",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string"
+        },
+        {
           "name": "HULY_AUDIT_LOG",
           "description": "Optional: file to append every change to (JSON lines)",
           "isRequired": false,
