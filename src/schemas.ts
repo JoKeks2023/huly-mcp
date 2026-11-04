@@ -740,6 +740,22 @@ export const MyDaySchema = z.object({
   limit: z.number().int().min(1).max(50).default(10).describe('Per section')
 })
 
+export const TriageInboxSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  limit: z.number().int().min(1).max(30).default(10).describe('Items')
+})
+
+export const ReleaseNotesSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  projectIdentifier: z.string().describe('Project key'),
+  milestoneLabel: z.string().describe('Milestone name')
+})
+
+export const StandupSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  since: z.string().optional().describe('Default: last working day')
+})
+
 export const ProjectReportSchema = z.object({
   workspace: ReadWorkspaceArg,
   projectIdentifier: z.string().describe('Project key'),
