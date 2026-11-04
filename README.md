@@ -33,7 +33,7 @@ This is a fork of [varaprasadreddy9676/huly-mcp](https://github.com/varaprasadre
 
 ---
 
-## Tools (160 total, grouped in toolsets)
+## Tools (206 total, grouped in toolsets)
 
 All tools except `list_workspaces` take a `workspace` argument — required for every change, optional for reads when only one workspace is available.
 
@@ -57,7 +57,7 @@ HULY_TOOLSETS=tracker,documents,planner # just these ('core' = list_workspaces i
 | `activity` | ✓ | 1 | change history of an issue/object |
 | `planner` | ✓ | 5 | to-dos, time blocking |
 | `generic` | ✓ | 4 | fulltext search across everything, read any Huly class |
-| `tracker-admin` | | 11 | rarely needed admin: create/update project, create status, update/delete label, label categories, delete milestone/component, repair parent links |
+| `tracker-admin` | | 12 | rarely needed admin: create/update project, create status, update/delete label, label categories, delete milestone/component, repair parent links, project types and workflows |
 | `calendar` | | 4 | calendar events |
 | `github` | | 2 | pull requests synced by Huly's GitHub integration (read-only) |
 | `generic-write` | | 3 | create/update/delete any class — dry run by default, deletes need `confirm` |
@@ -65,11 +65,20 @@ HULY_TOOLSETS=tracker,documents,planner # just these ('core' = list_workspaces i
 | `cards` | | 8 | cards: types and tags, create/edit/move/delete, nesting, field values |
 | `fields` | | 3 | custom fields on issues, project types, card types or any class; set values |
 | `drive` | | 10 | drives, folders, versioned files: upload, download, move, restore versions |
-| `templates` | | 6 | issue templates with sub-issues; new issue from template |
+| `templates` | | 11 | issue templates with sub-issues, new issue from template; message templates |
 | `testing` | | 14 | test management: projects, suites, cases, plans, runs, results |
 | `products` | | 2 | products and versions (read-only) |
+| `members` | | 4 | workspace settings, invite links and e-mails, member roles |
+| `recruiting` | | 9 | vacancies, candidates, applications |
+| `crm` | | 5 | leads, customers |
+| `hr` | | 7 | departments, staff, vacation/sick/remote days |
+| `inventory` | | 5 | categories, products, variants (SKU) |
+| `meetings` | | 2 | office rooms, meeting minutes and transcripts (read-only) |
+| `qms` | | 4 | controlled documents and trainings (read-only) |
+| `process` | | 2 | process definitions and executions (read-only) |
+| `surveys` | | 2 | surveys and aggregated poll answers (read-only) |
 
-Context cost of `tools/list` (≈3.5 chars/token): default set ~40k chars ≈ **11k tokens** (89 tools), `all` ~71k chars ≈ **20k tokens** (160 tools). For comparison, 2.2.0 needed ≈12.8k tokens for 64 tools. Claude Code loads MCP tools on demand, so there the toolset choice matters less.
+Context cost of `tools/list` (≈3.5 chars/token): default set ~40k chars ≈ **11k tokens** (89 tools), `all` ~88k chars ≈ **25k tokens** (206 tools). For comparison, 2.2.0 needed ≈12.8k tokens for 64 tools. Claude Code loads MCP tools on demand, so there the toolset choice matters less.
 
 ### Agent workflow
 
@@ -239,6 +248,22 @@ npx huly-mcp-selfhost watch --workspace acme --project WEB --label claude       
 | | `create_test_run` / `list_test_runs` / `get_test_run` / `set_test_result` | Runs with Passed/Failed/Blocked results |
 | **Products** (`products`) | `list_products` / `get_product` | Products and their versions (read-only) |
 | **Labels** (`tracker-admin`) | `list_label_categories` / `create_label_category` / `set_label_category` | Group issue labels |
+| **Project types** (`tracker-admin`) | `list_project_types` | Project types, their task types and status workflows, and which projects use them |
+| **Workspace** (`members`) | `get_workspace_settings` | Your role, members per role, invite defaults, integrations |
+| | `create_invite_link` / `send_invite` / `set_member_role` | Invite links (personal or with use limit and e-mail mask; nothing is sent), invitation e-mails, roles. `send_invite` and `set_member_role` ask for confirmation |
+| **Recruiting** (`recruiting`) | `list_vacancies` / `create_vacancy` / `update_vacancy` | Vacancies with applications per status; archive via `update_vacancy` |
+| | `list_candidates` / `create_candidate` | Candidates (person + title, e-mail, onsite/remote) |
+| | `list_applications` / `create_application` / `update_application` / `delete_application` | Applications `APP-n` through the vacancy's workflow, one per candidate and vacancy |
+| **CRM** (`crm`) | `list_leads` / `create_lead` / `update_lead` / `delete_lead` / `list_customers` | Leads `LEAD-n` in funnels; a new customer (person or organization) can be created with the lead |
+| **HR** (`hr`) | `list_departments` / `create_department` / `delete_department` / `set_department` | Department tree, team leads, members |
+| | `list_time_off` / `create_time_off` / `delete_time_off` | Vacation, sick days, PTO, overtime, remote days |
+| **Inventory** (`inventory`) | `list_inventory` / `create_inventory_category` / `create_inventory_product` / `update_inventory_item` / `delete_inventory_item` | Categories, products, variants with SKU (Huly beta module) |
+| **Message templates** (`templates`) | `list_message_templates` / `get_message_template` / `create_message_template` / `update_message_template` / `delete_message_template` | Reusable texts with `${field}` placeholders |
+| **Meetings** (`meetings`) | `list_meetings` / `get_meeting` | Rooms, meeting minutes, action items and transcripts (read-only) |
+| **QMS** (`qms`) | `list_controlled_documents` / `get_controlled_document` | Controlled documents: version, state, reviewers/approvers, requests, content (read-only) |
+| | `list_trainings` / `get_training` | Trainings, questions (answers optional) and trainee results (read-only) |
+| **Processes** (`process`) | `list_processes` / `list_executions` | Process states and transitions; running executions (read-only) |
+| **Surveys** (`surveys`) | `list_surveys` / `get_survey` | Surveys and aggregated poll answers (read-only) |
 
 ---
 
@@ -797,6 +822,12 @@ Breaking:
 - **New: label categories** (`tracker-admin`)
 - **New: documents** — `list_documents` shows the whole tree; `update_document` renames and moves (also to another teamspace); new documents are placed after their siblings
 - **New: MCP argument completions** for prompts and `huly://` resources (workspaces, projects, issue ids) and **resource subscriptions** (`notifications/resources/updated` when a subscribed issue or document changes)
+
+**Business modules**
+- **New: toolsets `members`, `recruiting`, `crm`, `hr`, `inventory`** — invitations and roles, vacancies/candidates/applications, leads/customers, departments and time off, inventory
+- **New: message templates** (`templates`) and **project types with workflows** (`tracker-admin`)
+- **New, read-only: `meetings`** (minutes, transcripts), **`qms`** (controlled documents, trainings), **`process`**, **`surveys`**
+- Not included: Huly's Board module (hidden and off by default in Huly itself).
 
 **Agents**
 - **New: confirmation for risky tools** — deletes, bulk updates, moves, generic writes, revoking links and restoring file versions ask the user via MCP elicitation when the client supports it (`HULY_CONFIRM`). Declining changes nothing.
