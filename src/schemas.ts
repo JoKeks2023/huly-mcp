@@ -897,3 +897,46 @@ export const DeleteDriveItemSchema = z.object({ workspace: WorkspaceArg, itemId:
 export const ListFileVersionsSchema = z.object({ workspace: ReadWorkspaceArg, fileId: z.string() })
 
 export const RestoreFileVersionSchema = z.object({ workspace: WorkspaceArg, fileId: z.string(), version: z.number().int().min(1) })
+
+// ── Issue templates ─────────────────────────────────────────────────────────
+const TemplateFields = {
+  description: z.string().optional().describe('Markdown'),
+  priority: PriorityEnum.optional(),
+  assignee: z.string().nullable().optional().describe('Person name'),
+  componentLabel: z.string().nullable().optional(),
+  milestoneLabel: z.string().nullable().optional(),
+  estimation: z.number().min(0).optional(),
+  labels: z.array(z.string()).optional()
+}
+const TemplateChild = z.object({ title: z.string().min(1), ...TemplateFields })
+const TemplateRef = z.string().describe('Template id or title')
+
+export const ListIssueTemplatesSchema = z.object({ workspace: ReadWorkspaceArg, projectIdentifier: z.string().optional() })
+
+export const GetIssueTemplateSchema = z.object({ workspace: ReadWorkspaceArg, template: TemplateRef, projectIdentifier: z.string().optional() })
+
+export const CreateIssueTemplateSchema = z.object({
+  workspace: WorkspaceArg,
+  projectIdentifier: z.string().describe('Project key'),
+  title: z.string().min(1),
+  ...TemplateFields,
+  children: z.array(TemplateChild).max(50).optional().describe('Sub-issues')
+})
+
+export const UpdateIssueTemplateSchema = z.object({
+  workspace: WorkspaceArg,
+  template: TemplateRef,
+  projectIdentifier: z.string().optional(),
+  title: z.string().min(1).optional(),
+  ...TemplateFields,
+  children: z.array(TemplateChild).max(50).optional().describe('Replaces all sub-issues')
+})
+
+export const DeleteIssueTemplateSchema = z.object({ workspace: WorkspaceArg, template: TemplateRef, projectIdentifier: z.string().optional() })
+
+export const CreateIssueFromTemplateSchema = z.object({
+  workspace: WorkspaceArg,
+  template: TemplateRef,
+  projectIdentifier: z.string().optional(),
+  title: z.string().min(1).optional().describe('Default: template title')
+})

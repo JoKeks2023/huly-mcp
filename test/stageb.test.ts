@@ -264,3 +264,24 @@ test('update_drive_item refuses to move a folder into its own subfolder', async 
   driveData(env.clients.get(W)!)
   await assert.rejects(updateDriveItem({ workspace: W, itemId: 'fo-1', parentId: 'fo-2' } as any), /into itself/)
 })
+
+// ── Issue templates ─────────────────────────────────────────────────────────
+test('create_issue_template stores ids for people/components/labels and inline children', async () => {
+  const { createIssueTemplate } = await import('../src/tools/templates')
+  const fake: any = env.clients.get(W)!
+  fake.docs.push(
+    { _id: 'cmp-1', _class: tracker.class.Component, space: 'p-1', label: 'Backend' },
+    { _id: 'tag-1', _class: 'tags:class:TagElement', targetClass: tracker.class.Issue, title: 'bug' }
+  )
+  await assert.rejects(createIssueTemplate({ workspace: W, projectIdentifier: 'PROJ', title: 'T', componentLabel: 'Nope' } as any), /Component 'Nope' not found/)
+  await assert.rejects(createIssueTemplate({ workspace: W, projectIdentifier: 'PROJ', title: 'T', labels: ['x'] } as any), /Label 'x' not found/)
+  assert.equal(mutations().length, 0)
+  await createIssueTemplate({ workspace: W, projectIdentifier: 'PROJ', title: ' Release ', priority: 'High', assignee: 'Ann', componentLabel: 'backend', labels: ['bug'], estimation: 2, children: [{ title: 'Bump', priority: 'Low' }] } as any)
+  const d = mutations()[0].data
+  assert.equal(mutations()[0]._class, tracker.class.IssueTemplate)
+  assert.deepEqual([d.title, d.priority, d.assignee, d.component, d.labels, d.estimation], ['Release', 2, 'ann', 'cmp-1', ['tag-1'], 2])
+  assert.equal(d.children.length, 1)
+  assert.equal(d.children[0].title, 'Bump')
+  assert.equal(d.children[0].priority, 4)
+  assert.equal(typeof d.children[0].id, 'string')
+})

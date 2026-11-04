@@ -29,9 +29,10 @@ import { listCollaborators, addCollaborator, removeCollaborator, createPublicLin
 import { listCardTypes, listCards, getCard, createCard, updateCard, deleteCard, createCardType, deleteCardType } from './tools/cards'
 import { listCustomFields, createCustomField, setCustomFields } from './tools/fields'
 import { listDrives, listDriveFiles, createFolder, uploadFile, downloadFile, updateDriveItem, deleteDriveItem, listFileVersions, restoreFileVersion, createDrive } from './tools/drive'
+import { listIssueTemplates, getIssueTemplate, createIssueTemplate, updateIssueTemplate, deleteIssueTemplate, createIssueFromTemplate } from './tools/templates'
 import * as S from './schemas'
 
-export const TOOLSETS = ['core', 'agent', 'tracker', 'tracker-admin', 'documents', 'chat', 'contacts', 'inbox', 'activity', 'planner', 'calendar', 'github', 'generic', 'generic-write', 'collaboration', 'cards', 'fields', 'drive'] as const
+export const TOOLSETS = ['core', 'agent', 'tracker', 'tracker-admin', 'documents', 'chat', 'contacts', 'inbox', 'activity', 'planner', 'calendar', 'github', 'generic', 'generic-write', 'collaboration', 'cards', 'fields', 'drive', 'templates'] as const
 export type Toolset = typeof TOOLSETS[number]
 
 /** Enabled when HULY_TOOLSETS is not set. 'core' is always enabled. */
@@ -188,5 +189,11 @@ export const TOOLS: ToolDef[] = [
   { name: 'update_drive_item', toolset: 'drive', description: 'Rename or move a file/folder', schema: S.UpdateDriveItemSchema, handler: updateDriveItem },
   { name: 'delete_drive_item', toolset: 'drive', description: 'Delete a file or folder (folders with content need recursive)', schema: S.DeleteDriveItemSchema, handler: deleteDriveItem },
   { name: 'list_file_versions', toolset: 'drive', description: 'Versions of a drive file', schema: S.ListFileVersionsSchema, handler: listFileVersions },
-  { name: 'restore_file_version', toolset: 'drive', description: 'Make an older file version current', schema: S.RestoreFileVersionSchema, handler: restoreFileVersion }
+  { name: 'restore_file_version', toolset: 'drive', description: 'Make an older file version current', schema: S.RestoreFileVersionSchema, handler: restoreFileVersion },
+  { name: 'list_issue_templates', toolset: 'templates', description: 'Issue templates', schema: S.ListIssueTemplatesSchema, handler: listIssueTemplates },
+  { name: 'get_issue_template', toolset: 'templates', description: 'Issue template with its sub-issues', schema: S.GetIssueTemplateSchema, handler: getIssueTemplate },
+  { name: 'create_issue_template', toolset: 'templates', description: 'Create an issue template (with sub-issues)', schema: S.CreateIssueTemplateSchema, handler: createIssueTemplate },
+  { name: 'update_issue_template', toolset: 'templates', description: 'Update an issue template', schema: S.UpdateIssueTemplateSchema, handler: updateIssueTemplate },
+  { name: 'delete_issue_template', toolset: 'templates', description: 'Delete an issue template', schema: S.DeleteIssueTemplateSchema, handler: deleteIssueTemplate },
+  { name: 'create_issue_from_template', toolset: 'templates', description: 'New issue (and sub-issues) from a template', schema: S.CreateIssueFromTemplateSchema, handler: createIssueFromTemplate }
 ]
