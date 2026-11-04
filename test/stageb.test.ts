@@ -285,3 +285,23 @@ test('create_issue_template stores ids for people/components/labels and inline c
   assert.equal(d.children[0].priority, 4)
   assert.equal(typeof d.children[0].id, 'string')
 })
+
+// ── Test management ─────────────────────────────────────────────────────────
+test('test runs: one Untested result per case, results set by case name', async () => {
+  const TM = await import('../src/tools/testing')
+  const fake: any = env.clients.get(W)!
+  fake.docs.push(
+    { _id: 'tp-1', _class: 'testManagement:class:TestProject', name: 'App' },
+    { _id: 'su-1', _class: 'testManagement:class:TestSuite', space: 'tp-1', name: 'Login', parent: 'testManagement:ids:NoParent' },
+    { _id: 'su-2', _class: 'testManagement:class:TestSuite', space: 'tp-1', name: 'Reset', parent: 'su-1' },
+    { _id: 'tc-1', _class: 'testManagement:class:TestCase', space: 'tp-1', attachedTo: 'su-1', name: 'Valid login' },
+    { _id: 'tc-2', _class: 'testManagement:class:TestCase', space: 'tp-1', attachedTo: 'su-2', name: 'Reset mail' },
+    { _id: 'tr-1', _class: 'testManagement:class:TestResult', space: 'tp-1', attachedTo: 'run-1', testCase: 'tc-1', name: 'Valid login', status: 0 }
+  )
+  await TM.createTestRun({ workspace: W, project: 'app', name: 'R', suites: ['Login'] } as any)
+  const results = mutations().filter((m) => m._class === 'testManagement:class:TestResult')
+  assert.deepEqual(results.map((m) => [m.data.testCase, m.data.status]), [['tc-1', 0], ['tc-2', 0]])
+  await assert.rejects(TM.createTestRun({ workspace: W, project: 'app', name: 'R' } as any), /No test cases selected/)
+  await TM.setTestResult({ workspace: W, result: 'valid login', runId: 'run-1', status: 'Failed' } as any)
+  assert.deepEqual(mutations().at(-1)!.data, { status: 3 })
+})

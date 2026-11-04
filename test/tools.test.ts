@@ -185,7 +185,8 @@ const MUTATION_SCHEMAS = [
   'AddCollaboratorSchema', 'RemoveCollaboratorSchema', 'CreatePublicLinkSchema', 'RevokePublicLinkSchema', 'AddDocumentCommentSchema',
   'CreateCardSchema', 'UpdateCardSchema', 'DeleteCardSchema', 'CreateCardTypeSchema', 'DeleteCardTypeSchema', 'CreateCustomFieldSchema', 'SetCustomFieldsSchema',
   'CreateDriveSchema', 'CreateFolderSchema', 'UploadFileSchema', 'UpdateDriveItemSchema', 'DeleteDriveItemSchema', 'RestoreFileVersionSchema',
-  'CreateIssueTemplateSchema', 'UpdateIssueTemplateSchema', 'DeleteIssueTemplateSchema', 'CreateIssueFromTemplateSchema'
+  'CreateIssueTemplateSchema', 'UpdateIssueTemplateSchema', 'DeleteIssueTemplateSchema', 'CreateIssueFromTemplateSchema',
+  'CreateTestProjectSchema', 'CreateTestSuiteSchema', 'CreateTestCaseSchema', 'UpdateTestCaseSchema', 'DeleteTestCaseSchema', 'CreateTestPlanSchema', 'CreateTestRunSchema', 'SetTestResultSchema'
 ] as const
 
 test('every mutation schema requires workspace', () => {

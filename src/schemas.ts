@@ -940,3 +940,81 @@ export const CreateIssueFromTemplateSchema = z.object({
   projectIdentifier: z.string().optional(),
   title: z.string().min(1).optional().describe('Default: template title')
 })
+
+// ── Test management ─────────────────────────────────────────────────────────
+const TestProjectArg = z.string().describe('Test project name or id')
+const CaseType = z.enum(['Functional', 'Performance', 'Regression', 'Security', 'Smoke', 'Usability'])
+const CasePriority = z.enum(['Low', 'Medium', 'High', 'Urgent'])
+const CaseStatus = z.enum(['Draft', 'ReadyForReview', 'FixReviewComments', 'Approved', 'Rejected'])
+
+export const ListTestProjectsSchema = z.object({ workspace: ReadWorkspaceArg })
+
+export const CreateTestProjectSchema = z.object({ workspace: WorkspaceArg, name: z.string().min(1), description: z.string().optional(), isPrivate: z.boolean().default(false) })
+
+export const ListTestCasesSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  project: TestProjectArg,
+  suite: z.string().optional().describe('Suite name or id; default: all'),
+  status: CaseStatus.optional()
+})
+
+export const CreateTestSuiteSchema = z.object({ workspace: WorkspaceArg, project: TestProjectArg, name: z.string().min(1), description: z.string().optional(), parent: z.string().optional().describe('Parent suite') })
+
+export const GetTestCaseSchema = z.object({ workspace: ReadWorkspaceArg, caseId: z.string() })
+
+export const CreateTestCaseSchema = z.object({
+  workspace: WorkspaceArg,
+  project: TestProjectArg,
+  suite: z.string().describe('Suite name or id'),
+  name: z.string().min(1),
+  description: z.string().optional().describe('Steps/expected result, Markdown'),
+  type: CaseType.default('Functional'),
+  priority: CasePriority.default('Medium'),
+  status: CaseStatus.default('Draft'),
+  assignee: z.string().optional()
+})
+
+export const UpdateTestCaseSchema = z.object({
+  workspace: WorkspaceArg,
+  caseId: z.string(),
+  name: z.string().min(1).optional(),
+  description: z.string().optional(),
+  type: CaseType.optional(),
+  priority: CasePriority.optional(),
+  status: CaseStatus.optional(),
+  assignee: z.string().nullable().optional()
+})
+
+export const DeleteTestCaseSchema = z.object({ workspace: WorkspaceArg, caseId: z.string() })
+
+export const ListTestPlansSchema = z.object({ workspace: ReadWorkspaceArg, project: TestProjectArg })
+
+export const CreateTestPlanSchema = z.object({
+  workspace: WorkspaceArg,
+  project: TestProjectArg,
+  name: z.string().min(1),
+  suites: z.array(z.string()).optional().describe('All cases of these suites (incl. nested)'),
+  caseIds: z.array(z.string()).optional()
+})
+
+export const CreateTestRunSchema = z.object({
+  workspace: WorkspaceArg,
+  project: TestProjectArg,
+  name: z.string().min(1),
+  plan: z.string().optional().describe('Plan name or id'),
+  suites: z.array(z.string()).optional(),
+  caseIds: z.array(z.string()).optional(),
+  dueDate: z.string().optional()
+})
+
+export const ListTestRunsSchema = z.object({ workspace: ReadWorkspaceArg, project: TestProjectArg, limit: z.number().int().min(1).max(100).default(20) })
+
+export const GetTestRunSchema = z.object({ workspace: ReadWorkspaceArg, runId: z.string() })
+
+export const SetTestResultSchema = z.object({
+  workspace: WorkspaceArg,
+  result: z.string().describe('Result id, or case id/name with runId'),
+  runId: z.string().optional(),
+  status: z.enum(['Untested', 'Blocked', 'Passed', 'Failed']),
+  comment: z.string().optional().describe('Markdown')
+})

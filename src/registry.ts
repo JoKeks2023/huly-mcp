@@ -30,9 +30,10 @@ import { listCardTypes, listCards, getCard, createCard, updateCard, deleteCard, 
 import { listCustomFields, createCustomField, setCustomFields } from './tools/fields'
 import { listDrives, listDriveFiles, createFolder, uploadFile, downloadFile, updateDriveItem, deleteDriveItem, listFileVersions, restoreFileVersion, createDrive } from './tools/drive'
 import { listIssueTemplates, getIssueTemplate, createIssueTemplate, updateIssueTemplate, deleteIssueTemplate, createIssueFromTemplate } from './tools/templates'
+import * as TM from './tools/testing'
 import * as S from './schemas'
 
-export const TOOLSETS = ['core', 'agent', 'tracker', 'tracker-admin', 'documents', 'chat', 'contacts', 'inbox', 'activity', 'planner', 'calendar', 'github', 'generic', 'generic-write', 'collaboration', 'cards', 'fields', 'drive', 'templates'] as const
+export const TOOLSETS = ['core', 'agent', 'tracker', 'tracker-admin', 'documents', 'chat', 'contacts', 'inbox', 'activity', 'planner', 'calendar', 'github', 'generic', 'generic-write', 'collaboration', 'cards', 'fields', 'drive', 'templates', 'testing'] as const
 export type Toolset = typeof TOOLSETS[number]
 
 /** Enabled when HULY_TOOLSETS is not set. 'core' is always enabled. */
@@ -195,5 +196,19 @@ export const TOOLS: ToolDef[] = [
   { name: 'create_issue_template', toolset: 'templates', description: 'Create an issue template (with sub-issues)', schema: S.CreateIssueTemplateSchema, handler: createIssueTemplate },
   { name: 'update_issue_template', toolset: 'templates', description: 'Update an issue template', schema: S.UpdateIssueTemplateSchema, handler: updateIssueTemplate },
   { name: 'delete_issue_template', toolset: 'templates', description: 'Delete an issue template', schema: S.DeleteIssueTemplateSchema, handler: deleteIssueTemplate },
-  { name: 'create_issue_from_template', toolset: 'templates', description: 'New issue (and sub-issues) from a template', schema: S.CreateIssueFromTemplateSchema, handler: createIssueFromTemplate }
+  { name: 'create_issue_from_template', toolset: 'templates', description: 'New issue (and sub-issues) from a template', schema: S.CreateIssueFromTemplateSchema, handler: createIssueFromTemplate },
+  { name: 'list_test_projects', toolset: 'testing', description: 'Test projects with case/run counts', schema: S.ListTestProjectsSchema, handler: TM.listTestProjects },
+  { name: 'create_test_project', toolset: 'testing', description: 'Create a test project', schema: S.CreateTestProjectSchema, handler: TM.createTestProject },
+  { name: 'list_test_cases', toolset: 'testing', description: 'Suites and test cases of a test project', schema: S.ListTestCasesSchema, handler: TM.listTestCases },
+  { name: 'create_test_suite', toolset: 'testing', description: 'Create a (nested) test suite', schema: S.CreateTestSuiteSchema, handler: TM.createTestSuite },
+  { name: 'get_test_case', toolset: 'testing', description: 'Test case with steps and latest results', schema: S.GetTestCaseSchema, handler: TM.getTestCase },
+  { name: 'create_test_case', toolset: 'testing', description: 'Create a test case in a suite', schema: S.CreateTestCaseSchema, handler: TM.createTestCase },
+  { name: 'update_test_case', toolset: 'testing', description: 'Update a test case', schema: S.UpdateTestCaseSchema, handler: TM.updateTestCase },
+  { name: 'delete_test_case', toolset: 'testing', description: 'Delete a test case', schema: S.DeleteTestCaseSchema, handler: TM.deleteTestCase },
+  { name: 'list_test_plans', toolset: 'testing', description: 'Test plans of a project', schema: S.ListTestPlansSchema, handler: TM.listTestPlans },
+  { name: 'create_test_plan', toolset: 'testing', description: 'Test plan from suites and/or cases', schema: S.CreateTestPlanSchema, handler: TM.createTestPlan },
+  { name: 'create_test_run', toolset: 'testing', description: 'Start a test run from a plan, suites or cases', schema: S.CreateTestRunSchema, handler: TM.createTestRun },
+  { name: 'list_test_runs', toolset: 'testing', description: 'Test runs with pass/fail counts', schema: S.ListTestRunsSchema, handler: TM.listTestRuns },
+  { name: 'get_test_run', toolset: 'testing', description: 'Results of a test run', schema: S.GetTestRunSchema, handler: TM.getTestRun },
+  { name: 'set_test_result', toolset: 'testing', description: 'Record Passed/Failed/Blocked for a case in a run', schema: S.SetTestResultSchema, handler: TM.setTestResult }
 ]
