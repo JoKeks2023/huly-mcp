@@ -46,6 +46,8 @@ HULY_TOOLSETS=all                       # everything
 HULY_TOOLSETS=tracker,documents,planner # just these ('core' = list_workspaces is always on)
 ```
 
+**Load on demand** (`HULY_DYNAMIC_TOOLSETS=1`): `HULY_TOOLSETS` becomes the starting set, and Claude loads more toolsets itself via `enable_toolsets`. Called without arguments, it lists every toolset with its tools; called with names, it loads them and tells the client that the tool list changed. With `HULY_TOOLSETS=agent,inbox` a session starts at ≈1.8k tokens instead of ≈9–11k. This needs a client that reloads the tool list on `notifications/tools/list_changed`: it is tested with the MCP SDK client, but **not yet verified in Claude Desktop**. Without the variable, nothing changes.
+
 | Toolset | Default | Tools | Contents |
 |---------|:-:|--:|----------|
 | `agent` | ✓ | 12 | agent workflow: my day at a glance, standup, project report, release notes, issue context in one call, start/finish work, plan → issue tree, changes since, claims, repo → project — plus [resources and prompts](#agent-workflow) |
@@ -381,6 +383,7 @@ A single Huly account can belong to several workspaces — e.g. a personal one a
 | `HULY_ACCOUNTS_URL` | self-hosted only | Account service — login and workspace discovery. Default `https://account.huly.app`. Self-hosted: your instance's accounts URL, e.g. `https://huly.example.com/_accounts` |
 | `HULY_FRONT_URL` | self-hosted (optional on Cloud) | Front service — document/description content and file uploads. Not involved in login or workspace discovery. Self-hosted: e.g. `https://huly.example.com` |
 | `HULY_WORKSPACE` | no | Pin the server to one workspace; tools then take no `workspace` argument (fewer tokens) |
+| `HULY_DYNAMIC_TOOLSETS` | no | `1`: start with `HULY_TOOLSETS` and load more on demand via `enable_toolsets` (see [Toolsets](#toolsets)) |
 | `HULY_TOOLSETS` | no | Comma-separated toolsets to enable, or `all` (see [Toolsets](#toolsets)). Default: `agent,tracker,documents,chat,contacts,inbox,activity,planner,generic` |
 | `HULY_WRITE_PROJECTS` | no | Only allow changes in these projects, e.g. `TSK,WEB` (see [Agent workflow](#agent-workflow)) |
 | `HULY_AUDIT_LOG` | no | Append every change as JSON line to this file |
@@ -812,6 +815,8 @@ See [`src/connection.ts`](src/connection.ts).
 
 ### Unreleased
 
+- **New: load toolsets on demand** (`HULY_DYNAMIC_TOOLSETS=1`, opt-in): start small and let Claude load toolsets with `enable_toolsets`. With `agent,inbox` a session starts at ≈1.8k tokens. Not yet verified in Claude Desktop.
+- Server instructions are 41 % shorter (1,463 → 858 chars). They now point to the one-call overviews (`my_day`, `standup`, `triage_inbox` …); hints that the tool descriptions already carry were dropped.
 - **Fewer tokens:**
   - With `HULY_WORKSPACE` set, tools take no `workspace` argument (−20% tool-list size). Changes still go to exactly that workspace.
   - Validation limits (`minLength`, `maximum` …) are no longer sent in tool schemas. They are still enforced, with a clear error.

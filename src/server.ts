@@ -1,31 +1,20 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
+import { z } from 'zod'
 import { TOOLS, TOOLSETS, DEFAULT_TOOLSETS, type Toolset } from './registry'
 import { guard, elicitationAsker } from './guard'
 import { registerResources, registerPrompts, registerSubscriptions } from './resources'
 
 const SERVER_INSTRUCTIONS = `
-Huly workspaces (tracker, docs, chat, planner, …), self-hosted or cloud. One account, possibly several workspaces.
+Huly workspaces (tracker, docs, chat, planner, …), self-hosted or cloud.
 
-Conventions
-- workspace: slug, name or id from list_workspaces. Required for every change — never guess; ask if unclear.
+- workspace: slug, name or id from list_workspaces. Required for changes — never guess; ask if unclear.
   Reads may omit it only if exactly one workspace exists. Ids are only valid within their workspace.
-- Project key: short ALL-CAPS (PROJ). Issue id: PROJ-123. Dates: ISO 8601 (2026-06-01).
-- People: by name ("Joris", "Joris Conrad"), case-insensitive; ambiguous names are rejected.
-- A field set to null is cleared. Descriptions/content are Markdown.
-
-Agent workflow
-- start_work → work → finish_work. get_issue_context gives everything about an issue in one call.
-- Plans become issues with create_issue_tree (dry run first). changes_since catches up after a break.
-- With several agents in parallel: claim_issue before working, finish_work releases the claim.
-- Deletes and other risky tools may ask the user first. If they decline, do not retry.
-
-Tips
-- Read before writing: get_issue before update_issue, get_document before update_document (it replaces all).
-- Epics are issues: set_parent / list_sub_issues. Issue statuses are workspace-wide.
-- Ids for comments, attachments, documents come from the matching list_* tool.
-- search_issues finds issues by content across projects.
-- attach_file takes base64 content, not a path or URL.
-- Tools are grouped in toolsets (HULY_TOOLSETS); missing tools may just be disabled.
+- Issue id PROJ-123; dates ISO 8601; people by name (ambiguous names are rejected); null clears a field; text is Markdown.
+- Start with one-call overviews: my_day, standup, triage_inbox, project_report, get_issue_context.
+- Agent work: start_work → work → finish_work; plans → create_issue_tree (dry run first); with parallel agents claim_issue first.
+- Read before replacing: get_issue before update_issue description, get_document before update_document.
+- Risky tools may ask the user; if declined, do not retry.
+- Missing tools may be in a disabled toolset (HULY_TOOLSETS).
 `.trim()
 
 /**
@@ -48,24 +37,34 @@ export function pinnedInstructions (workspace: string): string {
   return SERVER_INSTRUCTIONS.replace(/- workspace: [^\n]*\n[^\n]*\n/, `- All tools work in workspace '${workspace}' (HULY_WORKSPACE); there is no workspace argument.\n`)
 }
 
-export function createServer (options: { toolsets?: string, workspace?: string } = {}): McpServer {
+export function createServer (options: { toolsets?: string, workspace?: string, dynamic?: boolean } = {}): McpServer {
   const enabled = parseToolsets(options.toolsets ?? process.env.HULY_TOOLSETS)
   // Pinned to one workspace: the workspace argument (~80 chars in each of ~90 schemas) carries no
   // information, so it is left out of the schemas and filled in here. Write checks use the
   // registry schema, which keeps it, so "every change names its workspace" still holds.
   const pinned = (options.workspace ?? process.env.HULY_WORKSPACE ?? '').trim() || undefined
-  const server = new McpServer({ name: 'huly-mcp-selfhost', version: '3.0.0' }, { instructions: pinned != null ? pinnedInstructions(pinned) : SERVER_INSTRUCTIONS })
+  const dynamic = options.dynamic ?? ['1', 'true', 'yes'].includes(String(process.env.HULY_DYNAMIC_TOOLSETS ?? '').toLowerCase())
+  let instructions = pinned != null ? pinnedInstructions(pinned) : SERVER_INSTRUCTIONS
+  if (dynamic) instructions = instructions.replace('- Missing tools may be in a disabled toolset (HULY_TOOLSETS).', '- More tools (calendar, cards, drive, testing, recruiting, …) load on demand: enable_toolsets.')
+  const server = new McpServer({ name: 'huly-mcp-selfhost', version: '3.0.0' }, { instructions })
   const asker = elicitationAsker(server)
+  // Load on demand (HULY_DYNAMIC_TOOLSETS=1): every tool is registered, those outside HULY_TOOLSETS
+  // start disabled; enable_toolsets switches them on and the client is told the tool list changed.
+  const registered = new Map<string, any>()
   for (const tool of TOOLS) {
-    if (!enabled.has(tool.toolset)) continue
+    if (!enabled.has(tool.toolset) && !dynamic) continue
     const handler = guard(tool, process.env, asker)
+    let reg: any
     if (pinned == null || tool.schema.shape.workspace == null) {
-      server.tool(tool.name, tool.description, tool.schema.shape, handler)
+      reg = server.tool(tool.name, tool.description, tool.schema.shape, handler)
     } else {
       const { workspace: _ws, ...shape } = tool.schema.shape
-      server.tool(tool.name, tool.description, shape, async (args: any, extra: any) => await (handler as any)({ ...args, workspace: pinned }, extra))
+      reg = server.tool(tool.name, tool.description, shape, async (args: any, extra: any) => await (handler as any)({ ...args, workspace: pinned }, extra))
     }
+    if (!enabled.has(tool.toolset)) reg.disable()
+    registered.set(tool.name, reg)
   }
+  if (dynamic) registerEnableToolsets(server, enabled, registered)
   if (enabled.has('agent')) {
     registerResources(server)
     ;(server as any).hulySubscriptions = registerSubscriptions(server)
@@ -73,6 +72,29 @@ export function createServer (options: { toolsets?: string, workspace?: string }
   }
   slimToolList(server)
   return server
+}
+
+/** The on-demand switch: lists toolsets (with their tools) or enables them. */
+function registerEnableToolsets (server: McpServer, enabled: Set<Toolset>, registered: Map<string, any>): void {
+  const available = (): string[] => TOOLSETS.filter((t) => !enabled.has(t))
+  server.tool('enable_toolsets', 'Load more Huly tools. No args: list toolsets and their tools; then pass the names you need', {
+    toolsets: z.array(z.string()).optional()
+  }, async (args) => {
+    const names = (args.toolsets ?? []).map((t) => t.trim().toLowerCase())
+    if (names.length === 0) {
+      const lines = available().map((t) => `- **${t}** (${TOOLS.filter((x) => x.toolset === t).length}): ${TOOLS.filter((x) => x.toolset === t).map((x) => x.name).join(', ')}`)
+      return { content: [{ type: 'text' as const, text: lines.length > 0 ? `## Toolsets not loaded yet\n\n${lines.join('\n')}` : 'All toolsets are loaded.' }] }
+    }
+    const unknown = names.filter((n) => !(TOOLSETS as readonly string[]).includes(n))
+    if (unknown.length > 0) return { isError: true, content: [{ type: 'text' as const, text: `Unknown toolset(s): ${unknown.join(', ')}. Available: ${available().join(', ')}.` }] }
+    const added: string[] = []
+    for (const n of names as Toolset[]) {
+      if (enabled.has(n)) continue
+      enabled.add(n)
+      for (const tool of TOOLS.filter((t) => t.toolset === n)) { registered.get(tool.name)?.enable(); added.push(tool.name) }
+    }
+    return { content: [{ type: 'text' as const, text: added.length > 0 ? `✅ Loaded ${added.length} tool(s): ${added.join(', ')}. They are available from your next step.` : 'Already loaded.' }] }
+  })
 }
 
 /** Validation-only keywords: zod still enforces them and answers with a clear error, so the model

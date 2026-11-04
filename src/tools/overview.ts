@@ -107,7 +107,7 @@ export async function myDayText (client: any, date: string | undefined, limit: n
     const label = cls != null ? await loadLabel(client, cls, ctx?.objectId ?? notes[0].objectId) : '(unknown)'
     out.push(`- **${label}** — ${notes.length} unread`)
   }
-  if (groups.size > limit) out.push(`_${groups.size - limit} more — list_notifications._`)
+  if (unread.length > 0) out.push(`_${groups.size > limit ? `${groups.size - limit} more. ` : ''}Work through them: triage_inbox._`)
   return out.join('\n')
 }
 
