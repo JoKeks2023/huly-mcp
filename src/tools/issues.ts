@@ -112,10 +112,17 @@ export const getIssue = wrapToolHandler<z.infer<typeof GetIssueSchema>>(async (a
   const component = issue.component != null ? await client.findOne(tracker.class.Component, { _id: issue.component }) : undefined
   const assignee = issue.assignee != null ? (await peopleNames(client)).get(issue.assignee as string) ?? String(issue.assignee) : 'Unassigned'
   const labelRefs = await client.findAll(tags.class.TagReference, { attachedTo: issue._id })
-  const refIds = async (list: Array<{ _id: Ref<Doc> }> | undefined): Promise<string> => {
+  const refIds = async (list: Array<{ _id: Ref<Doc>, _class?: string }> | undefined): Promise<string> => {
     if (list == null || list.length === 0) return 'None'
     const names: string[] = []
     for (const r of list) {
+      if (r._class != null && r._class !== tracker.class.Issue) {
+        // Related non-issue docs (e.g. a test case): "Test case "name" `id`".
+        const doc: any = await client.findOne(r._class as any, { _id: r._id })
+        const kind = String(r._class).split(':').pop()?.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase() ?? 'doc'
+        names.push(`${kind} "${String(doc?.name ?? doc?.title ?? '?')}" \`${String(r._id)}\``)
+        continue
+      }
       const other = await client.findOne(tracker.class.Issue, { _id: r._id as Ref<Issue> })
       names.push(other?.identifier ?? String(r._id))
     }

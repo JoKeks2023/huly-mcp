@@ -33,7 +33,7 @@ This is a fork of [varaprasadreddy9676/huly-mcp](https://github.com/varaprasadre
 
 ---
 
-## Tools (208 total, grouped in toolsets)
+## Tools (217 total, grouped in toolsets)
 
 All tools except `list_workspaces` take a `workspace` argument — required for every change, optional for reads when only one workspace is available.
 
@@ -66,7 +66,7 @@ HULY_TOOLSETS=tracker,documents,planner # just these ('core' = list_workspaces i
 | `fields` | | 3 | custom fields on issues, project types, card types or any class; set values |
 | `drive` | | 10 | drives, folders, versioned files: upload, download, move, restore versions |
 | `templates` | | 11 | issue templates with sub-issues, new issue from template; message templates |
-| `testing` | | 14 | test management: projects, suites, cases, plans, runs, results |
+| `testing` | | 23 | test management: projects, suites, cases, plans, runs, results; JUnit import, report, bugs from failed tests |
 | `products` | | 2 | products and versions (read-only) |
 | `members` | | 4 | workspace settings, invite links and e-mails, member roles |
 | `recruiting` | | 9 | vacancies, candidates, applications |
@@ -75,10 +75,10 @@ HULY_TOOLSETS=tracker,documents,planner # just these ('core' = list_workspaces i
 | `inventory` | | 5 | categories, products, variants (SKU) |
 | `meetings` | | 2 | office rooms, meeting minutes and transcripts (read-only) |
 | `qms` | | 4 | controlled documents and trainings (read-only) |
-| `process` | | 2 | process definitions and executions (read-only) |
+| `process` | | 4 | process definitions and executions; start and cancel |
 | `surveys` | | 2 | surveys and aggregated poll answers (read-only) |
 
-Context cost of `tools/list` (≈3.5 chars/token): default set ~40k chars ≈ **11k tokens** (89 tools), `all` ~88k chars ≈ **25k tokens** (208 tools). For comparison, 2.2.0 needed ≈12.8k tokens for 64 tools. Claude Code loads MCP tools on demand, so there the toolset choice matters less.
+Context cost of `tools/list` (≈3.5 chars/token): default set ~40k chars ≈ **11k tokens** (89 tools), `all` ~94k chars ≈ **27k tokens** (217 tools). For comparison, 2.2.0 needed ≈12.8k tokens for 64 tools. Claude Code loads MCP tools on demand, so there the toolset choice matters less.
 
 ### Agent workflow
 
@@ -127,6 +127,23 @@ npx huly-mcp-selfhost watch --workspace acme --project WEB --label claude       
 - **Unattended means careful.** Runs get `HULY_CONFIRM=strict` unless you set it: deletes and other risky tools are refused, because nobody is there to confirm them. `HULY_WRITE_PROJECTS` limits which projects are watched and changed. Issue text reaches the agent as instructions — only watch projects whose writers you trust.
 - **Its own identity.** Give the agent its own Huly account (invite e.g. `claude@your-domain` to the workspace) and start the watcher with that account's credentials (`--env-file agent.env` with `HULY_EMAIL`/`HULY_PASSWORD` or `HULY_TOKEN`). Then you hand work to Claude by assigning an issue to that user, and every comment, status change and claim shows up under its name instead of yours. `--agent <name>` (or `HULY_AGENT_NAME`) names it in claims.
 - Other options: `--interval <sec>`, `--timeout <min>` (default 60), `--once`, `--cwd <dir>`, `--prompt <template>`, `--state <file>`. `huly-mcp watch --help` lists them all.
+
+### CI test results into Huly: `huly-mcp junit`
+
+`huly-mcp junit report.xml --project "App"` imports a JUnit XML report as a test run in Huly's test management. Almost every test runner writes JUnit XML (Jest/Vitest with a JUnit reporter, `pytest --junitxml`, `go-junit-report`, Gradle, Maven Surefire, xcpretty). Suites and cases that do not exist yet are created; failed tests keep their message and stack trace. Then ask Claude *"What is flaky in App?"* (`get_test_report`) or *"File bugs for today's failures in PROJ"* (`create_issue_from_test_result`).
+
+```yaml
+# .github/workflows/test.yml (after the test step)
+- name: Report to Huly
+  if: always()
+  run: npx -y huly-mcp-selfhost junit reports/junit.xml --project "App" --run "CI ${{ github.ref_name }} #${{ github.run_number }}"
+  env:
+    HULY_URL: ${{ secrets.HULY_URL }}
+    HULY_TOKEN: ${{ secrets.HULY_TOKEN }}
+    HULY_WORKSPACE: my-workspace
+```
+
+Options: `--run <name>`, `--parent-suite <suite>`, `--no-create` (only existing cases), `--fail-on-failures` (exit code 1 when tests failed), `--dry-run`, `--workspace`. `huly-mcp junit --help` lists them.
 
 ### Tool reference
 
@@ -245,7 +262,12 @@ npx huly-mcp-selfhost watch --workspace acme --project WEB --label claude       
 | **Test management** (`testing`) | `list_test_projects` / `create_test_project` | Test projects |
 | | `list_test_cases` / `create_test_suite` / `get_test_case` / `create_test_case` / `update_test_case` / `delete_test_case` | Suites (nested) and cases |
 | | `list_test_plans` / `create_test_plan` | Plans from suites and/or cases |
-| | `create_test_run` / `list_test_runs` / `get_test_run` / `set_test_result` | Runs with Passed/Failed/Blocked results |
+| | `create_test_run` / `list_test_runs` / `get_test_run` / `set_test_result` | Runs with Passed/Failed/Blocked results; results can be assigned |
+| | `create_test_cases` | Many cases in one call (e.g. drafted from a spec or an issue); existing names are skipped |
+| | `update_test_suite` / `delete_test_suite` / `update_test_run` / `delete_test_run` / `delete_test_plan` | Rename/move suites (no cycles), delete with `recursive`, run due dates |
+| | `import_test_results` | JUnit XML from CI (Jest, Vitest, pytest, Go, Gradle, Maven, xcpretty …) as a run; missing suites/cases are created, failures keep message and stack trace |
+| | `get_test_report` | Over the latest runs: failing now, flaky (flipped ≥ 2×), blocked, never run, per-suite table |
+| | `create_issue_from_test_result` | Bug from a failed result: steps + failure in the description, related to the test case, comment on the result |
 | **Products** (`products`) | `list_products` / `get_product` | Products and their versions (read-only) |
 | **Labels** (`tracker-admin`) | `list_label_categories` / `create_label_category` / `set_label_category` | Group issue labels |
 | **Project types** (`tracker-admin`) | `list_project_types` | Project types, their task types and status workflows, and which projects use them |
@@ -778,6 +800,8 @@ See [`src/connection.ts`](src/connection.ts).
 
 ### Unreleased
 
+- **New: test management, much more of it** — `import_test_results` and the CLI `huly-mcp junit` bring CI results (JUnit XML) into Huly as test runs; `get_test_report` shows failing, flaky, blocked and never-run cases over the latest runs; `create_issue_from_test_result` turns a failed test into a bug (steps and failure included, related to the test case); `create_test_cases` creates many cases at once; suites can be renamed, moved and deleted, runs renamed, dated and deleted, plans deleted, results assigned.
+- `get_issue` names related non-issue documents (e.g. a test case) instead of showing a bare id.
 - **New: `start_process` / `cancel_execution`** — run a process on a card and cancel a running one. Starting works like Huly's "Run process" menu; Huly's process service then moves the execution on. Processes whose start asks for input in the app are refused, and so is a second run where the process forbids parallel runs. Cancelling asks first.
 
 ### 3.0.0 — 2026-11-04

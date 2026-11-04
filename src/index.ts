@@ -4,11 +4,16 @@ import { createServer } from './server'
 import { closeConnection } from './connection'
 import { normalizeEnv } from './env'
 import { runWatch } from './watch'
+import { runJUnit } from './junit-cli'
 
 async function main (): Promise<void> {
   if (process.argv[2] === 'watch') {
     await runWatch(process.argv.slice(3))
     return
+  }
+  if (process.argv[2] === 'junit') {
+    await runJUnit(process.argv.slice(3))
+    process.exit()
   }
   normalizeEnv()
   const server = createServer()

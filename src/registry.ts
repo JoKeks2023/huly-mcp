@@ -41,6 +41,7 @@ import { listCustomFields, createCustomField, setCustomFields } from './tools/fi
 import { listDrives, listDriveFiles, createFolder, uploadFile, downloadFile, updateDriveItem, deleteDriveItem, listFileVersions, restoreFileVersion, createDrive } from './tools/drive'
 import { listIssueTemplates, getIssueTemplate, createIssueTemplate, updateIssueTemplate, deleteIssueTemplate, createIssueFromTemplate } from './tools/templates'
 import * as TM from './tools/testing'
+import * as TA from './tools/test-automation'
 import { listProducts, getProduct } from './tools/products'
 import * as S from './schemas'
 
@@ -222,6 +223,15 @@ export const TOOLS: ToolDef[] = [
   { name: 'list_test_runs', toolset: 'testing', description: 'Test runs with pass/fail counts', schema: S.ListTestRunsSchema, handler: TM.listTestRuns },
   { name: 'get_test_run', toolset: 'testing', description: 'Results of a test run', schema: S.GetTestRunSchema, handler: TM.getTestRun },
   { name: 'set_test_result', toolset: 'testing', description: 'Record Passed/Failed/Blocked for a case in a run', schema: S.SetTestResultSchema, handler: TM.setTestResult },
+  { name: 'create_test_cases', toolset: 'testing', description: 'Create many test cases in a suite at once', schema: S.CreateTestCasesSchema, handler: TA.createTestCases },
+  { name: 'update_test_suite', toolset: 'testing', description: 'Rename, describe or move a suite', schema: S.UpdateTestSuiteSchema, handler: TM.updateTestSuite },
+  { name: 'delete_test_suite', toolset: 'testing', description: 'Delete a suite (recursive: with its cases)', schema: S.DeleteTestSuiteSchema, handler: TM.deleteTestSuite },
+  { name: 'update_test_run', toolset: 'testing', description: 'Rename a run, set due date or description', schema: S.UpdateTestRunSchema, handler: TM.updateTestRun },
+  { name: 'delete_test_run', toolset: 'testing', description: 'Delete a test run with its results', schema: S.DeleteTestRunSchema, handler: TM.deleteTestRun },
+  { name: 'delete_test_plan', toolset: 'testing', description: 'Delete a test plan', schema: S.DeleteTestPlanSchema, handler: TM.deleteTestPlan },
+  { name: 'import_test_results', toolset: 'testing', description: 'Import a JUnit XML report as a test run (CI results)', schema: S.ImportTestResultsSchema, handler: TA.importTestResults },
+  { name: 'get_test_report', toolset: 'testing', description: 'Failing, flaky, blocked and never-run cases over recent runs', schema: S.GetTestReportSchema, handler: TA.getTestReport },
+  { name: 'create_issue_from_test_result', toolset: 'testing', description: 'File a bug from a failed test result (steps + failure, linked)', schema: S.CreateIssueFromTestResultSchema, handler: TA.createIssueFromTestResult },
   { name: 'list_products', toolset: 'products', description: 'Products with their active versions', schema: S.ListProductsSchema, handler: listProducts },
   { name: 'get_product', toolset: 'products', description: 'Product with all versions', schema: S.GetProductSchema, handler: getProduct },
   { name: 'list_label_categories', toolset: 'tracker-admin', description: 'Issue label categories with their labels', schema: S.ListLabelCategoriesSchema, handler: listLabelCategories },
