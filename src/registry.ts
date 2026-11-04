@@ -42,6 +42,7 @@ import { listDrives, listDriveFiles, createFolder, uploadFile, downloadFile, upd
 import { listIssueTemplates, getIssueTemplate, createIssueTemplate, updateIssueTemplate, deleteIssueTemplate, createIssueFromTemplate } from './tools/templates'
 import * as TM from './tools/testing'
 import * as TA from './tools/test-automation'
+import { myDay } from './tools/overview'
 import { listProducts, getProduct } from './tools/products'
 import * as S from './schemas'
 
@@ -164,6 +165,7 @@ export const TOOLS: ToolDef[] = [
   { name: 'start_work', toolset: 'agent', description: 'Pick up issue: In Progress, assign me, return context', schema: S.StartWorkSchema, handler: startWork },
   { name: 'finish_work', toolset: 'agent', description: 'Hand back: summary comment, link PR, status to review', schema: S.FinishWorkSchema, handler: finishWork },
   { name: 'create_issue_tree', toolset: 'agent', description: 'Plan → epic + sub-issues with blockers; skips duplicates; dry run first', schema: S.CreateIssueTreeSchema, handler: createIssueTree },
+  { name: 'my_day', toolset: 'agent', description: 'Today at a glance: calendar, to-dos, my issues, reviews, unread inbox', schema: S.MyDaySchema, handler: myDay },
   { name: 'changes_since', toolset: 'agent', description: 'Issues/PRs changed since a time: fields, comments, who', schema: S.ChangesSinceSchema, handler: changesSince },
   { name: 'claim_issue', toolset: 'agent', description: 'Lease an issue so parallel agents skip it', schema: S.ClaimIssueSchema, handler: claimIssue },
   { name: 'find_project_for_repo', toolset: 'agent', description: 'Huly workspace + project linked to a GitHub repo', schema: S.FindProjectForRepoSchema, handler: findProjectForRepo },
