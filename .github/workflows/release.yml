@@ -40,8 +40,9 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-          registry-url: https://registry.npmjs.org
           cache: npm
+          # No registry-url: setup-node would write an .npmrc with an (empty) auth token,
+          # which can keep npm from using Trusted Publishing (OIDC).
 
       - name: Tag matches package version and is on main
         run: |
@@ -63,12 +64,15 @@ jobs:
 
       - name: Publish to npm
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          npm install -g npm@latest >/dev/null 2>&1   # Trusted Publishing needs npm >= 11.5
+          npm install -g npm@latest   # Trusted Publishing needs npm >= 11.5.1
+          echo "npm $(npm --version), OIDC request URL present: $([ -n "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ] && echo yes || echo no)"
           if npm view "huly-mcp-selfhost@$VERSION" version >/dev/null 2>&1; then
             echo "::notice::huly-mcp-selfhost@$VERSION is already on npm — skipped"
           else
+            # Trusted Publishing (OIDC) first; a classic token only if the NPM_TOKEN secret exists.
+            if [ -n "$NPM_TOKEN" ]; then npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"; fi
             npm publish --provenance --access public
           fi
 
