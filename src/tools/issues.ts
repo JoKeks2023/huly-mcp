@@ -95,8 +95,10 @@ export const listIssues = wrapToolHandler<z.infer<typeof ListIssuesSchema>>(asyn
 
   const lines = issues.map((issue) => {
     const statusName = statusMap.get(issue.status) ?? 'Unknown'
-    const due = issue.dueDate != null ? ` | Due: ${formatDate(issue.dueDate)}` : ''
-    return `- **${issue.identifier}** [${statusName}] [${priorityLabel(issue.priority)}]${due}\n  ${issue.title}`
+    // One line per issue; "No priority" is left out (list_issues is called often, every token counts).
+    const prio = issue.priority !== IssuePriority.NoPriority ? ` · ${priorityLabel(issue.priority)}` : ''
+    const due = issue.dueDate != null ? ` · due ${formatDate(issue.dueDate)}` : ''
+    return `- **${issue.identifier}** ${issue.title} — ${statusName}${prio}${due}`
   })
 
   return `## Issues in ${args.projectIdentifier} (${issues.length})\n\n${lines.join('\n')}`

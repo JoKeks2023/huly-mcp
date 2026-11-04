@@ -43,12 +43,28 @@ export function parseToolsets (value: string | undefined): Set<Toolset> {
   return new Set<Toolset>(['core', ...(raw as Toolset[])])
 }
 
-export function createServer (options: { toolsets?: string } = {}): McpServer {
+/** Instructions for a server pinned to one workspace (HULY_WORKSPACE): no workspace argument at all. */
+export function pinnedInstructions (workspace: string): string {
+  return SERVER_INSTRUCTIONS.replace(/- workspace: [^\n]*\n[^\n]*\n/, `- All tools work in workspace '${workspace}' (HULY_WORKSPACE); there is no workspace argument.\n`)
+}
+
+export function createServer (options: { toolsets?: string, workspace?: string } = {}): McpServer {
   const enabled = parseToolsets(options.toolsets ?? process.env.HULY_TOOLSETS)
-  const server = new McpServer({ name: 'huly-mcp-selfhost', version: '3.0.0' }, { instructions: SERVER_INSTRUCTIONS })
+  // Pinned to one workspace: the workspace argument (~80 chars in each of ~90 schemas) carries no
+  // information, so it is left out of the schemas and filled in here. Write checks use the
+  // registry schema, which keeps it, so "every change names its workspace" still holds.
+  const pinned = (options.workspace ?? process.env.HULY_WORKSPACE ?? '').trim() || undefined
+  const server = new McpServer({ name: 'huly-mcp-selfhost', version: '3.0.0' }, { instructions: pinned != null ? pinnedInstructions(pinned) : SERVER_INSTRUCTIONS })
   const asker = elicitationAsker(server)
   for (const tool of TOOLS) {
-    if (enabled.has(tool.toolset)) server.tool(tool.name, tool.description, tool.schema.shape, guard(tool, process.env, asker))
+    if (!enabled.has(tool.toolset)) continue
+    const handler = guard(tool, process.env, asker)
+    if (pinned == null || tool.schema.shape.workspace == null) {
+      server.tool(tool.name, tool.description, tool.schema.shape, handler)
+    } else {
+      const { workspace: _ws, ...shape } = tool.schema.shape
+      server.tool(tool.name, tool.description, shape, async (args: any, extra: any) => await (handler as any)({ ...args, workspace: pinned }, extra))
+    }
   }
   if (enabled.has('agent')) {
     registerResources(server)
@@ -57,6 +73,17 @@ export function createServer (options: { toolsets?: string } = {}): McpServer {
   }
   slimToolList(server)
   return server
+}
+
+/** Validation-only keywords: zod still enforces them and answers with a clear error, so the model
+ * does not need them up front (~2.4k characters in the default set). Defaults and enums stay. */
+const LIMIT_KEYS = ['minLength', 'maxLength', 'minimum', 'maximum', 'exclusiveMinimum', 'exclusiveMaximum', 'minItems', 'maxItems']
+
+export function stripLimits (node: any): void {
+  if (Array.isArray(node)) { for (const n of node) stripLimits(n); return }
+  if (node == null || typeof node !== 'object') return
+  for (const k of LIMIT_KEYS) if (typeof node[k] === 'number') delete node[k]
+  for (const v of Object.values(node)) stripLimits(v)
 }
 
 /**
@@ -72,6 +99,7 @@ function slimToolList (server: McpServer): void {
     const result = await original(req, extra)
     for (const tool of result?.tools ?? []) {
       if (tool.inputSchema != null) delete tool.inputSchema.$schema
+      stripLimits(tool.inputSchema)
       if (tool.execution?.taskSupport === 'forbidden' && Object.keys(tool.execution).length === 1) delete tool.execution
     }
     return result

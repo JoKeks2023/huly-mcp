@@ -35,7 +35,7 @@ export const listNotifications = wrapToolHandler<z.infer<typeof ListNotification
     const label = objectClass != null ? await loadLabel(client, objectClass, objectId) : '(unknown)'
     const kind = String(objectClass ?? '').split(':').pop()
     const unread = group.filter((n) => n.isViewed !== true).length
-    lines.push(`- **${label}** (${kind}) — ${group.length} notification(s)${unread > 0 ? `, ${unread} unread` : ''}, latest ${when(group[0].createdOn)}\n  ids: ${group.map((n) => `\`${n._id as string}\``).join(', ')}`)
+    lines.push(`- **${label}** (${kind}) — ${group.length} notification(s)${unread > 0 ? `, ${unread} unread` : ''}, latest ${when(group[0].createdOn)}${args.ids === true ? `\n  ids: ${group.map((n) => `\`${n._id as string}\``).join(', ')}` : ''}`)
   }
   return `## Notifications (${notes.length}${args.unreadOnly ? ' unread' : ''})\n\n${lines.join('\n')}`
 })
