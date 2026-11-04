@@ -5,7 +5,7 @@ name: Release
 #
 # npm: uses Trusted Publishing (OIDC, no token in the repo). One-time setup on npmjs.com:
 #   package huly-mcp-selfhost → Settings → Trusted publishing → GitHub Actions,
-#   repository JoKeks2023/huly-mcp, workflow release.yml.
+#   repository JoKeks2023/huly-mcp, workflow release.yml, environment release.
 # Until that is set up, an NPM_TOKEN secret works as a fallback.
 
 on:
@@ -24,6 +24,9 @@ concurrency:
 jobs:
   release:
     runs-on: ubuntu-latest
+    # Environment "release" (Settings → Environments): restrict to tags v*, optionally require approval.
+    # npm Trusted Publishing must name the same environment.
+    environment: release
     permissions:
       contents: write
       id-token: write

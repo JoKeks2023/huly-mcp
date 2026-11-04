@@ -4,7 +4,7 @@ name: Scheduled checks
 # Weekly:  latest Huly packages, Huly modules without tools.
 # Failures open (or comment on) an issue instead of failing silently.
 #
-# Secrets for the live jobs (a throwaway workspace, never a real one):
+# Secrets for the live jobs, in the environment "sandbox" (a throwaway workspace, never a real one):
 #   HULY_SMOKE_WORKSPACE, HULY_SMOKE_PROJECT (project key for write tests),
 #   HULY_SMOKE_EMAIL + HULY_SMOKE_PASSWORD or HULY_SMOKE_TOKEN,
 #   HULY_SMOKE_ACCOUNTS_URL and HULY_SMOKE_FRONT_URL (self-hosted; empty = Huly Cloud).
@@ -38,6 +38,7 @@ jobs:
   live-smoke:
     if: github.event_name == 'schedule' || inputs.job == 'all' || inputs.job == 'live-smoke'
     runs-on: ubuntu-latest
+    environment: sandbox
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -57,6 +58,7 @@ jobs:
   huly-modules:
     if: github.event_name == 'schedule' || inputs.job == 'all' || inputs.job == 'huly-modules'
     runs-on: ubuntu-latest
+    environment: sandbox
     steps:
       - name: Weekly only (Mondays) when scheduled
         id: day

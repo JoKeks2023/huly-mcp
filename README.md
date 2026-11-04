@@ -835,10 +835,14 @@ Security reports: see [SECURITY.md](SECURITY.md).
 2. Bump the version in `package.json`, `server.json`, `plugin/.claude-plugin/plugin.json` and `src/server.ts`. The tests check that they agree.
 3. Merge, then tag `vX.Y.Z` on `main`. The rest runs by itself.
 
-**Secrets (repository settings):**
+**Environments and secrets:**
+- Environment `release` (tags `v*` only): used by `release.yml`. npm Trusted Publishing names this environment.
+- Environment `sandbox`: used by the nightly live jobs.
+
+Secrets:
 - `PERSONAL_DATA_PATTERNS`: private terms that must never appear in the repo, one regex per line.
 - `NPM_TOKEN`: fallback only, until Trusted Publishing is set up on npmjs.com.
-- `HULY_SMOKE_WORKSPACE`, `HULY_SMOKE_PROJECT`, `HULY_SMOKE_EMAIL` + `HULY_SMOKE_PASSWORD` (or `HULY_SMOKE_TOKEN`), `HULY_SMOKE_ACCOUNTS_URL`, `HULY_SMOKE_FRONT_URL`: a **throwaway** workspace for the nightly live test. Without them the live jobs skip.
+- In the environment `sandbox`: `HULY_SMOKE_WORKSPACE`, `HULY_SMOKE_PROJECT`, `HULY_SMOKE_EMAIL` + `HULY_SMOKE_PASSWORD` (or `HULY_SMOKE_TOKEN`), `HULY_SMOKE_ACCOUNTS_URL`, `HULY_SMOKE_FRONT_URL`: a **throwaway** workspace for the nightly live test. Without them the live jobs skip.
 
 ---
 
