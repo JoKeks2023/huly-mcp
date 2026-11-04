@@ -11,7 +11,7 @@ import { addRelation, addBlockedBy, setParent, removeRelation, removeBlockedBy, 
 import { listMembers } from './tools/members'
 import { listMilestones, createMilestone, getMilestone, updateMilestone, deleteMilestone } from './tools/milestones'
 import { listComponents, createComponent, updateComponent, deleteComponent } from './tools/components'
-import { listTeamspaces, createTeamspace, listDocuments, getDocument, createDocument, deleteDocument, updateDocument, linkDocument } from './tools/documents'
+import { listTeamspaces, createTeamspace, listDocuments, getDocument, createDocument, deleteDocument, updateDocument, linkDocument, listDocumentComments, addDocumentComment } from './tools/documents'
 import { searchIssues, searchAll } from './tools/search'
 import { listChannels, createChannel, startDirectMessage, sendMessage, listMessages, listThread, replyToMessage, updateMessage, deleteMessage, addReaction, removeReaction, pinMessage } from './tools/channels'
 import { listNotifications, markNotificationsRead } from './tools/inbox'
@@ -28,7 +28,7 @@ import { getIssueContext, startWork, finishWork, createIssueTree, changesSince, 
 import { listCollaborators, addCollaborator, removeCollaborator, createPublicLink, listPublicLinks, revokePublicLink } from './tools/sharing'
 import * as S from './schemas'
 
-export const TOOLSETS = ['core', 'agent', 'tracker', 'tracker-admin', 'documents', 'chat', 'contacts', 'inbox', 'activity', 'planner', 'calendar', 'github', 'generic', 'generic-write', 'sharing'] as const
+export const TOOLSETS = ['core', 'agent', 'tracker', 'tracker-admin', 'documents', 'chat', 'contacts', 'inbox', 'activity', 'planner', 'calendar', 'github', 'generic', 'generic-write', 'collaboration'] as const
 export type Toolset = typeof TOOLSETS[number]
 
 /** Enabled when HULY_TOOLSETS is not set. 'core' is always enabled. */
@@ -90,7 +90,9 @@ export const TOOLS: ToolDef[] = [
   { name: 'get_document', toolset: 'documents', description: 'Document metadata and content', schema: S.GetDocumentSchema, handler: getDocument },
   { name: 'create_document', toolset: 'documents', description: 'Create a new document in a teamspace', schema: S.CreateDocumentSchema, handler: createDocument },
   { name: 'delete_document', toolset: 'documents', description: 'Permanently delete a document by its ID', schema: S.DeleteDocumentSchema, handler: deleteDocument },
-  { name: 'update_document', toolset: 'documents', description: 'Replace document content with Markdown', schema: S.UpdateDocumentSchema, handler: updateDocument },
+  { name: 'update_document', toolset: 'documents', description: 'Replace content (Markdown), rename or move a document', schema: S.UpdateDocumentSchema, handler: updateDocument },
+  { name: 'list_document_comments', toolset: 'collaboration', description: 'Comments on a document', schema: S.ListDocumentCommentsSchema, handler: listDocumentComments },
+  { name: 'add_document_comment', toolset: 'collaboration', description: 'Comment on a document', schema: S.AddDocumentCommentSchema, handler: addDocumentComment },
   { name: 'link_document', toolset: 'documents', description: 'Link a document to an issue (Relations panel)', schema: S.LinkDocumentSchema, handler: linkDocument },
   { name: 'search_issues', toolset: 'tracker', description: 'Full-text search across all issues', schema: S.SearchIssuesSchema, handler: searchIssues },
   { name: 'list_channels', toolset: 'chat', description: 'List all channels in the workspace', schema: S.ListChannelsSchema, handler: listChannels },
@@ -157,10 +159,10 @@ export const TOOLS: ToolDef[] = [
   { name: 'generic_create', toolset: 'generic-write', description: 'Create a document of any class (dry run by default)', schema: S.GenericCreateSchema, handler: genericCreate },
   { name: 'generic_update', toolset: 'generic-write', description: 'Update a document of any class (dry run by default)', schema: S.GenericUpdateSchema, handler: genericUpdate },
   { name: 'generic_delete', toolset: 'generic-write', description: 'Delete a document of any class (dry run; needs confirm)', schema: S.GenericDeleteSchema, handler: genericDelete },
-  { name: 'list_collaborators', toolset: 'sharing', description: 'Who follows an issue or document', schema: S.ListCollaboratorsSchema, handler: listCollaborators },
-  { name: 'add_collaborator', toolset: 'sharing', description: 'Follow an issue/document (you or a member) to get its notifications', schema: S.AddCollaboratorSchema, handler: addCollaborator },
-  { name: 'remove_collaborator', toolset: 'sharing', description: 'Stop following an issue/document', schema: S.RemoveCollaboratorSchema, handler: removeCollaborator },
-  { name: 'create_public_link', toolset: 'sharing', description: 'Read-only guest link for an issue/document (anyone with the link can read)', schema: S.CreatePublicLinkSchema, handler: createPublicLink },
-  { name: 'list_public_links', toolset: 'sharing', description: 'Public guest links', schema: S.ListPublicLinksSchema, handler: listPublicLinks },
-  { name: 'revoke_public_link', toolset: 'sharing', description: 'Revoke a public link', schema: S.RevokePublicLinkSchema, handler: revokePublicLink }
+  { name: 'list_collaborators', toolset: 'collaboration', description: 'Who follows an issue or document', schema: S.ListCollaboratorsSchema, handler: listCollaborators },
+  { name: 'add_collaborator', toolset: 'collaboration', description: 'Follow an issue/document (you or a member) to get its notifications', schema: S.AddCollaboratorSchema, handler: addCollaborator },
+  { name: 'remove_collaborator', toolset: 'collaboration', description: 'Stop following an issue/document', schema: S.RemoveCollaboratorSchema, handler: removeCollaborator },
+  { name: 'create_public_link', toolset: 'collaboration', description: 'Read-only guest link for an issue/document (anyone with the link can read)', schema: S.CreatePublicLinkSchema, handler: createPublicLink },
+  { name: 'list_public_links', toolset: 'collaboration', description: 'Public guest links', schema: S.ListPublicLinksSchema, handler: listPublicLinks },
+  { name: 'revoke_public_link', toolset: 'collaboration', description: 'Revoke a public link', schema: S.RevokePublicLinkSchema, handler: revokePublicLink }
 ]

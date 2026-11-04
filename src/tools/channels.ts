@@ -4,7 +4,7 @@ import core, { SortingOrder, generateId, type Ref } from '@hcengineering/core'
 import { getConnection } from '../connection'
 import { wrapToolHandler } from '../utils/errors'
 import { formatDate, markupToText } from '../utils/format'
-import { socialIdNames } from '../utils/people'
+import { socialIdNames, currentAccountUuid } from '../utils/people'
 import { C } from '../utils/classes'
 import type { z } from 'zod'
 import type { ListChannelsSchema, CreateChannelSchema, StartDirectMessageSchema, SendMessageSchema, ListMessagesSchema, ListThreadSchema, ReplyToMessageSchema, UpdateMessageSchema, DeleteMessageSchema, ReactionSchema, PinMessageSchema } from '../schemas'
@@ -30,6 +30,8 @@ export const createChannel = wrapToolHandler<z.infer<typeof CreateChannelSchema>
   if (existing != null) return `ℹ️ Channel **#${args.name}** already exists (id: \`${existing._id}\`).`
 
   const channelId = generateId<Channel>()
+  // Space members and owners are account uuids in Huly 0.7 (not the social id in client.user).
+  const me = await currentAccountUuid(client)
   await client.createDoc(
     chunter.class.Channel,
     core.space.Space,
@@ -38,8 +40,8 @@ export const createChannel = wrapToolHandler<z.infer<typeof CreateChannelSchema>
       topic: args.topic ?? '',
       description: args.topic ?? '',
       private: args.isPrivate,
-      members: [client.user],
-      owners: [client.user],
+      members: [me],
+      owners: [me],
       autoJoin: false,
       archived: false,
       messages: 0
@@ -59,7 +61,7 @@ export const startDirectMessage = wrapToolHandler<z.infer<typeof StartDirectMess
 
   const targetAccount = match.personUuid as unknown as Ref<any>
   const matchName = match.name
-  const selfAccount = client.user
+  const selfAccount = await currentAccountUuid(client)
 
   // A DM is identified by its exact member set — look for an existing one first.
   const existingDms = await client.findAll(chunter.class.DirectMessage, {})

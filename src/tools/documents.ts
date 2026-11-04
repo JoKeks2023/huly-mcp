@@ -1,13 +1,17 @@
 import document from '@hcengineering/document'
 import core, { SortingOrder, generateId, type Ref } from '@hcengineering/core'
 import { getFirstRank } from '@hcengineering/document'
+import { makeRank } from '@hcengineering/rank'
+import chunter from '@hcengineering/chunter'
+import { socialIdNames, currentAccountUuid } from '../utils/people'
+import { markupToText } from '../utils/format'
 import { getConnection, getWorkspaceInfo } from '../connection'
 import { wrapToolHandler } from '../utils/errors'
 import { markdownToProseMirror, extractText } from '../utils/markdown'
 import { uploadMarkupBlob } from '../utils/storage'
 import tracker from '@hcengineering/tracker'
 import type { z } from 'zod'
-import type { ListTeamspacesSchema, ListDocumentsSchema, GetDocumentSchema, CreateDocumentSchema, UpdateDocumentSchema, LinkDocumentSchema, CreateTeamspaceSchema, DeleteDocumentSchema } from '../schemas'
+import type { ListTeamspacesSchema, ListDocumentsSchema, GetDocumentSchema, CreateDocumentSchema, UpdateDocumentSchema, LinkDocumentSchema, CreateTeamspaceSchema, DeleteDocumentSchema, ListDocumentCommentsSchema, AddDocumentCommentSchema } from '../schemas'
 import type { Teamspace, Document } from '@hcengineering/document'
 
 export const listTeamspaces = wrapToolHandler<z.infer<typeof ListTeamspacesSchema>>(async (args) => {
@@ -27,6 +31,8 @@ export const createTeamspace = wrapToolHandler<z.infer<typeof CreateTeamspaceSch
   const client = await getConnection(args.workspace)
 
   const teamspaceId = generateId<Teamspace>()
+  // Space members and owners are account uuids in Huly 0.7 (not the social id in client.user).
+  const me = await currentAccountUuid(client)
   await client.createDoc(
     document.class.Teamspace,
     core.space.Space,
@@ -34,8 +40,8 @@ export const createTeamspace = wrapToolHandler<z.infer<typeof CreateTeamspaceSch
       name: args.name,
       description: args.description ?? '',
       private: args.isPrivate ?? false,
-      members: [client.user],
-      owners: [client.user],
+      members: [me],
+      owners: [me],
       autoJoin: false,
       archived: false,
       icon: undefined,
@@ -58,13 +64,22 @@ export const listDocuments = wrapToolHandler<z.infer<typeof ListDocumentsSchema>
 
   if (docs.length === 0) return 'No documents found in this teamspace.'
 
-  // Build parent-child tree display
+  // Real tree: children under their parent, any depth.
   const noParentId = document.ids.NoParent as string
-  const lines = docs.map((d) => {
-    const isNested = d.parent != null && String(d.parent) !== noParentId
-    const prefix = isNested ? '  - ' : '- '
-    return `${prefix}**${d.title}** (id: \`${d._id}\`)${d.snapshots != null && d.snapshots > 0 ? ` [${d.snapshots} snapshots]` : ''}`
-  })
+  const ids = new Set(docs.map((d) => String(d._id)))
+  const byParent = new Map<string, any[]>()
+  for (const d of docs) {
+    const p = d.parent != null && String(d.parent) !== noParentId && ids.has(String(d.parent)) ? String(d.parent) : noParentId
+    byParent.set(p, [...(byParent.get(p) ?? []), d])
+  }
+  const lines: string[] = []
+  const walk = (parent: string, depth: number): void => {
+    for (const d of byParent.get(parent) ?? []) {
+      lines.push(`${'  '.repeat(depth)}- **${d.title}** (id: \`${d._id}\`)${(d as any).comments > 0 ? ` · ${(d as any).comments as number} comment(s)` : ''}`)
+      if (depth < 20) walk(String(d._id), depth + 1)
+    }
+  }
+  walk(noParentId, 0)
   return `## Documents (${docs.length})\n\n${lines.join('\n')}`
 })
 
@@ -133,8 +148,8 @@ export const createDocument = wrapToolHandler<z.infer<typeof CreateDocumentSchem
   const noParent = document.ids.NoParent as Ref<Document>
   const parentId = args.parentId != null ? (args.parentId as Ref<Document>) : noParent
 
-  // Compute rank (prepend before existing docs at same level)
-  const rank = await getFirstRank(client, teamspace._id, parentId)
+  // Like Huly: after the last sibling.
+  const rank = makeRank(await getFirstRank(client, teamspace._id, parentId), undefined)
 
   const docId = generateId<Document>()
   await client.createDoc(
@@ -144,7 +159,7 @@ export const createDocument = wrapToolHandler<z.infer<typeof CreateDocumentSchem
       title: args.title,
       content: null,
       parent: parentId,
-      rank: rank ?? '',
+      rank,
       icon: null,
       color: undefined as any,
       snapshots: 0,
@@ -170,24 +185,83 @@ export const deleteDocument = wrapToolHandler<z.infer<typeof DeleteDocumentSchem
   return `✅ Document **"${doc.title}"** (\`${doc._id}\`) deleted.`
 })
 
-export const updateDocument = wrapToolHandler<z.infer<typeof UpdateDocumentSchema>>(async (args) => {
-  const client = await getConnection(args.workspace)
-  const { wsToken, workspaceUuid } = await getWorkspaceInfo(args.workspace)
+/** All descendants of a document (any depth). */
+async function descendants (client: any, root: any): Promise<any[]> {
+  const out: any[] = []
+  let level = [root._id]
+  while (level.length > 0) {
+    const kids: any[] = await client.findAll(document.class.Document, { parent: { $in: level } })
+    out.push(...kids)
+    level = kids.map((k) => k._id)
+  }
+  return out
+}
 
+export const updateDocument = wrapToolHandler<z.infer<typeof UpdateDocumentSchema>>(async (args) => {
+  const client: any = await getConnection(args.workspace)
   const doc = await client.findOne(document.class.Document, { _id: args.documentId as Ref<Document> })
   if (doc == null) throw new Error(`Document '${args.documentId}' not found.`)
+  if (args.markdown == null && args.title == null && args.parentId === undefined && args.teamspaceId == null) {
+    throw new Error('Nothing to change: pass markdown, title, parentId or teamspaceId.')
+  }
+  const done: string[] = []
 
-  // Convert markdown to ProseMirror JSON
-  const prosemirror = markdownToProseMirror(args.markdown)
-  const content = JSON.stringify(prosemirror)
+  // Move (new parent and/or teamspace) — validated before anything is written.
+  const moving = args.parentId !== undefined || args.teamspaceId != null
+  let move: Record<string, unknown> | undefined
+  let subtree: any[] = []
+  if (moving) {
+    const noParent = document.ids.NoParent as string
+    let parent: any
+    if (args.parentId != null) {
+      parent = await client.findOne(document.class.Document, { _id: args.parentId })
+      if (parent == null) throw new Error(`Parent document '${args.parentId}' not found.`)
+    }
+    const space = parent?.space ?? args.teamspaceId ?? doc.space
+    if (args.teamspaceId != null && parent != null && parent.space !== args.teamspaceId) throw new Error('parentId is in a different teamspace than teamspaceId.')
+    if (space !== doc.space && (await client.findOne(document.class.Teamspace, { _id: space })) == null) throw new Error(`Teamspace '${String(space)}' not found.`)
+    subtree = await descendants(client, doc)
+    if (parent != null && (parent._id === doc._id || subtree.some((d) => d._id === parent._id))) throw new Error('A document cannot be moved under itself or one of its children.')
+    const parentId = parent?._id ?? (args.parentId === null || args.teamspaceId != null ? noParent : doc.parent)
+    move = { space, parent: parentId, rank: makeRank(await getFirstRank(client, space, parentId), undefined) }
+  }
 
-  const blobId = `${args.documentId}-content-${Date.now()}`
-  const uploadedId = await uploadMarkupBlob(wsToken, workspaceUuid, blobId, content)
+  if (args.markdown != null) {
+    const { wsToken, workspaceUuid } = await getWorkspaceInfo(args.workspace)
+    const uploadedId = await uploadMarkupBlob(wsToken, workspaceUuid, `${args.documentId}-content-${Date.now()}`, JSON.stringify(markdownToProseMirror(args.markdown)))
+    await client.updateDoc(document.class.Document, doc.space, doc._id, { content: uploadedId })
+    done.push('content replaced')
+  }
+  if (args.title != null && args.title !== doc.title) {
+    await client.updateDoc(document.class.Document, doc.space, doc._id, { title: args.title })
+    done.push(`renamed to "${args.title}"`)
+  }
+  if (move != null) {
+    await client.updateDoc(document.class.Document, doc.space, doc._id, move)
+    // Children keep their parent but must live in the same teamspace.
+    if (move.space !== doc.space) for (const d of subtree) await client.updateDoc(document.class.Document, d.space, d._id, { space: move.space })
+    done.push(`moved${move.space !== doc.space ? ` to another teamspace (with ${subtree.length} sub-document(s))` : ''}${String(move.parent) === document.ids.NoParent ? ' to top level' : ' under the new parent'}`)
+  }
+  return `✅ Document **"${args.title ?? doc.title}"**: ${done.join(', ') || 'no change'}.`
+})
 
-  // Update document content ref
-  await client.updateDoc(document.class.Document, doc.space, doc._id, { content: uploadedId } as any)
+export const listDocumentComments = wrapToolHandler<z.infer<typeof ListDocumentCommentsSchema>>(async (args) => {
+  const client: any = await getConnection(args.workspace)
+  const doc = await client.findOne(document.class.Document, { _id: args.documentId })
+  if (doc == null) throw new Error(`Document '${args.documentId}' not found.`)
+  const comments: any[] = await client.findAll(chunter.class.ChatMessage, { attachedTo: doc._id }, { sort: { createdOn: SortingOrder.Ascending }, limit: args.limit })
+  if (comments.length === 0) return `No comments on "${doc.title as string}".`
+  const names = await socialIdNames(client, [...new Set(comments.map((c) => c.createdBy).filter((x) => x != null))])
+  const lines = comments.map((c) => `- **${names.get(c.createdBy) ?? 'Unknown'}** (${new Date(c.createdOn ?? 0).toISOString().slice(0, 16).replace('T', ' ')}) — \`${c._id as string}\`\n  ${markupToText(c.message).replace(/\n/g, '\n  ')}`)
+  return `## Comments on "${doc.title as string}" (${comments.length})\n\n${lines.join('\n')}`
+})
 
-  return `✅ Document **"${doc.title}"** updated (blob: \`${uploadedId}\`).`
+export const addDocumentComment = wrapToolHandler<z.infer<typeof AddDocumentCommentSchema>>(async (args) => {
+  const client: any = await getConnection(args.workspace)
+  const doc = await client.findOne(document.class.Document, { _id: args.documentId })
+  if (doc == null) throw new Error(`Document '${args.documentId}' not found.`)
+  await client.addCollection(chunter.class.ChatMessage, doc.space, doc._id, document.class.Document, 'comments', { message: args.message })
+  return `✅ Comment added to "${doc.title as string}".`
 })
 
 export const linkDocument = wrapToolHandler<z.infer<typeof LinkDocumentSchema>>(async (args) => {

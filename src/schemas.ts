@@ -255,7 +255,22 @@ export const LogTimeSchema = z.object({
 export const UpdateDocumentSchema = z.object({
   workspace: WorkspaceArg,
   documentId: z.string().describe('Document id'),
-  markdown: z.string().min(1).describe('Markdown body')
+  markdown: z.string().min(1).optional().describe('New body (replaces content)'),
+  title: z.string().min(1).optional(),
+  parentId: z.string().nullable().optional().describe('Move under this document; null = top level'),
+  teamspaceId: z.string().optional().describe('Move to this teamspace')
+})
+
+export const ListDocumentCommentsSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  documentId: z.string(),
+  limit: z.number().int().min(1).max(200).default(50)
+})
+
+export const AddDocumentCommentSchema = z.object({
+  workspace: WorkspaceArg,
+  documentId: z.string(),
+  message: z.string().min(1)
 })
 
 export const DeleteCommentSchema = z.object({

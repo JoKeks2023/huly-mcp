@@ -21,6 +21,11 @@ function data (): FakeDoc[] {
     { _id: 'ann', _class: contact.mixin.Employee, name: 'Doe,Ann', active: true },
     { _id: 'social-id', _class: contact.class.SocialIdentity, attachedTo: 'me' },
     { _id: 'col-1', _class: C.Collaborator, space: 'p-1', attachedTo: 'i-1', attachedToClass: 'task:class:Task', collection: 'collaborators', collaborator: 'acc-1' },
+    { _id: 'ts-1', _class: 'document:class:Teamspace', name: 'Docs' },
+    { _id: 'ts-2', _class: 'document:class:Teamspace', name: 'Other' },
+    { _id: 'd-1', _class: 'document:class:Document', space: 'ts-1', title: 'Root', parent: 'document:ids:NoParent', rank: '0|a' },
+    { _id: 'd-2', _class: 'document:class:Document', space: 'ts-1', title: 'Child', parent: 'd-1', rank: '0|b' },
+    { _id: 'd-3', _class: 'document:class:Document', space: 'ts-1', title: 'Grandchild', parent: 'd-2', rank: '0|c' },
     { _id: 'link-1', _class: C.PublicLink, space: 'core:space:Workspace', attachedTo: 'i-9', url: 'x', revokable: false }
   ]
 }
@@ -80,4 +85,42 @@ test('search maps friendly kinds to classes and lists hits', async () => {
   assert.deepEqual(fake.lastSearch.query, { query: 'arch', classes: ['document:class:Document', 'x:class:Y'] })
   assert.match(out, /## Search "arch" \(1 of 3\)/)
   assert.match(out, /\[Document\] \*\*Architecture\*\* — `d-1`/)
+})
+
+test('list_documents shows the full tree', async () => {
+  const { listDocuments } = await import('../src/tools/documents')
+  const out = text(await listDocuments({ workspace: W, teamspaceId: 'ts-1' } as any))
+  assert.match(out, /^- \*\*Root\*\*.*\n  - \*\*Child\*\*.*\n    - \*\*Grandchild\*\*/m)
+})
+
+test('update_document renames and moves; refuses moving under its own child', async () => {
+  const { updateDocument } = await import('../src/tools/documents')
+  await assert.rejects(updateDocument({ workspace: W, documentId: 'd-1', parentId: 'd-3' } as any), /under itself or one of its children/)
+  await assert.rejects(updateDocument({ workspace: W, documentId: 'd-1' } as any), /Nothing to change/)
+  assert.equal(mutations().length, 0)
+  const out = text(await updateDocument({ workspace: W, documentId: 'd-3', title: 'Leaf', parentId: null } as any))
+  assert.match(out, /renamed to "Leaf", moved to top level/)
+  assert.deepEqual(mutations()[0].data, { title: 'Leaf' })
+  assert.equal(mutations()[1].data.parent, 'document:ids:NoParent')
+  assert.equal(typeof mutations()[1].data.rank, 'string')
+})
+
+test('update_document moving to another teamspace takes the sub-documents along', async () => {
+  const { updateDocument } = await import('../src/tools/documents')
+  const out = text(await updateDocument({ workspace: W, documentId: 'd-1', teamspaceId: 'ts-2' } as any))
+  assert.match(out, /with 2 sub-document/)
+  assert.deepEqual(mutations().map((m) => [m.attachedTo, m.data.space]), [['d-1', 'ts-2'], ['d-2', 'ts-2'], ['d-3', 'ts-2']])
+})
+
+test('add_document_comment attaches a comment to the document', async () => {
+  const { addDocumentComment } = await import('../src/tools/documents')
+  await addDocumentComment({ workspace: W, documentId: 'd-1', message: 'Looks good' })
+  assert.deepEqual(mutations()[0], { op: 'addCollection', _class: 'chunter:class:ChatMessage', space: 'ts-1', attachedTo: 'd-1', data: { message: 'Looks good' } })
+})
+
+test('create_teamspace uses the account uuid for members and owners', async () => {
+  const { createTeamspace } = await import('../src/tools/documents')
+  await createTeamspace({ workspace: W, name: 'New', isPrivate: true })
+  const d: any = mutations()[0].data
+  assert.deepEqual([d.members, d.owners], [['acc-1'], ['acc-1']])
 })
