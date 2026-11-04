@@ -31,14 +31,15 @@ export const GetProjectSchema = z.object({
 export const ListIssuesSchema = z.object({
   workspace: ReadWorkspaceArg,
   projectIdentifier: z.string().describe('Project key'),
-  status: z.string().optional().describe('Status name'),
+  status: z.string().optional().describe('Status name, "open" (default) or "all"'),
   priority: PriorityEnum.optional().describe('Filter by priority'),
   milestoneLabel: z.string().min(1).nullable().optional().describe('Milestone name; null = none'),
   componentLabel: z.string().min(1).nullable().optional().describe('Component name; null = none'),
   labelName: z.string().min(1).optional().describe('Filter by label name'),
   assignee: z.string().min(1).nullable().optional().describe('Person name; null = unassigned'),
   parentIdentifier: z.string().min(1).nullable().optional().describe('Direct sub-issues of this issue; null = top-level only'),
-  limit: z.number().int().min(1).max(250).default(50)
+  limit: z.number().int().min(1).max(250).default(50),
+  offset: z.number().int().min(0).optional()
 })
 
 export const GetIssueSchema = z.object({
@@ -242,7 +243,8 @@ export const SetParentSchema = z.object({
 export const ListCommentsSchema = z.object({
   workspace: ReadWorkspaceArg,
   identifier: z.string().describe('Issue id'),
-  limit: z.number().int().min(1).max(100).default(20)
+  limit: z.number().int().min(1).max(100).default(20).describe('Newest n'),
+  full: z.boolean().optional().describe('Do not shorten long comments')
 })
 
 export const LogTimeSchema = z.object({

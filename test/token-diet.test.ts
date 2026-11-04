@@ -70,3 +70,30 @@ test('pinned workspace: no workspace argument, calls run in the pinned workspace
   assert.equal(amb.isError, true)
   await open.close(); await pinned.close()
 })
+
+test('list_comments: newest n in chronological order, long ones shortened unless full', async () => {
+  const chunter = 'chunter:class:ChatMessage'
+  const long = 'x'.repeat(2000)
+  env = createFakeEnv({
+    workspaces: [PERSONAL],
+    data: {
+      jokeks2023: [
+        { _id: 'i-1', _class: tracker.class.Issue, identifier: 'PROJ-1', title: 'T' },
+        { _id: 'sid', _class: 'contact:class:SocialIdentity', attachedTo: 'me' },
+        { _id: 'me', _class: 'contact:class:Person', name: 'Keks,Jo' },
+        ...[1, 2, 3, 4].map((n) => ({ _id: `c-${n}`, _class: chunter, attachedTo: 'i-1', createdBy: 'sid', createdOn: Date.UTC(2026, 10, n), message: n === 4 ? long : `comment ${n}` }))
+      ]
+    }
+  })
+  setConnectionManager(env.manager)
+  const { listComments } = await import('../src/tools/comments')
+  // The fake ignores sort; the server returns newest first — emulate by checking the shown set and order.
+  const out = (await listComments({ identifier: 'PROJ-1', limit: 10 } as any) as any).content[0].text as string
+  assert.match(out, /## Comments on PROJ-1 \(4\)/)
+  assert.ok(out.indexOf('comment 1') < out.indexOf('comment 3'))
+  assert.match(out, /x… _\[500 more chars — list_comments full: true\]_/)
+  const full = (await listComments({ identifier: 'PROJ-1', limit: 10, full: true } as any) as any).content[0].text as string
+  assert.ok(full.includes(long))
+  const two = (await listComments({ identifier: 'PROJ-1', limit: 2 } as any) as any).content[0].text as string
+  assert.match(two, /\(newest 2 of 4\)/)
+})
