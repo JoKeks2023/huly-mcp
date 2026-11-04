@@ -850,3 +850,50 @@ export const SetCustomFieldsSchema = z.object({
   object: z.string().describe('Issue id, card id or document id'),
   fields: FieldValues
 })
+
+// ── Drive ───────────────────────────────────────────────────────────────────
+const DriveArg = z.string().describe('Drive name or id')
+
+export const ListDrivesSchema = z.object({ workspace: ReadWorkspaceArg })
+
+export const CreateDriveSchema = z.object({ workspace: WorkspaceArg, name: z.string().min(1), description: z.string().optional(), isPrivate: z.boolean().default(false) })
+
+export const ListDriveFilesSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  drive: DriveArg,
+  folderId: z.string().optional().describe('Default: top level'),
+  recursive: z.boolean().default(true)
+})
+
+export const CreateFolderSchema = z.object({ workspace: WorkspaceArg, drive: DriveArg, title: z.string().min(1), parentId: z.string().optional() })
+
+export const UploadFileSchema = z.object({
+  workspace: WorkspaceArg,
+  drive: DriveArg,
+  folderId: z.string().optional(),
+  filename: z.string().optional().describe('Default: name of localPath'),
+  contentBase64: z.string().optional(),
+  localPath: z.string().optional().describe('File under HULY_FILE_ROOT'),
+  mimeType: z.string().optional(),
+  newVersion: z.boolean().default(true).describe('Same name in folder → new version')
+})
+
+export const DownloadFileSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  fileId: z.string(),
+  version: z.number().int().min(1).optional().describe('Default: current'),
+  savePath: z.string().optional().describe('Save under HULY_FILE_ROOT instead of returning it')
+})
+
+export const UpdateDriveItemSchema = z.object({
+  workspace: WorkspaceArg,
+  itemId: z.string().describe('File or folder id'),
+  title: z.string().min(1).optional(),
+  parentId: z.string().nullable().optional().describe('Move into this folder; null = top level')
+})
+
+export const DeleteDriveItemSchema = z.object({ workspace: WorkspaceArg, itemId: z.string(), recursive: z.boolean().default(false) })
+
+export const ListFileVersionsSchema = z.object({ workspace: ReadWorkspaceArg, fileId: z.string() })
+
+export const RestoreFileVersionSchema = z.object({ workspace: WorkspaceArg, fileId: z.string(), version: z.number().int().min(1) })

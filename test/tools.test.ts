@@ -183,7 +183,8 @@ const MUTATION_SCHEMAS = [
   'AttachFileSchema', 'DeleteAttachmentSchema',
   'CreateIssueStatusSchema', 'CreateOrganizationSchema', 'UpdateOrganizationSchema',
   'AddCollaboratorSchema', 'RemoveCollaboratorSchema', 'CreatePublicLinkSchema', 'RevokePublicLinkSchema', 'AddDocumentCommentSchema',
-  'CreateCardSchema', 'UpdateCardSchema', 'DeleteCardSchema', 'CreateCardTypeSchema', 'DeleteCardTypeSchema', 'CreateCustomFieldSchema', 'SetCustomFieldsSchema'
+  'CreateCardSchema', 'UpdateCardSchema', 'DeleteCardSchema', 'CreateCardTypeSchema', 'DeleteCardTypeSchema', 'CreateCustomFieldSchema', 'SetCustomFieldsSchema',
+  'CreateDriveSchema', 'CreateFolderSchema', 'UploadFileSchema', 'UpdateDriveItemSchema', 'DeleteDriveItemSchema', 'RestoreFileVersionSchema'
 ] as const
 
 test('every mutation schema requires workspace', () => {
@@ -206,7 +207,7 @@ test('every registered tool except list_workspaces accepts workspace', () => {
     const shape = tools[name].inputSchema?.shape
     assert.ok(shape?.workspace !== undefined, `${name} does not accept workspace`)
   }
-  const mutationTools = names.filter((n) => /^(create|update|delete|add|remove|set|log|link|send|attach|start|bulk|move|repair|mark|reply|pin|schedule|generic|finish|claim|release|revoke)_/.test(n))
+  const mutationTools = names.filter((n) => /^(create|update|delete|add|remove|set|log|link|send|attach|start|bulk|move|repair|mark|reply|pin|schedule|generic|finish|claim|release|revoke|upload|restore)_/.test(n))
   assert.equal(mutationTools.length, MUTATION_SCHEMAS.length)
   for (const name of mutationTools) {
     assert.equal(tools[name].inputSchema.shape.workspace.isOptional(), false, `${name}.workspace must be required`)

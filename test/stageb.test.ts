@@ -211,3 +211,56 @@ test('create_custom_field creates an enum and the attribute like the settings di
   assert.match(at.data.name, /^custom/)
   assert.equal(at.data.type._class, 'core:class:EnumOf')
 })
+
+// ── Drive ───────────────────────────────────────────────────────────────────
+function driveData (fake: any): void {
+  fake.docs.push(
+    { _id: 'dr-1', _class: C.Drive, name: 'Team', archived: false },
+    { _id: 'fo-1', _class: C.Folder, space: 'dr-1', title: 'Docs', parent: 'drive:ids:Root', path: [] },
+    { _id: 'fo-2', _class: C.Folder, space: 'dr-1', title: 'Sub', parent: 'fo-1', path: ['fo-1'] },
+    { _id: 'fi-1', _class: C.File, space: 'dr-1', title: 'a.md', parent: 'fo-2', path: ['fo-2', 'fo-1'], file: 'v-2', version: 2 },
+    { _id: 'v-1', _class: C.FileVersion, space: 'dr-1', attachedTo: 'fi-1', version: 1, file: 'blob-1', size: 3, type: 'text/markdown' },
+    { _id: 'v-2', _class: C.FileVersion, space: 'dr-1', attachedTo: 'fi-1', version: 2, file: 'blob-2', size: 4, type: 'text/markdown' }
+  )
+  fake.classes = { [C.DriveResource]: {}, [C.Folder]: { extends: C.DriveResource }, [C.File]: { extends: C.DriveResource } }
+}
+
+test('local file paths are off without HULY_FILE_ROOT and cannot escape it', async () => {
+  const { localPath } = await import('../src/utils/files')
+  assert.throws(() => localPath('x.txt', {}), /HULY_FILE_ROOT/)
+  const { mkdtempSync, realpathSync } = await import('node:fs')
+  const { tmpdir } = await import('node:os')
+  const root = realpathSync(mkdtempSync(`${tmpdir()}/huly-root-`))
+  assert.equal(localPath('x.txt', { HULY_FILE_ROOT: root }), `${root}/x.txt`)
+  assert.throws(() => localPath('../x.txt', { HULY_FILE_ROOT: root }), /outside HULY_FILE_ROOT/)
+  assert.throws(() => localPath('/etc/passwd', { HULY_FILE_ROOT: root }), /outside HULY_FILE_ROOT/)
+})
+
+test('list_drive_files shows the folder tree with current versions', async () => {
+  const { listDriveFiles } = await import('../src/tools/drive')
+  driveData(env.clients.get(W)!)
+  const out = text(await listDriveFiles({ workspace: W, drive: 'team', recursive: true } as any))
+  assert.match(out, /- 📁 \*\*Docs\*\*.*\n  - 📁 \*\*Sub\*\*.*\n    - a\.md \(4 B, text\/markdown, v2/)
+})
+
+test('restore_file_version points the file at the older version', async () => {
+  const { restoreFileVersion } = await import('../src/tools/drive')
+  driveData(env.clients.get(W)!)
+  await restoreFileVersion({ workspace: W, fileId: 'fi-1', version: 1 })
+  assert.deepEqual(mutations()[0], { op: 'updateDoc', _class: C.File, space: 'dr-1', attachedTo: 'fi-1', data: { file: 'v-1' } })
+})
+
+test('delete_drive_item needs recursive for folders with content and removes versions', async () => {
+  const { deleteDriveItem } = await import('../src/tools/drive')
+  driveData(env.clients.get(W)!)
+  await assert.rejects(deleteDriveItem({ workspace: W, itemId: 'fo-1', recursive: false }), /contains 2 item/)
+  assert.equal(mutations().length, 0)
+  await deleteDriveItem({ workspace: W, itemId: 'fo-1', recursive: true })
+  assert.deepEqual(mutations().map((m) => [m.op, m.attachedTo]), [['removeCollection', 'v-1'], ['removeCollection', 'v-2'], ['removeDoc', 'fi-1'], ['removeDoc', 'fo-2'], ['removeDoc', 'fo-1']])
+})
+
+test('update_drive_item refuses to move a folder into its own subfolder', async () => {
+  const { updateDriveItem } = await import('../src/tools/drive')
+  driveData(env.clients.get(W)!)
+  await assert.rejects(updateDriveItem({ workspace: W, itemId: 'fo-1', parentId: 'fo-2' } as any), /into itself/)
+})

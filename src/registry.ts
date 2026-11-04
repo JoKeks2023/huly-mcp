@@ -28,9 +28,10 @@ import { getIssueContext, startWork, finishWork, createIssueTree, changesSince, 
 import { listCollaborators, addCollaborator, removeCollaborator, createPublicLink, listPublicLinks, revokePublicLink } from './tools/sharing'
 import { listCardTypes, listCards, getCard, createCard, updateCard, deleteCard, createCardType, deleteCardType } from './tools/cards'
 import { listCustomFields, createCustomField, setCustomFields } from './tools/fields'
+import { listDrives, listDriveFiles, createFolder, uploadFile, downloadFile, updateDriveItem, deleteDriveItem, listFileVersions, restoreFileVersion, createDrive } from './tools/drive'
 import * as S from './schemas'
 
-export const TOOLSETS = ['core', 'agent', 'tracker', 'tracker-admin', 'documents', 'chat', 'contacts', 'inbox', 'activity', 'planner', 'calendar', 'github', 'generic', 'generic-write', 'collaboration', 'cards', 'fields'] as const
+export const TOOLSETS = ['core', 'agent', 'tracker', 'tracker-admin', 'documents', 'chat', 'contacts', 'inbox', 'activity', 'planner', 'calendar', 'github', 'generic', 'generic-write', 'collaboration', 'cards', 'fields', 'drive'] as const
 export type Toolset = typeof TOOLSETS[number]
 
 /** Enabled when HULY_TOOLSETS is not set. 'core' is always enabled. */
@@ -177,5 +178,15 @@ export const TOOLS: ToolDef[] = [
   { name: 'delete_card_type', toolset: 'cards', description: 'Delete an unused card type or tag', schema: S.DeleteCardTypeSchema, handler: deleteCardType },
   { name: 'list_custom_fields', toolset: 'fields', description: 'Custom fields of issues/cards/classes, or values on one object', schema: S.ListCustomFieldsSchema, handler: listCustomFields },
   { name: 'create_custom_field', toolset: 'fields', description: 'Add a custom field to issues, a project type, card type or class', schema: S.CreateCustomFieldSchema, handler: createCustomField },
-  { name: 'set_custom_fields', toolset: 'fields', description: 'Set custom field values on an issue, card or document', schema: S.SetCustomFieldsSchema, handler: setCustomFields }
+  { name: 'set_custom_fields', toolset: 'fields', description: 'Set custom field values on an issue, card or document', schema: S.SetCustomFieldsSchema, handler: setCustomFields },
+  { name: 'list_drives', toolset: 'drive', description: 'Drives with file counts', schema: S.ListDrivesSchema, handler: listDrives },
+  { name: 'create_drive', toolset: 'drive', description: 'Create a drive', schema: S.CreateDriveSchema, handler: createDrive },
+  { name: 'list_drive_files', toolset: 'drive', description: 'Folder tree of a drive with files, sizes, versions', schema: S.ListDriveFilesSchema, handler: listDriveFiles },
+  { name: 'create_folder', toolset: 'drive', description: 'Create a drive folder', schema: S.CreateFolderSchema, handler: createFolder },
+  { name: 'upload_file', toolset: 'drive', description: 'Upload a file to a drive (same name → new version)', schema: S.UploadFileSchema, handler: uploadFile },
+  { name: 'download_file', toolset: 'drive', description: 'Read a drive file (text inline, binary base64) or save it locally', schema: S.DownloadFileSchema, handler: downloadFile },
+  { name: 'update_drive_item', toolset: 'drive', description: 'Rename or move a file/folder', schema: S.UpdateDriveItemSchema, handler: updateDriveItem },
+  { name: 'delete_drive_item', toolset: 'drive', description: 'Delete a file or folder (folders with content need recursive)', schema: S.DeleteDriveItemSchema, handler: deleteDriveItem },
+  { name: 'list_file_versions', toolset: 'drive', description: 'Versions of a drive file', schema: S.ListFileVersionsSchema, handler: listFileVersions },
+  { name: 'restore_file_version', toolset: 'drive', description: 'Make an older file version current', schema: S.RestoreFileVersionSchema, handler: restoreFileVersion }
 ]
