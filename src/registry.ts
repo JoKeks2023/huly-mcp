@@ -26,9 +26,11 @@ import { listIssueStatuses, createIssueStatus } from './tools/statuses'
 import { listOrganizations, getOrganization, createOrganization, updateOrganization } from './tools/organizations'
 import { getIssueContext, startWork, finishWork, createIssueTree, changesSince, claimIssue, releaseIssue, findProjectForRepo } from './tools/agent'
 import { listCollaborators, addCollaborator, removeCollaborator, createPublicLink, listPublicLinks, revokePublicLink } from './tools/sharing'
+import { listCardTypes, listCards, getCard, createCard, updateCard, deleteCard, createCardType, deleteCardType } from './tools/cards'
+import { listCustomFields, createCustomField, setCustomFields } from './tools/fields'
 import * as S from './schemas'
 
-export const TOOLSETS = ['core', 'agent', 'tracker', 'tracker-admin', 'documents', 'chat', 'contacts', 'inbox', 'activity', 'planner', 'calendar', 'github', 'generic', 'generic-write', 'collaboration'] as const
+export const TOOLSETS = ['core', 'agent', 'tracker', 'tracker-admin', 'documents', 'chat', 'contacts', 'inbox', 'activity', 'planner', 'calendar', 'github', 'generic', 'generic-write', 'collaboration', 'cards', 'fields'] as const
 export type Toolset = typeof TOOLSETS[number]
 
 /** Enabled when HULY_TOOLSETS is not set. 'core' is always enabled. */
@@ -164,5 +166,16 @@ export const TOOLS: ToolDef[] = [
   { name: 'remove_collaborator', toolset: 'collaboration', description: 'Stop following an issue/document', schema: S.RemoveCollaboratorSchema, handler: removeCollaborator },
   { name: 'create_public_link', toolset: 'collaboration', description: 'Read-only guest link for an issue/document (anyone with the link can read)', schema: S.CreatePublicLinkSchema, handler: createPublicLink },
   { name: 'list_public_links', toolset: 'collaboration', description: 'Public guest links', schema: S.ListPublicLinksSchema, handler: listPublicLinks },
-  { name: 'revoke_public_link', toolset: 'collaboration', description: 'Revoke a public link', schema: S.RevokePublicLinkSchema, handler: revokePublicLink }
+  { name: 'revoke_public_link', toolset: 'collaboration', description: 'Revoke a public link', schema: S.RevokePublicLinkSchema, handler: revokePublicLink },
+  { name: 'list_card_types', toolset: 'cards', description: 'Card types (MasterTags) and their tags', schema: S.ListCardTypesSchema, handler: listCardTypes },
+  { name: 'list_cards', toolset: 'cards', description: 'List cards by type, parent or title', schema: S.ListCardsSchema, handler: listCards },
+  { name: 'get_card', toolset: 'cards', description: 'Card with fields, tags, children and content', schema: S.GetCardSchema, handler: getCard },
+  { name: 'create_card', toolset: 'cards', description: 'Create a card (type, content, parent, tags, fields)', schema: S.CreateCardSchema, handler: createCard },
+  { name: 'update_card', toolset: 'cards', description: 'Edit, move or tag a card; set fields', schema: S.UpdateCardSchema, handler: updateCard },
+  { name: 'delete_card', toolset: 'cards', description: 'Delete a card without children', schema: S.DeleteCardSchema, handler: deleteCard },
+  { name: 'create_card_type', toolset: 'cards', description: 'New card type or tag', schema: S.CreateCardTypeSchema, handler: createCardType },
+  { name: 'delete_card_type', toolset: 'cards', description: 'Delete an unused card type or tag', schema: S.DeleteCardTypeSchema, handler: deleteCardType },
+  { name: 'list_custom_fields', toolset: 'fields', description: 'Custom fields of issues/cards/classes, or values on one object', schema: S.ListCustomFieldsSchema, handler: listCustomFields },
+  { name: 'create_custom_field', toolset: 'fields', description: 'Add a custom field to issues, a project type, card type or class', schema: S.CreateCustomFieldSchema, handler: createCustomField },
+  { name: 'set_custom_fields', toolset: 'fields', description: 'Set custom field values on an issue, card or document', schema: S.SetCustomFieldsSchema, handler: setCustomFields }
 ]

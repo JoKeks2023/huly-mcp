@@ -124,3 +124,90 @@ test('create_teamspace uses the account uuid for members and owners', async () =
   const d: any = mutations()[0].data
   assert.deepEqual([d.members, d.owners], [['acc-1'], ['acc-1']])
 })
+
+// ── Cards and custom fields ─────────────────────────────────────────────────
+function cardModel (fake: any): void {
+  fake.classes = {
+    'card:class:Card': { extends: 'core:class:Doc', label: 'card:string:Card' },
+    'lead': { extends: 'card:class:Card', label: 'embedded:embedded:Lead' },
+    'hot': { extends: 'lead', kind: 2, label: 'embedded:embedded:Hot' },
+    'old': { extends: 'card:class:Card', label: 'embedded:embedded:Old', removed: true }
+  }
+  const attr = (owner: string, name: string, label: string, type: any): any => ({ _id: `a-${name}`, attributeOf: owner, name, label: `embedded:embedded:${label}`, isCustom: true, type })
+  fake.customAttrs = {
+    lead: [attr('lead', 'customV', 'Value', { _class: 'core:class:TypeNumber' }), attr('lead', 'customS', 'Stage', { _class: 'core:class:EnumOf', of: 'enum-1' })],
+    hot: [attr('hot', 'customH', 'Heat', { _class: 'core:class:TypeString' })]
+  }
+  for (const list of Object.values(fake.customAttrs) as any[][]) for (const a of list) fake.docs.push({ ...a, _class: C.Attribute })
+  fake.docs.push(
+    { _id: 'enum-1', _class: C.Enum, enumValues: ['New', 'Won'] },
+    { _id: 'k-1', _class: 'lead', space: 'card:space:Default', title: 'ACME', parentInfo: [], hot: { customH: 'warm' }, customV: 10 },
+    { _id: 'k-2', _class: 'lead', space: 'card:space:Default', title: 'Sub', parent: 'k-1', parentInfo: [{ _id: 'k-1', _class: 'lead', title: 'ACME' }] }
+  )
+}
+
+test('list_card_types hides removed types and lists tags under their type', async () => {
+  const { listCardTypes } = await import('../src/tools/cards')
+  cardModel(env.clients.get(W)!)
+  const out = text(await listCardTypes({ workspace: W }))
+  assert.match(out, /- \*\*Lead\*\* — `lead`\n  tags: Hot/)
+  assert.doesNotMatch(out, /Old/)
+})
+
+test('create_card validates fields first, then writes type fields on the card and tag fields on the mixin', async () => {
+  const { createCard } = await import('../src/tools/cards')
+  cardModel(env.clients.get(W)!)
+  await assert.rejects(createCard({ workspace: W, type: 'Lead', title: 'X', fields: { Stage: 'Lost' } } as any), /must be one of: New, Won/)
+  await assert.rejects(createCard({ workspace: W, type: 'Lead', title: 'X', fields: { Nope: 1 } } as any), /Field 'Nope' not found/)
+  assert.equal(mutations().length, 0)
+  await createCard({ workspace: W, type: 'lead', title: 'Deal', parentId: 'k-1', tags: ['Hot'], fields: { value: '5', Stage: 'won', Heat: 'hot' } } as any)
+  const [create, mixin] = mutations()
+  assert.equal(create.op, 'createDoc')
+  assert.equal(create._class, 'lead')
+  assert.equal(create.data.customV, 5)
+  assert.equal(create.data.customS, 'Won')
+  assert.equal(create.data.parent, 'k-1')
+  assert.deepEqual(create.data.parentInfo, [{ _id: 'k-1', _class: 'lead', title: 'ACME' }])
+  assert.deepEqual([mixin.op, mixin._class, mixin.data], ['createMixin', 'hot', { customH: 'hot' }])
+})
+
+test('update_card refuses cycles and refreshes the breadcrumb of children on move', async () => {
+  const { updateCard } = await import('../src/tools/cards')
+  cardModel(env.clients.get(W)!)
+  await assert.rejects(updateCard({ workspace: W, cardId: 'k-1', parentId: 'k-2' } as any), /under itself/)
+  await updateCard({ workspace: W, cardId: 'k-1', title: 'ACME Inc' } as any)
+  assert.deepEqual(mutations()[0].data, { title: 'ACME Inc' })
+})
+
+test('get_card shows type, tags and field values', async () => {
+  const { getCard } = await import('../src/tools/cards')
+  cardModel(env.clients.get(W)!)
+  const out = text(await getCard({ workspace: W, cardId: 'k-1' }))
+  assert.match(out, /\*\*Type:\*\* Lead/)
+  assert.match(out, /\*\*Tags:\*\* Hot/)
+  assert.match(out, /\*\*Value:\*\* 10/)
+  assert.match(out, /\*\*Heat:\*\* warm/)
+  assert.match(out, /Child cards \(1\)\n- Sub/)
+})
+
+test('set_custom_fields uses updateDoc for class fields and updateMixin for mixin fields', async () => {
+  const { setCustomFields } = await import('../src/tools/fields')
+  cardModel(env.clients.get(W)!)
+  await assert.rejects(setCustomFields({ workspace: W, object: 'k-1', fields: {} }), /Nothing to set/)
+  await setCustomFields({ workspace: W, object: 'k-1', fields: { Value: 7, Heat: 'cold' } })
+  assert.deepEqual(mutations().map((m) => [m.op, m._class, m.data]), [['updateDoc', 'lead', { customV: 7 }], ['updateMixin', 'hot', { customH: 'cold' }]])
+})
+
+test('create_custom_field creates an enum and the attribute like the settings dialog', async () => {
+  const { createCustomField } = await import('../src/tools/fields')
+  cardModel(env.clients.get(W)!)
+  assert.match(text(await createCustomField({ workspace: W, target: 'Lead', label: 'value', type: 'number' } as any)), /already exists/)
+  await createCustomField({ workspace: W, target: 'issue', label: 'Phase', type: 'enum', enumValues: ['A', 'B', 'A'] } as any)
+  const [en, at] = mutations()
+  assert.deepEqual([en._class, en.space, en.data.enumValues], [C.Enum, 'core:space:Model', ['A', 'B']])
+  assert.equal(at._class, C.Attribute)
+  assert.equal(at.data.attributeOf, 'tracker:class:Issue')
+  assert.equal(at.data.label, 'embedded:embedded:Phase')
+  assert.match(at.data.name, /^custom/)
+  assert.equal(at.data.type._class, 'core:class:EnumOf')
+})

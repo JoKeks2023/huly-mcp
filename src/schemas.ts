@@ -779,3 +779,74 @@ export const ListPublicLinksSchema = z.object({
 })
 
 export const RevokePublicLinkSchema = z.object({ workspace: WorkspaceArg, linkId: z.string() })
+
+// ── Cards ───────────────────────────────────────────────────────────────────
+const FieldValues = z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()])).describe('Field name → value')
+
+export const ListCardTypesSchema = z.object({ workspace: ReadWorkspaceArg })
+
+export const ListCardsSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  type: z.string().optional().describe('Card type name or id'),
+  parentId: z.string().nullable().optional().describe('Children of this card; null = top level'),
+  query: z.string().optional().describe('Title contains'),
+  limit: z.number().int().min(1).max(200).default(50)
+})
+
+export const GetCardSchema = z.object({ workspace: ReadWorkspaceArg, cardId: z.string() })
+
+export const CreateCardSchema = z.object({
+  workspace: WorkspaceArg,
+  type: z.string().describe('Card type name or id'),
+  title: z.string().min(1),
+  content: z.string().optional().describe('Markdown'),
+  parentId: z.string().optional(),
+  space: z.string().optional().describe('Card space id; default: Default'),
+  tags: z.array(z.string()).optional(),
+  fields: FieldValues.optional()
+})
+
+export const UpdateCardSchema = z.object({
+  workspace: WorkspaceArg,
+  cardId: z.string(),
+  title: z.string().min(1).optional(),
+  content: z.string().optional().describe('Markdown; replaces content'),
+  parentId: z.string().nullable().optional().describe('Move under this card; null = top level'),
+  addTags: z.array(z.string()).optional(),
+  fields: FieldValues.optional()
+})
+
+export const DeleteCardSchema = z.object({ workspace: WorkspaceArg, cardId: z.string() })
+
+export const CreateCardTypeSchema = z.object({
+  workspace: WorkspaceArg,
+  name: z.string().min(1),
+  kind: z.enum(['type', 'tag']).default('type'),
+  parentType: z.string().optional().describe('Subtype of / tag for this type')
+})
+
+export const DeleteCardTypeSchema = z.object({ workspace: WorkspaceArg, type: z.string().describe('Card type or tag') })
+
+// ── Custom fields ───────────────────────────────────────────────────────────
+const FieldTarget = z.string().describe('"issue", project key, card type/tag or class id')
+
+export const ListCustomFieldsSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  target: FieldTarget.optional(),
+  object: z.string().optional().describe('Show values of this issue/card instead')
+})
+
+export const CreateCustomFieldSchema = z.object({
+  workspace: WorkspaceArg,
+  target: FieldTarget,
+  label: z.string().min(1),
+  type: z.enum(['string', 'number', 'boolean', 'date', 'markup', 'enum', 'ref']),
+  enumValues: z.array(z.string()).optional(),
+  refClass: z.string().optional().describe('For ref, e.g. contact:mixin:Employee')
+})
+
+export const SetCustomFieldsSchema = z.object({
+  workspace: WorkspaceArg,
+  object: z.string().describe('Issue id, card id or document id'),
+  fields: FieldValues
+})
