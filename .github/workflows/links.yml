@@ -16,10 +16,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # 5xx = the other site is having a moment; only dead links (4xx) fail a PR.
       - id: lychee
         uses: lycheeverse/lychee-action@v2
         with:
-          args: --no-progress --max-retries 3 --accept '200..=299,429,523' --exclude '^https://www\.npmjs\.com/' --exclude-path docs/tasks './**/*.md' 'site/**/*.html'
+          args: --no-progress --max-retries 3 --accept '200..=299,429,500..=599' --exclude '^https://www\.npmjs\.com/' --exclude-path docs/tasks './**/*.md' 'site/**/*.html'
           fail: ${{ github.event_name == 'pull_request' }}
       - name: Open an issue for broken links (weekly run)
         if: github.event_name != 'pull_request' && steps.lychee.outputs.exit_code != 0
