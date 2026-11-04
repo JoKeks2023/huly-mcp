@@ -137,6 +137,7 @@ test('my_day: own events of the day, urgent to-dos first, open issues, reviews, 
   assert.doesNotMatch(out, /PROJ-9/)
   // Inbox: only my unread
   assert.match(out, /## Inbox \(2 unread on 1 item\(s\)\)\n- \*\*PROJ-1: Todo with deadline\*\* — 2 unread/)
+  assert.match(out, /Work through them: triage_inbox\./)
 })
 
 test('my_day: empty sections and bad dates', async () => {

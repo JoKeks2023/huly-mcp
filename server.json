@@ -59,6 +59,13 @@
           "format": "string"
         },
         {
+          "name": "HULY_DYNAMIC_TOOLSETS",
+          "description": "Optional: 1 = start with HULY_TOOLSETS and load more toolsets on demand via enable_toolsets",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string"
+        },
+        {
           "name": "HULY_TOOLSETS",
           "description": "Optional: comma-separated toolsets (agent, tracker, tracker-admin, documents, chat, contacts, inbox, activity, planner, calendar, github, generic, generic-write, collaboration, cards, fields, drive, templates, testing, products, members, recruiting, crm, hr, inventory, meetings, qms, process, surveys) or 'all'",
           "isRequired": false,
