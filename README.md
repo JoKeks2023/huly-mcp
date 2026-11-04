@@ -33,7 +33,7 @@ This is a fork of [varaprasadreddy9676/huly-mcp](https://github.com/varaprasadre
 
 ---
 
-## Tools (206 total, grouped in toolsets)
+## Tools (208 total, grouped in toolsets)
 
 All tools except `list_workspaces` take a `workspace` argument — required for every change, optional for reads when only one workspace is available.
 
@@ -78,7 +78,7 @@ HULY_TOOLSETS=tracker,documents,planner # just these ('core' = list_workspaces i
 | `process` | | 2 | process definitions and executions (read-only) |
 | `surveys` | | 2 | surveys and aggregated poll answers (read-only) |
 
-Context cost of `tools/list` (≈3.5 chars/token): default set ~40k chars ≈ **11k tokens** (89 tools), `all` ~88k chars ≈ **25k tokens** (206 tools). For comparison, 2.2.0 needed ≈12.8k tokens for 64 tools. Claude Code loads MCP tools on demand, so there the toolset choice matters less.
+Context cost of `tools/list` (≈3.5 chars/token): default set ~40k chars ≈ **11k tokens** (89 tools), `all` ~88k chars ≈ **25k tokens** (208 tools). For comparison, 2.2.0 needed ≈12.8k tokens for 64 tools. Claude Code loads MCP tools on demand, so there the toolset choice matters less.
 
 ### Agent workflow
 
@@ -262,7 +262,7 @@ npx huly-mcp-selfhost watch --workspace acme --project WEB --label claude       
 | **Meetings** (`meetings`) | `list_meetings` / `get_meeting` | Rooms, meeting minutes, action items and transcripts (read-only) |
 | **QMS** (`qms`) | `list_controlled_documents` / `get_controlled_document` | Controlled documents: version, state, reviewers/approvers, requests, content (read-only) |
 | | `list_trainings` / `get_training` | Trainings, questions (answers optional) and trainee results (read-only) |
-| **Processes** (`process`) | `list_processes` / `list_executions` | Process states and transitions; running executions (read-only) |
+| **Processes** (`process`) | `list_processes` / `list_executions` / `start_process` / `cancel_execution` | Process states and transitions; running executions; run a process on a card like Huly's "Run process" menu (processes that ask for input in the app are refused); cancel asks first |
 | **Surveys** (`surveys`) | `list_surveys` / `get_survey` | Surveys and aggregated poll answers (read-only) |
 
 ---
@@ -775,6 +775,10 @@ See [`src/connection.ts`](src/connection.ts).
 ---
 
 ## Changelog
+
+### Unreleased
+
+- **New: `start_process` / `cancel_execution`** — run a process on a card and cancel a running one. Starting works like Huly's "Run process" menu; Huly's process service then moves the execution on. Processes whose start asks for input in the app are refused, and so is a second run where the process forbids parallel runs. Cancelling asks first.
 
 ### 3.0.0 — 2026-11-04
 

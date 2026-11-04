@@ -1180,5 +1180,7 @@ export const ListTrainingsSchema = z.object({ workspace: ReadWorkspaceArg, inclu
 export const GetTrainingSchema = z.object({ workspace: ReadWorkspaceArg, training: z.string().describe('Code, title or id'), showAnswers: z.boolean().optional() })
 export const ListProcessesSchema = z.object({ workspace: ReadWorkspaceArg })
 export const ListExecutionsSchema = z.object({ workspace: ReadWorkspaceArg, process: z.string().optional(), status: z.enum(['active', 'done', 'cancelled']).optional(), limit: z.number().int().min(1).max(200).optional() })
+export const StartProcessSchema = z.object({ workspace: WorkspaceArg, process: z.string().describe('Name or id'), card: z.string().describe('Card id'), dryRun: z.boolean().optional() })
+export const CancelExecutionSchema = z.object({ workspace: WorkspaceArg, execution: z.string().describe('Execution id'), dryRun: z.boolean().optional() })
 export const ListSurveysSchema = z.object({ workspace: ReadWorkspaceArg })
 export const GetSurveySchema = z.object({ workspace: ReadWorkspaceArg, survey: z.string(), maxTextAnswers: z.number().int().min(0).max(100).optional() })
