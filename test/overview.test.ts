@@ -6,7 +6,7 @@ import contact from '@hcengineering/contact'
 import task from '@hcengineering/task'
 import core from '@hcengineering/core'
 import { setConnectionManager, getConnection } from '../src/connection'
-import { myDay, dayStart } from '../src/tools/overview'
+import { myDay, dayStart, projectReport } from '../src/tools/overview'
 import { C } from '../src/utils/classes'
 import { createFakeEnv, PERSONAL, type FakeDoc } from './helpers'
 
@@ -44,7 +44,33 @@ function data (): FakeDoc[] {
     { _id: 'n-1', _class: C.InboxNotification, user: 'acc-1', docNotifyContext: 'ctx-1', isViewed: false, archived: false, createdOn: D },
     { _id: 'n-2', _class: C.InboxNotification, user: 'acc-1', docNotifyContext: 'ctx-1', isViewed: false, archived: false, createdOn: D + 1 },
     { _id: 'n-3', _class: C.InboxNotification, user: 'acc-1', docNotifyContext: 'ctx-1', isViewed: true, archived: false, createdOn: D + 2 },
-    { _id: 'n-4', _class: C.InboxNotification, user: 'acc-2', docNotifyContext: 'ctx-x', isViewed: false, archived: false, createdOn: D }
+    { _id: 'n-4', _class: C.InboxNotification, user: 'acc-2', docNotifyContext: 'ctx-x', isViewed: false, archived: false, createdOn: D },
+    ...reportData()
+  ]
+}
+
+// Project REP for project_report, relative to now: period = last 7 days.
+const NOW = Date.now()
+const DAYS = (n: number): number => NOW - n * 86_400_000
+function reportData (): FakeDoc[] {
+  const issue = (id: string, n: number, title: string, status: string, more: Record<string, unknown> = {}): FakeDoc =>
+    ({ _id: id, _class: tracker.class.Issue, space: 'rep', identifier: `REP-${n}`, title, status, createdOn: DAYS(30), modifiedOn: DAYS(20), ...more })
+  return [
+    { _id: 'rep', _class: tracker.class.Project, identifier: 'REP', name: 'Reports' },
+    issue('r-1', 1, 'Shipped feature', 'st-d', { modifiedOn: DAYS(1), milestone: 'ms-1' }),
+    issue('r-2', 2, 'Done long ago', 'st-d', { modifiedOn: DAYS(1), milestone: 'ms-1' }),
+    issue('r-3', 3, 'Fresh idea', 'st-t', { createdOn: DAYS(2), modifiedOn: DAYS(2) }),
+    issue('r-4', 4, 'Stuck work', 'st-a', { assignee: 'ann', blockedBy: [{ _id: 'r-3', _class: tracker.class.Issue }], milestone: 'ms-1' }),
+    issue('r-5', 5, 'Late one', 'st-t', { dueDate: DAYS(3) }),
+    { _id: 'r-pr', _class: C.PullRequest, space: 'rep', identifier: 'REP-6', title: 'Merged PR', state: 2, mergedAt: DAYS(1), status: 'st-d' },
+    { _id: 'r-pr2', _class: C.PullRequest, space: 'rep', identifier: 'REP-7', title: 'Open PR', state: 0, reviewDecision: 1, status: 'st-a' },
+    // Only REP-1 changed status in the period (REP-2 was edited, but finished earlier).
+    { _id: 'du-1', _class: C.DocUpdateMessage, attachedTo: 'r-1', createdOn: DAYS(1), attributeUpdates: { attrKey: 'status' } },
+    { _id: 'du-2', _class: C.DocUpdateMessage, attachedTo: 'r-2', createdOn: DAYS(1), attributeUpdates: { attrKey: 'title' } },
+    { _id: 'ms-1', _class: tracker.class.Milestone, space: 'rep', label: 'v1.0', status: 1, targetDate: DAYS(-10) },
+    { _id: 'ms-2', _class: tracker.class.Milestone, space: 'rep', label: 'Old', status: 2, targetDate: DAYS(100) },
+    { _id: 'tr-1', _class: tracker.class.TimeSpendReport, attachedTo: 'r-4', employee: 'ann', date: DAYS(2), value: 2.5 },
+    { _id: 'tr-2', _class: tracker.class.TimeSpendReport, attachedTo: 'r-4', employee: 'ann', date: DAYS(40), value: 9 }
   ]
 }
 
@@ -58,7 +84,7 @@ beforeEach(async () => {
     [core.class.AttachedDoc]: { extends: core.class.Doc },
     'task:class:Task': { extends: core.class.AttachedDoc },
     [tracker.class.Issue]: { extends: 'task:class:Task' },
-    [C.PullRequest]: { extends: 'task:class:Task' },
+    [C.PullRequest]: { extends: tracker.class.Issue }, // like Huly: a PR is an issue
     [C.Event]: { extends: core.class.AttachedDoc },
     [C.WorkSlot]: { extends: C.Event },
     [C.ToDo]: { extends: core.class.AttachedDoc }
@@ -98,4 +124,22 @@ test('my_day: empty sections and bad dates', async () => {
   const out = text(await myDay({ date: '2027-01-01', limit: 1 }))
   assert.match(out, /Nothing scheduled\./)
   assert.match(out, /## To-dos \(2 open, 1 due by today\)/)
+})
+
+test('project_report: done in period, new, in progress (stale), blocked, overdue, PRs, milestones, time', async () => {
+  const out = text(await projectReport({ projectIdentifier: 'REP' }))
+  assert.match(out, /# Reports \(REP\)/)
+  assert.match(out, /\*\*1 done · 1 new · 3 open \(1 in progress\) · 1 blocked · 1 overdue · 1 PRs merged · 2\.5h logged\*\*/)
+  assert.match(out, /## Done \(1\)\n- \*\*REP-1\*\* Shipped feature\n/)
+  assert.doesNotMatch(out, /REP-2/)
+  assert.match(out, /## New \(1\)\n- \*\*REP-3\*\* Fresh idea — Todo/)
+  assert.match(out, /## In progress \(1\)\n- \*\*REP-4\*\* Stuck work · ⚠️ no change in this period · Ann Other/)
+  assert.match(out, /## Blocked \(1\)\n- \*\*REP-4\*\* Stuck work — by REP-3/)
+  assert.match(out, /## Overdue \(1\)\n- \*\*REP-5\*\* Late one — due/)
+  assert.match(out, /## Pull requests merged \(1\)\n- \*\*REP-6\*\* Merged PR/)
+  assert.match(out, /## Pull requests open \(1\)\n- \*\*REP-7\*\* Open PR · approved/)
+  assert.match(out, /## Milestones \(1\)\n- \*\*v1\.0\*\* — 2\/3 done \(67%\), target \d{4}-\d{2}-\d{2}\n/)
+  assert.match(out, /## Time logged\n- Ann Other: 2\.5h/)
+  await assert.rejects(projectReport({ projectIdentifier: 'NOPE' }), /not found/)
+  await assert.rejects(projectReport({ projectIdentifier: 'REP', since: 'last week' }), /Cannot read since/)
 })
