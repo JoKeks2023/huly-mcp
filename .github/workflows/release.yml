@@ -63,6 +63,9 @@ jobs:
           PERSONAL_DATA_PATTERNS: ${{ secrets.PERSONAL_DATA_PATTERNS }}
 
       - name: Publish to npm
+        id: npm
+        # A failure here must not block the GitHub release; the job still fails at the end.
+        continue-on-error: true
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
@@ -93,8 +96,16 @@ jobs:
           else gh release create "$TAG" --title "$title" --notes-file notes.md --verify-tag --latest; fi
 
       - name: Publish to the MCP registry
+        # The registry verifies the npm package, so only after npm worked.
+        if: steps.npm.outcome == 'success'
         continue-on-error: true   # the registry is optional; a hiccup there must not fail the release
         run: |
           curl -sL "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_linux_amd64.tar.gz" | tar xz mcp-publisher
           ./mcp-publisher login github-oidc
           ./mcp-publisher publish
+
+      - name: Fail the run if npm publishing failed
+        if: steps.npm.outcome == 'failure'
+        run: |
+          echo "::error::npm publishing failed. The GitHub release was created anyway. Fix npm (see the 'Publish to npm' step) and re-run this workflow for $TAG, or run npm publish by hand."
+          exit 1
