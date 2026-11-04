@@ -25,9 +25,10 @@ import { attachFile, listAttachments, deleteAttachment } from './tools/attachmen
 import { listIssueStatuses, createIssueStatus } from './tools/statuses'
 import { listOrganizations, getOrganization, createOrganization, updateOrganization } from './tools/organizations'
 import { getIssueContext, startWork, finishWork, createIssueTree, changesSince, claimIssue, releaseIssue, findProjectForRepo } from './tools/agent'
+import { listCollaborators, addCollaborator, removeCollaborator, createPublicLink, listPublicLinks, revokePublicLink } from './tools/sharing'
 import * as S from './schemas'
 
-export const TOOLSETS = ['core', 'agent', 'tracker', 'tracker-admin', 'documents', 'chat', 'contacts', 'inbox', 'activity', 'planner', 'calendar', 'github', 'generic', 'generic-write'] as const
+export const TOOLSETS = ['core', 'agent', 'tracker', 'tracker-admin', 'documents', 'chat', 'contacts', 'inbox', 'activity', 'planner', 'calendar', 'github', 'generic', 'generic-write', 'sharing'] as const
 export type Toolset = typeof TOOLSETS[number]
 
 /** Enabled when HULY_TOOLSETS is not set. 'core' is always enabled. */
@@ -154,5 +155,11 @@ export const TOOLS: ToolDef[] = [
   { name: 'query_documents', toolset: 'generic', description: 'Read documents of any class (secrets redacted)', schema: S.QueryDocumentsSchema, handler: queryDocuments },
   { name: 'generic_create', toolset: 'generic-write', description: 'Create a document of any class (dry run by default)', schema: S.GenericCreateSchema, handler: genericCreate },
   { name: 'generic_update', toolset: 'generic-write', description: 'Update a document of any class (dry run by default)', schema: S.GenericUpdateSchema, handler: genericUpdate },
-  { name: 'generic_delete', toolset: 'generic-write', description: 'Delete a document of any class (dry run; needs confirm)', schema: S.GenericDeleteSchema, handler: genericDelete }
+  { name: 'generic_delete', toolset: 'generic-write', description: 'Delete a document of any class (dry run; needs confirm)', schema: S.GenericDeleteSchema, handler: genericDelete },
+  { name: 'list_collaborators', toolset: 'sharing', description: 'Who follows an issue or document', schema: S.ListCollaboratorsSchema, handler: listCollaborators },
+  { name: 'add_collaborator', toolset: 'sharing', description: 'Follow an issue/document (you or a member) to get its notifications', schema: S.AddCollaboratorSchema, handler: addCollaborator },
+  { name: 'remove_collaborator', toolset: 'sharing', description: 'Stop following an issue/document', schema: S.RemoveCollaboratorSchema, handler: removeCollaborator },
+  { name: 'create_public_link', toolset: 'sharing', description: 'Read-only guest link for an issue/document (anyone with the link can read)', schema: S.CreatePublicLinkSchema, handler: createPublicLink },
+  { name: 'list_public_links', toolset: 'sharing', description: 'Public guest links', schema: S.ListPublicLinksSchema, handler: listPublicLinks },
+  { name: 'revoke_public_link', toolset: 'sharing', description: 'Revoke a public link', schema: S.RevokePublicLinkSchema, handler: revokePublicLink }
 ]

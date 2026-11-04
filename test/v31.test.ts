@@ -179,3 +179,21 @@ test('agent toolset exposes huly:// resources and workflow prompts', async () =>
   assert.match((start.messages[0].content as any).text, /call start_work/)
   await mcp.close()
 })
+
+test('completions suggest workspaces, projects and issue ids', async () => {
+  const server = createServer({ toolsets: 'agent' })
+  const [c, s] = InMemoryTransport.createLinkedPair()
+  await server.connect(s)
+  const mcp = new Client({ name: 't', version: '0' })
+  await mcp.connect(c)
+  const prompt = { type: 'ref/prompt' as const, name: 'start' }
+  const values = async (ref: any, name: string, value: string, args?: Record<string, string>): Promise<string[]> =>
+    (await mcp.complete({ ref, argument: { name, value }, ...(args != null ? { context: { arguments: args } } : {}) })).completion.values
+  assert.deepEqual(await values(prompt, 'workspace', 'jo'), [W])
+  assert.deepEqual(await values(prompt, 'identifier', 'pr', { workspace: W }), ['PROJ-'])
+  assert.deepEqual((await values(prompt, 'identifier', 'PROJ-1', { workspace: W })).sort(), ['PROJ-1'])
+  assert.deepEqual(await values({ type: 'ref/prompt', name: 'plan' }, 'projectIdentifier', 'p', { workspace: W }), ['PROJ'])
+  const tpl = { type: 'ref/resource' as const, uri: 'huly://{workspace}/issue/{identifier}' }
+  assert.deepEqual((await values(tpl, 'identifier', 'PROJ-', { workspace: W })).sort(), ['PROJ-1', 'PROJ-2', 'PROJ-3', 'PROJ-7'])
+  await mcp.close()
+})

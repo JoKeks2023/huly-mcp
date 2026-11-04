@@ -734,3 +734,26 @@ export const FindProjectForRepoSchema = z.object({
   workspace: ReadWorkspaceArg.describe('Default: search all workspaces'),
   repository: z.string().describe('owner/name, GitHub URL or git remote')
 })
+
+// ── Sharing: collaborators and public links ─────────────────────────────────
+const ObjectArg = z.string().describe('Issue id (PROJ-12) or document id')
+
+export const ListCollaboratorsSchema = z.object({ workspace: ReadWorkspaceArg, object: ObjectArg })
+
+export const AddCollaboratorSchema = z.object({
+  workspace: WorkspaceArg,
+  object: ObjectArg,
+  member: z.string().optional().describe('Name; default: you')
+})
+
+export const RemoveCollaboratorSchema = AddCollaboratorSchema
+
+export const CreatePublicLinkSchema = z.object({ workspace: WorkspaceArg, object: ObjectArg })
+
+export const ListPublicLinksSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  object: ObjectArg.optional().describe('Default: all links'),
+  limit: z.number().int().min(1).max(200).default(50)
+})
+
+export const RevokePublicLinkSchema = z.object({ workspace: WorkspaceArg, linkId: z.string() })

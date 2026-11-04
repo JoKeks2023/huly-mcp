@@ -17,7 +17,22 @@ export const C = {
   PullRequest: 'github:class:GithubPullRequest',
   PullRequestReview: 'github:class:GithubReview',
   ReviewComment: 'github:class:GithubReviewComment',
-  Channel: 'contact:class:Channel'
+  Channel: 'contact:class:Channel',
+  Collaborator: 'core:class:Collaborator',
+  PublicLink: 'guest:class:PublicLink',
+  Card: 'card:class:Card',
+  MasterTag: 'card:class:MasterTag',
+  CardTag: 'card:class:Tag',
+  CardSpace: 'card:class:CardSpace',
+  Drive: 'drive:class:Drive',
+  DriveResource: 'drive:class:Resource',
+  Folder: 'drive:class:Folder',
+  File: 'drive:class:File',
+  FileVersion: 'drive:class:FileVersion',
+  DocumentSnapshot: 'document:class:DocumentSnapshot',
+  TagCategory: 'tags:class:TagCategory',
+  Attribute: 'core:class:Attribute',
+  Enum: 'core:class:Enum'
 } as const
 
 export const IDS = {
@@ -26,7 +41,11 @@ export const IDS = {
   CalendarSpace: 'calendar:space:Calendar',
   EventNotAttached: 'calendar:ids:NoAttached',
   GithubIssueMixin: 'github:mixin:GithubIssue',
-  GithubProject: 'github:mixin:GithubProject'
+  GithubProject: 'github:mixin:GithubProject',
+  CardDefaultSpace: 'card:space:Default',
+  DriveRoot: 'drive:ids:Root',
+  DocumentNoParent: 'document:ids:NoParent',
+  NoTagCategory: 'tags:category:NoCategory'
 } as const
 
 /** Huly's ToDoPriority enum (time plugin). */
