@@ -111,6 +111,22 @@ export class FakeTxClient {
     this.mutations.push({ op: 'removeCollection', _class, space, attachedTo: id })
   }
 
+  /** Canned fulltext result; the last query is kept for assertions. */
+  searchResult: { docs: any[], total?: number } = { docs: [] }
+  lastSearch: any
+  async searchFulltext (query: unknown, options: unknown): Promise<any> {
+    this.lastSearch = { query, options }
+    return this.searchResult
+  }
+
+  async createMixin (id: string, _class: string, space: string, mixin: string, data: unknown): Promise<void> {
+    this.mutations.push({ op: 'createMixin', _class: mixin, space, attachedTo: id, data })
+  }
+
+  async updateMixin (id: string, _class: string, space: string, mixin: string, data: unknown): Promise<void> {
+    this.mutations.push({ op: 'updateMixin', _class: mixin, space, attachedTo: id, data })
+  }
+
   async removeDoc (_class: string, space: string, id: string): Promise<void> {
     this.mutations.push({ op: 'removeDoc', _class, space, attachedTo: id })
   }

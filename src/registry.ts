@@ -12,7 +12,7 @@ import { listMembers } from './tools/members'
 import { listMilestones, createMilestone, getMilestone, updateMilestone, deleteMilestone } from './tools/milestones'
 import { listComponents, createComponent, updateComponent, deleteComponent } from './tools/components'
 import { listTeamspaces, createTeamspace, listDocuments, getDocument, createDocument, deleteDocument, updateDocument, linkDocument } from './tools/documents'
-import { searchIssues } from './tools/search'
+import { searchIssues, searchAll } from './tools/search'
 import { listChannels, createChannel, startDirectMessage, sendMessage, listMessages, listThread, replyToMessage, updateMessage, deleteMessage, addReaction, removeReaction, pinMessage } from './tools/channels'
 import { listNotifications, markNotificationsRead } from './tools/inbox'
 import { getActivity } from './tools/activity'
@@ -150,6 +150,7 @@ export const TOOLS: ToolDef[] = [
   { name: 'find_project_for_repo', toolset: 'agent', description: 'Huly workspace + project linked to a GitHub repo', schema: S.FindProjectForRepoSchema, handler: findProjectForRepo },
   { name: 'release_issue', toolset: 'agent', description: 'Release an agent claim', schema: S.ReleaseIssueSchema, handler: releaseIssue },
   // Generic access to any class
+  { name: 'search', toolset: 'generic', description: 'Fulltext search across everything (issues, docs, messages, cards, files …)', schema: S.SearchAllSchema, handler: searchAll },
   { name: 'list_classes', toolset: 'generic', description: 'Huly data classes (for modules without dedicated tools)', schema: S.ListClassesSchema, handler: listClasses },
   { name: 'describe_class', toolset: 'generic', description: 'Attributes and types of a class', schema: S.DescribeClassSchema, handler: describeClass },
   { name: 'query_documents', toolset: 'generic', description: 'Read documents of any class (secrets redacted)', schema: S.QueryDocumentsSchema, handler: queryDocuments },

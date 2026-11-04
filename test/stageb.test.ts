@@ -71,3 +71,13 @@ test('reachableUrl swaps a localhost origin for HULY_FRONT_URL', () => {
   assert.equal(reachableUrl('https://huly.example.com/guest/ws?token=a', 'https://other.example.com'), 'https://huly.example.com/guest/ws?token=a')
   assert.equal(reachableUrl('http://localhost:8087/guest/ws', undefined), 'http://localhost:8087/guest/ws')
 })
+
+test('search maps friendly kinds to classes and lists hits', async () => {
+  const { searchAll } = await import('../src/tools/search')
+  const fake: any = env.clients.get(W)!
+  fake.searchResult = { docs: [{ id: 'd-1', title: 'Architecture', doc: { _id: 'd-1', _class: 'document:class:Document' } }], total: 3 }
+  const out = text(await searchAll({ workspace: W, query: 'arch', kinds: ['document', 'x:class:Y'], limit: 1 }))
+  assert.deepEqual(fake.lastSearch.query, { query: 'arch', classes: ['document:class:Document', 'x:class:Y'] })
+  assert.match(out, /## Search "arch" \(1 of 3\)/)
+  assert.match(out, /\[Document\] \*\*Architecture\*\* — `d-1`/)
+})

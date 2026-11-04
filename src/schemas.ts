@@ -189,6 +189,13 @@ export const SearchIssuesSchema = z.object({
   limit: z.number().int().min(1).max(50).default(20)
 })
 
+export const SearchAllSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  query: z.string().min(1),
+  kinds: z.array(z.string()).optional().describe('issue, document, message, card, file, person, organization, test-case, attachment or a class id'),
+  limit: z.number().int().min(1).max(50).default(20)
+})
+
 // ── Labels ────────────────────────────────────────────────────────────────────
 export const ListLabelsSchema = z.object({
   workspace: ReadWorkspaceArg,
