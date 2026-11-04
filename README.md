@@ -96,6 +96,28 @@ Tools, resources and prompts for AI agents working on Huly issues (toolset `agen
 | `HULY_WRITE_PROJECTS=TSK,WEB` | Changes are only allowed when every project they touch (project keys and `PROJ-12` ids in the arguments) is listed. Reads are never blocked. Tools without a project (chat, documents, planner) are not affected |
 | `HULY_AUDIT_LOG=/path/audit.jsonl` | Every change is appended as one JSON line (time, tool, shortened arguments, success, first line of the result) |
 | `HULY_AGENT_NAME=claude-2` | Default agent name for claims |
+| `HULY_CONFIRM=auto` | Deletes and other hard-to-undo tools (`delete_*`, `bulk_update_issues`, `move_issue`, `generic_update`/`generic_delete`, `revoke_public_link`, `restore_file_version`) ask you first via MCP elicitation when the client can show a form (Claude Code in an interactive session). `auto` (default): ask when possible, otherwise run as before. `strict`: refuse when the client cannot ask (unattended agents). `off`: never ask. Dry runs never ask |
+
+### Huly hands work to Claude: `huly-mcp watch`
+
+`huly-mcp watch` turns Huly into the place where you give Claude work. It polls for open issues that carry a label (`--label claude`) or are assigned to the account it runs as (`--assigned`, the default), and for each one:
+
+1. claims the issue (`claim_issue`), so a second watcher or agent skips it,
+2. runs a command for it — by default `claude -p` in the current directory, with this MCP server attached and a prompt that says: read the issue, do the work, hand back with `finish_work`,
+3. releases the claim if the run did not (`finish_work` releases it), and comments on the issue if the run failed or timed out.
+
+```bash
+cd ~/code/my-repo
+npx huly-mcp-selfhost watch --workspace acme --project WEB --label claude --dry-run   # what would run
+npx huly-mcp-selfhost watch --workspace acme --project WEB --label claude             # poll every 60 s
+```
+
+- **Each issue runs once.** A state file (`~/.huly-mcp/watch-<workspace>.json`) remembers it. To run it again, remove the label and add it again.
+- **The command is yours.** `--command` takes any program; the placeholders `{prompt}` `{issue}` `{title}` `{workspace}` `{agent}` `{trigger}` `{mcpConfig}` are filled in per argument — no shell is involved, so issue titles cannot inject shell commands. The run also gets `HULY_ISSUE`, `HULY_ISSUE_TITLE` and `HULY_WORKSPACE` in its environment. Examples: a GitHub Action (`--command "gh workflow run agent.yml -f issue={issue}"`), or Claude with more tools (`--command "claude -p {prompt} --mcp-config {mcpConfig} --allowedTools mcp__huly,Bash(npm test),Edit"`).
+- **Default command:** `claude -p {prompt} --mcp-config {mcpConfig} --strict-mcp-config --allowedTools mcp__huly --permission-mode acceptEdits`. `{mcpConfig}` is a temporary MCP config that starts this server limited to the watched workspace; the credentials are passed through the environment, not written to the file.
+- **Unattended means careful.** Runs get `HULY_CONFIRM=strict` unless you set it: deletes and other risky tools are refused, because nobody is there to confirm them. `HULY_WRITE_PROJECTS` limits which projects are watched and changed. Issue text reaches the agent as instructions — only watch projects whose writers you trust.
+- **Its own identity.** Give the agent its own Huly account (invite e.g. `claude@your-domain` to the workspace) and start the watcher with that account's credentials (`--env-file agent.env` with `HULY_EMAIL`/`HULY_PASSWORD` or `HULY_TOKEN`). Then you hand work to Claude by assigning an issue to that user, and every comment, status change and claim shows up under its name instead of yours. `--agent <name>` (or `HULY_AGENT_NAME`) names it in claims.
+- Other options: `--interval <sec>`, `--timeout <min>` (default 60), `--once`, `--cwd <dir>`, `--prompt <template>`, `--state <file>`. `huly-mcp watch --help` lists them all.
 
 ### Tool reference
 
@@ -304,6 +326,7 @@ A single Huly account can belong to several workspaces — e.g. a personal one a
 | `HULY_WRITE_PROJECTS` | no | Only allow changes in these projects, e.g. `TSK,WEB` (see [Agent workflow](#agent-workflow)) |
 | `HULY_AUDIT_LOG` | no | Append every change as JSON line to this file |
 | `HULY_AGENT_NAME` | no | Default agent name for `claim_issue` (default `claude`) |
+| `HULY_CONFIRM` | no | `auto` (default), `strict` or `off` — ask before deletes and other risky tools (see [Agent workflow](#agent-workflow)) |
 | `HULY_FILE_ROOT` | no | Directory for local files: `upload_file` (`localPath`) and `download_file` (`savePath`) only work inside it. Off when unset — the server may run remotely |
 | `HULY_SUBSCRIBE_POLL_MS` | no | How often subscribed `huly://` resources are checked for changes (default 30000, minimum 5000) |
 
@@ -774,6 +797,10 @@ Breaking:
 - **New: label categories** (`tracker-admin`)
 - **New: documents** — `list_documents` shows the whole tree; `update_document` renames and moves (also to another teamspace); new documents are placed after their siblings
 - **New: MCP argument completions** for prompts and `huly://` resources (workspaces, projects, issue ids) and **resource subscriptions** (`notifications/resources/updated` when a subscribed issue or document changes)
+
+**Agents**
+- **New: confirmation for risky tools** — deletes, bulk updates, moves, generic writes, revoking links and restoring file versions ask the user via MCP elicitation when the client supports it (`HULY_CONFIRM`). Declining changes nothing.
+- **New: `huly-mcp watch`** — Huly hands work to an agent: issues with a label or assigned to the agent's own account are claimed, passed to `claude -p` (or any command) and released afterwards. Runs are unattended, so they default to `HULY_CONFIRM=strict`.
 
 **Fixes**
 - `create_teamspace`, `create_channel`, `start_direct_message` and `create_project` stored the user's social id as member/owner; Huly 0.7 expects the account id. Spaces created with earlier versions may list you twice as member and have no proper owner.
