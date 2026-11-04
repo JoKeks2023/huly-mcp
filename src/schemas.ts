@@ -1026,3 +1026,32 @@ export const GetProductSchema = z.object({ workspace: ReadWorkspaceArg, product:
 export const ListLabelCategoriesSchema = z.object({ workspace: ReadWorkspaceArg })
 export const CreateLabelCategorySchema = z.object({ workspace: WorkspaceArg, name: z.string().min(1) })
 export const SetLabelCategorySchema = z.object({ workspace: WorkspaceArg, labelName: z.string().min(1), category: z.string().describe('Category name or id') })
+
+// ── Workspace administration ──────────────────────────────────────────────────
+
+const RoleArg = z.enum(['guest', 'user', 'maintainer', 'owner'])
+
+export const CreateInviteLinkSchema = z.object({
+  workspace: WorkspaceArg,
+  email: z.string().optional().describe('Personal one-use link for this address (nothing is sent)'),
+  role: RoleArg.optional().describe('Default user'),
+  expiresHours: z.number().int().min(1).max(8760).optional().describe('Default 48'),
+  limit: z.number().int().min(1).max(1000).optional().describe('Uses, without email; default 1'),
+  emailMask: z.string().optional().describe('Only addresses matching, e.g. *@acme.com')
+})
+
+export const SendInviteSchema = z.object({
+  workspace: WorkspaceArg,
+  email: z.string(),
+  role: RoleArg.optional().describe('Default user')
+})
+
+export const SetMemberRoleSchema = z.object({
+  workspace: WorkspaceArg,
+  member: z.string().describe('Name or account id'),
+  role: RoleArg
+})
+
+export const GetWorkspaceSettingsSchema = z.object({ workspace: ReadWorkspaceArg })
+
+export const ListProjectTypesSchema = z.object({ workspace: ReadWorkspaceArg })

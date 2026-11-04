@@ -232,3 +232,33 @@ test('watchOnce: dry run changes nothing; real run records state', async () => {
   assert.deepEqual(Object.keys(loadState(path)), ['i-2'], 'PROJ-5 (claimed elsewhere) is not recorded, so it is retried later')
   assert.equal(await watchOnce(opts({ dryRun: true }), deps, loadState(path), () => {}), 1)
 })
+
+// ── Workspace administration ──────────────────────────────────────────────────
+
+test('invites: personal link (localhost rewritten), shared link with limit and mask, e-mail invite', async () => {
+  const { createInviteLink, sendInvite } = await import('../src/tools/workspace-admin')
+  process.env.HULY_FRONT_URL = 'https://huly.example.com/'
+  try {
+    const personal = (await createInviteLink({ workspace: W, email: ' a@b.c ', role: 'guest' } as any)).content[0].text
+    assert.match(personal, /https:\/\/huly\.example\.com\/login\/join\?inviteId=inv-2/)
+    assert.match(personal, /Nothing was sent/)
+    const shared = (await createInviteLink({ workspace: W, limit: 5, expiresHours: 2, emailMask: '*@acme.com' } as any)).content[0].text
+    assert.match(shared, /as user \(5 use\(s\), 2 h, only for \*@acme\.com\):\nhttps:\/\/huly\.example\.com\/login\/join\?inviteId=inv-1$/)
+    await sendInvite({ workspace: W, email: 'x@y.z', role: 'maintainer' } as any)
+    assert.deepEqual(env.calls.admin, [
+      ['createInviteLink', 'a@b.c', 'GUEST', false, '', '', undefined, 48],
+      ['createInvite', 7_200_000, '*@acme.com', 5, 'USER'],
+      ['sendInvite', 'x@y.z', 'MAINTAINER']
+    ])
+  } finally { delete process.env.HULY_FRONT_URL }
+})
+
+test('set_member_role: resolves the member by name, skips no-ops', async () => {
+  const { setMemberRole } = await import('../src/tools/workspace-admin')
+  client.docs.push({ _id: 'p-m', _class: contact.class.Person, name: 'Doe,Jane', personUuid: `member-via-ws-token-${W}` })
+  assert.match((await setMemberRole({ workspace: W, member: 'jane', role: 'user' } as any)).content[0].text, /already has role user/)
+  assert.match((await setMemberRole({ workspace: W, member: 'Jane Doe', role: 'maintainer' } as any)).content[0].text, /Jane Doe: user → maintainer/)
+  assert.deepEqual(env.calls.admin, [['updateWorkspaceRole', `member-via-ws-token-${W}`, 'MAINTAINER']])
+  await assert.rejects(setMemberRole({ workspace: W, member: 'nobody', role: 'user' } as any), /not found/)
+  assert.ok(isRisky('set_member_role') && isRisky('send_invite'))
+})

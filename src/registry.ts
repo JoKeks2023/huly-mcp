@@ -27,6 +27,7 @@ import { listOrganizations, getOrganization, createOrganization, updateOrganizat
 import { getIssueContext, startWork, finishWork, createIssueTree, changesSince, claimIssue, releaseIssue, findProjectForRepo } from './tools/agent'
 import { listCollaborators, addCollaborator, removeCollaborator, createPublicLink, listPublicLinks, revokePublicLink } from './tools/sharing'
 import { listCardTypes, listCards, getCard, createCard, updateCard, deleteCard, createCardType, deleteCardType } from './tools/cards'
+import { createInviteLink, sendInvite, setMemberRole, getWorkspaceSettings, listProjectTypes } from './tools/workspace-admin'
 import { listCustomFields, createCustomField, setCustomFields } from './tools/fields'
 import { listDrives, listDriveFiles, createFolder, uploadFile, downloadFile, updateDriveItem, deleteDriveItem, listFileVersions, restoreFileVersion, createDrive } from './tools/drive'
 import { listIssueTemplates, getIssueTemplate, createIssueTemplate, updateIssueTemplate, deleteIssueTemplate, createIssueFromTemplate } from './tools/templates'
@@ -34,7 +35,7 @@ import * as TM from './tools/testing'
 import { listProducts, getProduct } from './tools/products'
 import * as S from './schemas'
 
-export const TOOLSETS = ['core', 'agent', 'tracker', 'tracker-admin', 'documents', 'chat', 'contacts', 'inbox', 'activity', 'planner', 'calendar', 'github', 'generic', 'generic-write', 'collaboration', 'cards', 'fields', 'drive', 'templates', 'testing', 'products'] as const
+export const TOOLSETS = ['core', 'agent', 'tracker', 'tracker-admin', 'documents', 'chat', 'contacts', 'inbox', 'activity', 'planner', 'calendar', 'github', 'generic', 'generic-write', 'collaboration', 'cards', 'fields', 'drive', 'templates', 'testing', 'products', 'members'] as const
 export type Toolset = typeof TOOLSETS[number]
 
 /** Enabled when HULY_TOOLSETS is not set. 'core' is always enabled. */
@@ -216,5 +217,10 @@ export const TOOLS: ToolDef[] = [
   { name: 'get_product', toolset: 'products', description: 'Product with all versions', schema: S.GetProductSchema, handler: getProduct },
   { name: 'list_label_categories', toolset: 'tracker-admin', description: 'Issue label categories with their labels', schema: S.ListLabelCategoriesSchema, handler: listLabelCategories },
   { name: 'create_label_category', toolset: 'tracker-admin', description: 'Create an issue label category', schema: S.CreateLabelCategorySchema, handler: createLabelCategory },
-  { name: 'set_label_category', toolset: 'tracker-admin', description: 'Move a label into a category', schema: S.SetLabelCategorySchema, handler: setLabelCategory }
+  { name: 'set_label_category', toolset: 'tracker-admin', description: 'Move a label into a category', schema: S.SetLabelCategorySchema, handler: setLabelCategory },
+  { name: 'list_project_types', toolset: 'tracker-admin', description: 'Project types with task types and their status workflows', schema: S.ListProjectTypesSchema, handler: listProjectTypes },
+  { name: 'get_workspace_settings', toolset: 'members', description: 'Workspace info: your role, members per role, invite defaults, integrations', schema: S.GetWorkspaceSettingsSchema, handler: getWorkspaceSettings },
+  { name: 'create_invite_link', toolset: 'members', description: 'Create an invite link (personal for an e-mail, or with use limit/e-mail mask); sends nothing', schema: S.CreateInviteLinkSchema, handler: createInviteLink },
+  { name: 'send_invite', toolset: 'members', description: 'Send an invitation e-mail to join the workspace', schema: S.SendInviteSchema, handler: sendInvite },
+  { name: 'set_member_role', toolset: 'members', description: 'Change a member\'s workspace role', schema: S.SetMemberRoleSchema, handler: setMemberRole }
 ]

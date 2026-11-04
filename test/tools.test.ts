@@ -187,7 +187,8 @@ const MUTATION_SCHEMAS = [
   'CreateDriveSchema', 'CreateFolderSchema', 'UploadFileSchema', 'UpdateDriveItemSchema', 'DeleteDriveItemSchema', 'RestoreFileVersionSchema',
   'CreateIssueTemplateSchema', 'UpdateIssueTemplateSchema', 'DeleteIssueTemplateSchema', 'CreateIssueFromTemplateSchema',
   'CreateTestProjectSchema', 'CreateTestSuiteSchema', 'CreateTestCaseSchema', 'UpdateTestCaseSchema', 'DeleteTestCaseSchema', 'CreateTestPlanSchema', 'CreateTestRunSchema', 'SetTestResultSchema',
-  'CreateLabelCategorySchema', 'SetLabelCategorySchema'
+  'CreateLabelCategorySchema', 'SetLabelCategorySchema',
+  'CreateInviteLinkSchema', 'SendInviteSchema', 'SetMemberRoleSchema'
 ] as const
 
 test('every mutation schema requires workspace', () => {
