@@ -33,7 +33,7 @@ This is a fork of [varaprasadreddy9676/huly-mcp](https://github.com/varaprasadre
 
 ---
 
-## Tools (219 total, grouped in toolsets)
+## Tools (222 total, grouped in toolsets)
 
 All tools except `list_workspaces` take a `workspace` argument — required for every change, optional for reads when only one workspace is available.
 
@@ -48,12 +48,12 @@ HULY_TOOLSETS=tracker,documents,planner # just these ('core' = list_workspaces i
 
 | Toolset | Default | Tools | Contents |
 |---------|:-:|--:|----------|
-| `agent` | ✓ | 10 | agent workflow: my day at a glance, project report, issue context in one call, start/finish work, plan → issue tree, changes since, claims, repo → project — plus [resources and prompts](#agent-workflow) |
+| `agent` | ✓ | 12 | agent workflow: my day at a glance, standup, project report, release notes, issue context in one call, start/finish work, plan → issue tree, changes since, claims, repo → project — plus [resources and prompts](#agent-workflow) |
 | `tracker` | ✓ | 37 | projects, issues, comments, time, labels, relations, milestones, components, statuses, attachments, search |
 | `documents` | ✓ | 8 | teamspaces and documents (tree, move, rename) |
 | `chat` | ✓ | 12 | channels, DMs, threads, edit/delete, reactions, pins |
 | `contacts` | ✓ | 11 | members, organizations, persons, contact channels |
-| `inbox` | ✓ | 2 | notifications, mark read/archive |
+| `inbox` | ✓ | 3 | notifications, triage (what changed since last read), mark read/archive |
 | `activity` | ✓ | 1 | change history of an issue/object |
 | `planner` | ✓ | 5 | to-dos, time blocking |
 | `generic` | ✓ | 4 | fulltext search across everything, read any Huly class |
@@ -80,10 +80,10 @@ HULY_TOOLSETS=tracker,documents,planner # just these ('core' = list_workspaces i
 
 Context cost of `tools/list` (≈3.5 chars/token):
 
-| | default (91 tools) | `all` (219 tools) |
+| | default (94 tools) | `all` (222 tools) |
 |---|--:|--:|
-| several workspaces | ~37.6k chars ≈ **10.7k tokens** | ~87.7k chars ≈ **25k tokens** |
-| pinned with `HULY_WORKSPACE` | ~30.7k chars ≈ **8.8k tokens** | ~71k chars ≈ **20.3k tokens** |
+| several workspaces | ~38.7k chars ≈ **11k tokens** | ~88.8k chars ≈ **25.4k tokens** |
+| pinned with `HULY_WORKSPACE` | ~31.6k chars ≈ **9k tokens** | ~72k chars ≈ **20.6k tokens** |
 
 For comparison, 2.2.0 needed ≈12.8k tokens for 64 tools. **Using one workspace? Set `HULY_WORKSPACE`** — the `workspace` argument then disappears from every tool (−20%). **Claude Code** loads MCP tools on demand, so there even `HULY_TOOLSETS=all` costs little up front.
 
@@ -94,6 +94,8 @@ Tools, resources and prompts for AI agents working on Huly issues (toolset `agen
 | Tool | What it does |
 |------|--------------|
 | `my_day` | Today (or `date`) in one call: own calendar events and work slots, open to-dos (overdue and due first), open issues assigned to me (in progress first), PRs waiting for my review and my own open PRs, unread inbox grouped by object. Times in UTC |
+| `standup` | What I did since the last working day (Monday → Friday, or `since`): status changes, new issues, comments, time, finished to-dos; then today (calendar, to-dos, my issues) and my issues blocked by open ones |
+| `release_notes` | Release notes from a milestone: done issues as "New and changed" and "Fixes" (by title or label, English and German), merged PR numbers, epics left out; open issues listed separately |
 | `project_report` | Weekly (or `since`: `14d`, ISO date) report of a project: done in the period (status changed to done — not just touched by sync), new, in progress (flagged when untouched), blocked by open issues, overdue, PRs merged and open, open milestones with progress and target, time logged per person. To keep it in Huly, pass the text to `create_document` + `update_document` |
 | `get_issue_context` | Everything about an issue in one call: fields, description, parent chain, sub-issues, blocked by / blocks, related, PRs, comments, suggested branch name |
 | `start_work` | Status → In Progress, assign to me, optionally claim — returns the full context |
@@ -237,6 +239,7 @@ Options: `--run <name>`, `--parent-suite <suite>`, `--no-create` (only existing 
 | | `create_organization` | Create a new organization (company contact) |
 | | `update_organization` | Set the description of an organization from Markdown |
 | **Inbox** (`inbox`) | `list_notifications` | Your notifications, grouped by issue/PR/document |
+| | `triage_inbox` | Work through the inbox in one call: per unread item its status and assignee, which fields changed and the new comments (plain text, shortened) since you last read it |
 | | `mark_notifications_read` | Mark read by object, ids or all; optionally archive |
 | **Activity** (`activity`) | `get_activity` | Who changed what, plus comments, for an issue or object |
 | **Planner** (`planner`) | `list_todos` | Your to-dos (open/done, due date filter) |
@@ -814,6 +817,7 @@ See [`src/connection.ts`](src/connection.ts).
   - Validation limits (`minLength`, `maximum` …) are no longer sent in tool schemas. They are still enforced, with a clear error.
   - `list_issues` uses one line per issue and leaves out "No priority".
   - `list_notifications` shows notification ids only with `ids: true`. Marking read by object (`PROJ-12`) does not need them.
+- **New: `standup`, `triage_inbox`, `release_notes`** — one call each instead of several: yesterday/today/blockers, the inbox with what changed since last read, and release notes from a milestone.
 - **Changed: `list_issues` lists open issues by default.** Pass `status: "all"` for every issue, or a status name. Long lists show `51–100 of 118` and page with `offset`. In a mature project this cuts the answer by ~80%.
 - **Changed: `list_comments` returns the newest comments** (before: the oldest), still in chronological order. Comments over 1,500 characters are shortened with a visible marker; `full: true` shows them whole. Issue descriptions are never shortened, because `update_issue` replaces them.
 - **New: `my_day`** (toolset `agent`, on by default) — "what's on today?" in one call: calendar, to-dos, my issues, reviews, unread inbox.

@@ -42,7 +42,7 @@ import { listDrives, listDriveFiles, createFolder, uploadFile, downloadFile, upd
 import { listIssueTemplates, getIssueTemplate, createIssueTemplate, updateIssueTemplate, deleteIssueTemplate, createIssueFromTemplate } from './tools/templates'
 import * as TM from './tools/testing'
 import * as TA from './tools/test-automation'
-import { myDay, projectReport } from './tools/overview'
+import { myDay, projectReport, standup, triageInbox, releaseNotes } from './tools/overview'
 import { listProducts, getProduct } from './tools/products'
 import * as S from './schemas'
 
@@ -136,6 +136,7 @@ export const TOOLS: ToolDef[] = [
   { name: 'pin_message', toolset: 'chat', description: 'Pin or unpin a message', schema: S.PinMessageSchema, handler: pinMessage },
   // Inbox
   { name: 'list_notifications', toolset: 'inbox', description: 'Your inbox notifications, grouped by issue/PR/document', schema: S.ListNotificationsSchema, handler: listNotifications },
+  { name: 'triage_inbox', toolset: 'inbox', description: 'Unread items with what changed since last read: new comments, fields, status', schema: S.TriageInboxSchema, handler: triageInbox },
   { name: 'mark_notifications_read', toolset: 'inbox', description: 'Mark notifications read (by object, ids or all); optionally archive', schema: S.MarkNotificationsReadSchema, handler: markNotificationsRead },
   // Activity
   { name: 'get_activity', toolset: 'activity', description: 'Change history and comments of an issue or object', schema: S.GetActivitySchema, handler: getActivity },
@@ -166,6 +167,8 @@ export const TOOLS: ToolDef[] = [
   { name: 'finish_work', toolset: 'agent', description: 'Hand back: summary comment, link PR, status to review', schema: S.FinishWorkSchema, handler: finishWork },
   { name: 'create_issue_tree', toolset: 'agent', description: 'Plan → epic + sub-issues with blockers; skips duplicates; dry run first', schema: S.CreateIssueTreeSchema, handler: createIssueTree },
   { name: 'my_day', toolset: 'agent', description: 'Today at a glance: calendar, to-dos, my issues, reviews, unread inbox', schema: S.MyDaySchema, handler: myDay },
+  { name: 'standup', toolset: 'agent', description: 'Standup: what I did since the last working day, today, blockers', schema: S.StandupSchema, handler: standup },
+  { name: 'release_notes', toolset: 'agent', description: 'Release notes from a milestone: features, fixes, PRs, still open', schema: S.ReleaseNotesSchema, handler: releaseNotes },
   { name: 'project_report', toolset: 'agent', description: 'Weekly report: done, new, blocked, overdue, PRs, milestones, time', schema: S.ProjectReportSchema, handler: projectReport },
   { name: 'changes_since', toolset: 'agent', description: 'Issues/PRs changed since a time: fields, comments, who', schema: S.ChangesSinceSchema, handler: changesSince },
   { name: 'claim_issue', toolset: 'agent', description: 'Lease an issue so parallel agents skip it', schema: S.ClaimIssueSchema, handler: claimIssue },
