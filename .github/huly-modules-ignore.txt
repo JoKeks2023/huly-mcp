@@ -1,0 +1,17 @@
+# Huly modules that deliberately get no tools. One module per line; "prefix*" matches several.
+# The weekly module check (.github/scripts/huly-modules.ts) reports every other module without tools.
+
+server-*            # server-side model (triggers, presenters) — no user data
+presentation        # UI framework classes
+workbench           # UI navigation, applications, widgets
+text-editor         # editor extensions
+uploader            # UI upload handlers
+converter           # internal formatters
+desktop-preferences # desktop app settings
+preference          # per-user UI preferences (out of scope since 3.0.0)
+analytics           # product analytics (out of scope since 3.0.0)
+billing             # Huly Cloud billing tiers
+gmail               # mail integration (out of scope since 3.0.0)
+telegram            # Telegram integration (out of scope since 3.0.0)
+bitrix              # Bitrix integration (out of scope since 3.0.0)
+board               # hidden in current Huly versions

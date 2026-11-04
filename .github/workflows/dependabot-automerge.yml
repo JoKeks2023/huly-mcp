@@ -1,0 +1,24 @@
+name: Dependabot auto-merge
+
+# Patch and minor updates merge by themselves once all required checks are green
+# (needs branch protection with required checks and "Allow auto-merge" in the repo settings).
+# Major updates and Huly packages stay for a human to review.
+
+on: pull_request
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  automerge:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - id: meta
+        uses: dependabot/fetch-metadata@v2
+      - if: steps.meta.outputs.update-type != 'version-update:semver-major' && !contains(steps.meta.outputs.dependency-names, '@hcengineering/')
+        run: gh pr merge --auto --merge "$PR"
+        env:
+          PR: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

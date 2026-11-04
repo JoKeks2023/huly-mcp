@@ -808,10 +808,47 @@ See [`src/connection.ts`](src/connection.ts).
 
 ---
 
+## Development and CI
+
+```bash
+npm ci && npm run build && npm test
+```
+
+GitHub Actions check every pull request:
+
+| Workflow | What it checks |
+|---|---|
+| `ci.yml` | build and tests on Node 20/22/24 (Linux), macOS and Windows; the built server answers `tools/list` over stdio; `npm pack` contents; gitleaks and a personal-data check; the Docker image (build, stdio smoke, Trivy); actionlint; a **token report** comment with the `tools/list` size before and after the PR |
+| `codeql.yml` | CodeQL security analysis (also weekly) |
+| `links.yml` | broken links in Markdown and the site (on PRs that touch them, and weekly → issue) |
+| `dependabot-automerge.yml` | Dependabot patch/minor updates merge by themselves once checks are green; majors and Huly packages wait for review |
+| `scheduled.yml` | nightly live smoke test against a sandbox workspace; weekly: the latest `@hcengineering/*` packages, and Huly modules that have no tools yet (see `.github/huly-modules-ignore.txt`). Failures open or update an issue |
+| `release.yml` | on a `vX.Y.Z` tag: version and changelog check, tests, personal-data check, `npm publish --provenance` (Trusted Publishing), GitHub release from the changelog section, MCP registry entry |
+
+`test/repo.test.ts` keeps the docs honest: tool counts in this README, the site and `DOCKERHUB.md` must match the registry, the version must match everywhere, and the plugin must be well-formed.
+
+**Releasing:**
+1. Move the `Unreleased` changelog entries under `### X.Y.Z — date`.
+2. Bump the version in `package.json`, `server.json`, `plugin/.claude-plugin/plugin.json` and `src/server.ts`. The tests check that they agree.
+3. Merge, then tag `vX.Y.Z` on `main`. The rest runs by itself.
+
+**Secrets (repository settings):**
+- `PERSONAL_DATA_PATTERNS`: private terms that must never appear in the repo, one regex per line.
+- `NPM_TOKEN`: fallback only, until Trusted Publishing is set up on npmjs.com.
+- `HULY_SMOKE_WORKSPACE`, `HULY_SMOKE_PROJECT`, `HULY_SMOKE_EMAIL` + `HULY_SMOKE_PASSWORD` (or `HULY_SMOKE_TOKEN`), `HULY_SMOKE_ACCOUNTS_URL`, `HULY_SMOKE_FRONT_URL`: a **throwaway** workspace for the nightly live test. Without them the live jobs skip.
+
+---
+
 ## Changelog
 
 ### Unreleased
 
+- **CI and automation:**
+  - every PR is checked on three platforms, with a token report, a personal-data check, a Docker scan and CodeQL
+  - releases publish themselves from a tag
+  - a nightly live test runs against a sandbox workspace
+  - weekly checks cover new Huly packages and Huly modules without tools
+  - see [Development and CI](#development-and-ci)
 - **Fewer tokens:**
   - With `HULY_WORKSPACE` set, tools take no `workspace` argument (−20% tool-list size). Changes still go to exactly that workspace.
   - Validation limits (`minLength`, `maximum` …) are no longer sent in tool schemas. They are still enforced, with a clear error.
