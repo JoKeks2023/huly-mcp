@@ -235,6 +235,16 @@ test('local file paths are off without HULY_FILE_ROOT and cannot escape it', asy
   assert.equal(localPath('x.txt', { HULY_FILE_ROOT: root }), join(root, 'x.txt'))
   assert.throws(() => localPath('../x.txt', { HULY_FILE_ROOT: root }), /outside HULY_FILE_ROOT/)
   assert.throws(() => localPath('/etc/passwd', { HULY_FILE_ROOT: root }), /outside HULY_FILE_ROOT/)
+  // Folders that do not exist yet: inside is fine, outside is refused (not a raw ENOENT).
+  assert.equal(localPath('new/sub/x.txt', { HULY_FILE_ROOT: root }), join(root, 'new', 'sub', 'x.txt'))
+  assert.throws(() => localPath('../nope-dir/x.txt', { HULY_FILE_ROOT: root }), /outside HULY_FILE_ROOT/)
+  assert.throws(() => localPath('/no-such-dir-hopefully/x', { HULY_FILE_ROOT: root }), /outside HULY_FILE_ROOT/)
+  // A symlink inside the root that points outside is refused.
+  const { symlinkSync, mkdtempSync: mk } = await import('node:fs')
+  const outside = realpathSync(mk(`${tmpdir()}/huly-out-`))
+  try { symlinkSync(outside, join(root, 'link'), 'dir') } catch { return } // no symlink rights (Windows without dev mode)
+  assert.throws(() => localPath('link/x.txt', { HULY_FILE_ROOT: root }), /outside HULY_FILE_ROOT/)
+  assert.throws(() => localPath('link/new/x.txt', { HULY_FILE_ROOT: root }), /outside HULY_FILE_ROOT/)
 })
 
 test('list_drive_files shows the folder tree with current versions', async () => {
