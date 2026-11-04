@@ -1016,7 +1016,44 @@ export const SetTestResultSchema = z.object({
   result: z.string().describe('Result id, or case id/name with runId'),
   runId: z.string().optional(),
   status: z.enum(['Untested', 'Blocked', 'Passed', 'Failed']),
-  comment: z.string().optional().describe('Markdown')
+  comment: z.string().optional().describe('Markdown'),
+  assignee: z.string().nullable().optional().describe('Person; null clears')
+})
+
+export const UpdateTestSuiteSchema = z.object({ workspace: WorkspaceArg, project: TestProjectArg, suite: z.string(), name: z.string().min(1).optional(), description: z.string().optional(), parent: z.string().nullable().optional().describe('New parent suite; null = top level') })
+export const DeleteTestSuiteSchema = z.object({ workspace: WorkspaceArg, project: TestProjectArg, suite: z.string(), recursive: z.boolean().optional().describe('Also delete sub-suites and cases') })
+export const UpdateTestRunSchema = z.object({ workspace: WorkspaceArg, runId: z.string(), name: z.string().min(1).optional(), dueDate: z.string().nullable().optional(), description: z.string().optional().describe('Markdown') })
+export const DeleteTestRunSchema = z.object({ workspace: WorkspaceArg, runId: z.string() })
+export const DeleteTestPlanSchema = z.object({ workspace: WorkspaceArg, project: TestProjectArg, plan: z.string().describe('Plan name or id') })
+export const ImportTestResultsSchema = z.object({
+  workspace: WorkspaceArg,
+  project: TestProjectArg,
+  xml: z.string().optional().describe('JUnit XML report'),
+  file: z.string().optional().describe('Or: path to the report on the server machine'),
+  runName: z.string().optional().describe('Default: "CI <date time>"'),
+  parentSuite: z.string().optional().describe('Put the report\'s suites under this suite'),
+  createMissing: z.boolean().optional().describe('Create unknown suites/cases (default true)'),
+  dryRun: z.boolean().optional()
+})
+export const GetTestReportSchema = z.object({ workspace: ReadWorkspaceArg, project: TestProjectArg, runs: z.number().int().min(1).max(50).optional().describe('Latest runs to look at (default 10)'), limit: z.number().int().min(1).max(200).optional().describe('Max cases per section (default 25)') })
+export const CreateIssueFromTestResultSchema = z.object({
+  workspace: WorkspaceArg,
+  result: z.string().describe('Test result id (get_test_run)'),
+  projectIdentifier: z.string().describe('Tracker project key'),
+  title: z.string().optional().describe('Default: "Test failed: <case>"'),
+  priority: PriorityEnum.optional().describe('Default High'),
+  notes: z.string().optional().describe('Extra Markdown'),
+  componentLabel: z.string().optional(),
+  milestoneLabel: z.string().optional(),
+  assignee: z.string().optional()
+})
+export const CreateTestCasesSchema = z.object({
+  workspace: WorkspaceArg,
+  project: TestProjectArg,
+  suite: z.string().describe('Suite name or id'),
+  createSuite: z.boolean().optional().describe('Create the suite if missing'),
+  parentSuite: z.string().optional().describe('Parent for a new suite'),
+  cases: z.array(z.object({ name: z.string().min(1), description: z.string().optional().describe('Steps/expected, Markdown'), type: CaseType.optional(), priority: CasePriority.optional(), assignee: z.string().optional() })).min(1).max(100)
 })
 
 // ── Products (read-only) and label categories ───────────────────────────────

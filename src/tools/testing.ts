@@ -9,7 +9,7 @@ import { currentAccountUuid, findPerson, peopleNames } from '../utils/people'
 import type { z } from 'zod'
 import type * as S from '../schemas'
 
-const TM = {
+export const TM = {
   Project: 'testManagement:class:TestProject',
   Suite: 'testManagement:class:TestSuite',
   Case: 'testManagement:class:TestCase',
@@ -27,10 +27,10 @@ export const CASE_PRIORITIES = ['Low', 'Medium', 'High', 'Urgent'] as const
 export const CASE_STATUSES = ['Draft', 'ReadyForReview', 'FixReviewComments', 'Approved', 'Rejected'] as const
 export const RESULT_STATUSES = ['Untested', 'Blocked', 'Passed', 'Failed'] as const
 
-const idx = (list: readonly string[], v: string): number => list.indexOf(v)
-const name = (list: readonly string[], i: number | undefined): string => (i != null ? list[i] : undefined) ?? '—'
+export const idx = (list: readonly string[], v: string): number => list.indexOf(v)
+export const name = (list: readonly string[], i: number | undefined): string => (i != null ? list[i] : undefined) ?? '—'
 
-async function findProject (client: any, ref: string): Promise<any> {
+export async function findProject (client: any, ref: string): Promise<any> {
   const all: any[] = await client.findAll(TM.Project, {})
   const hits = all.filter((p) => p._id === ref || String(p.name).toLowerCase() === ref.toLowerCase())
   if (hits.length === 1) return hits[0]
@@ -38,7 +38,7 @@ async function findProject (client: any, ref: string): Promise<any> {
   throw new Error(`Test project '${ref}' not found. Available: ${all.map((p) => p.name).join(', ') || 'none'}.`)
 }
 
-async function findSuite (client: any, project: any, ref: string): Promise<any> {
+export async function findSuite (client: any, project: any, ref: string): Promise<any> {
   const suites: any[] = await client.findAll(TM.Suite, { space: project._id })
   const hits = suites.filter((s) => s._id === ref || String(s.name).toLowerCase() === ref.toLowerCase())
   if (hits.length === 1) return hits[0]
@@ -46,7 +46,7 @@ async function findSuite (client: any, project: any, ref: string): Promise<any> 
   throw new Error(`Suite '${ref}' not found in ${String(project.name)}.`)
 }
 
-async function findDoc (client: any, _class: string, id: string, what: string): Promise<any> {
+export async function findDoc (client: any, _class: string, id: string, what: string): Promise<any> {
   const doc = await client.findOne(_class, { _id: id })
   if (doc == null) throw new Error(`${what} '${id}' not found.`)
   return doc
@@ -289,6 +289,81 @@ export const setTestResult = wrapToolHandler<z.infer<typeof S.SetTestResultSchem
   if (result == null) throw new Error(`Test result '${args.result}' not found (pass a result id, or runId plus case id/name).`)
   const update: Record<string, unknown> = { status: idx(RESULT_STATUSES, args.status) }
   if (args.comment != null) update.description = await writeMarkup(args.workspace, 'testresult', args.comment)
+  if (args.assignee !== undefined) update.assignee = args.assignee != null ? (await findPerson(client, args.assignee))._id : null
   await client.updateCollection(TM.Result, result.space, result._id, result.attachedTo, TM.Run, 'results', update)
   return `✅ **${String(result.name)}**: ${args.status}${args.comment != null ? ' (with comment)' : ''}.`
+})
+
+export const updateTestSuite = wrapToolHandler<z.infer<typeof S.UpdateTestSuiteSchema>>(async (args) => {
+  const client: any = await getConnection(args.workspace)
+  const project = await findProject(client, args.project)
+  const suite = await findSuite(client, project, args.suite)
+  const update: Record<string, unknown> = {}
+  if (args.name != null) update.name = args.name
+  if (args.description != null) update.description = args.description
+  if (args.parent !== undefined) {
+    if (args.parent == null) update.parent = TM.NoParent
+    else {
+      const parent = await findSuite(client, project, args.parent)
+      const all: any[] = await client.findAll(TM.Suite, { space: project._id })
+      for (let p: any = parent; p != null; p = all.find((s) => s._id === p.parent)) {
+        if (p._id === suite._id) throw new Error('A suite cannot move into itself or one of its sub-suites.')
+      }
+      update.parent = parent._id
+    }
+  }
+  if (Object.keys(update).length === 0) throw new Error('Nothing to change.')
+  await client.updateDoc(TM.Suite, suite.space, suite._id, update)
+  return `✅ Suite **${String(args.name ?? suite.name)}** updated: ${Object.keys(update).join(', ')}.`
+})
+
+export const deleteTestSuite = wrapToolHandler<z.infer<typeof S.DeleteTestSuiteSchema>>(async (args) => {
+  const client: any = await getConnection(args.workspace)
+  const project = await findProject(client, args.project)
+  const suite = await findSuite(client, project, args.suite)
+  const all: any[] = await client.findAll(TM.Suite, { space: project._id })
+  const ids = [suite._id]
+  for (let i = 0; i < ids.length; i++) ids.push(...all.filter((s) => s.parent === ids[i]).map((s) => s._id))
+  const cases: any[] = await client.findAll(TM.Case, { space: project._id, attachedTo: { $in: ids } })
+  if ((ids.length > 1 || cases.length > 0) && args.recursive !== true) throw new Error(`Suite '${String(suite.name)}' holds ${ids.length - 1} sub-suite(s) and ${cases.length} case(s) — pass recursive: true to delete them too.`)
+  for (const c of cases) await client.removeCollection(TM.Case, c.space, c._id, c.attachedTo, TM.Suite, 'testCases')
+  for (const id of ids.reverse()) await client.removeDoc(TM.Suite, project._id, id)
+  return `🗑️ Suite **${String(suite.name)}** deleted${ids.length > 1 || cases.length > 0 ? ` with ${ids.length - 1} sub-suite(s) and ${cases.length} case(s)` : ''}.`
+})
+
+export const updateTestRun = wrapToolHandler<z.infer<typeof S.UpdateTestRunSchema>>(async (args) => {
+  const client: any = await getConnection(args.workspace)
+  const run = await findDoc(client, TM.Run, args.runId, 'Test run')
+  const update: Record<string, unknown> = {}
+  if (args.name != null) update.name = args.name
+  if (args.dueDate !== undefined) {
+    const t = args.dueDate != null ? new Date(args.dueDate).getTime() : null
+    if (t != null && Number.isNaN(t)) throw new Error(`Invalid dueDate '${String(args.dueDate)}'.`)
+    update.dueDate = t
+  }
+  if (args.description != null) update.description = await writeMarkup(args.workspace, 'testrun', args.description)
+  if (Object.keys(update).length === 0) throw new Error('Nothing to change.')
+  await client.updateDoc(TM.Run, run.space, run._id, update)
+  return `✅ Run **${String(args.name ?? run.name)}** updated: ${Object.keys(update).join(', ')}.`
+})
+
+export const deleteTestRun = wrapToolHandler<z.infer<typeof S.DeleteTestRunSchema>>(async (args) => {
+  const client: any = await getConnection(args.workspace)
+  const run = await findDoc(client, TM.Run, args.runId, 'Test run')
+  const results: any[] = await client.findAll(TM.Result, { attachedTo: run._id })
+  for (const r of results) await client.removeCollection(TM.Result, r.space, r._id, run._id, TM.Run, 'results')
+  await client.removeDoc(TM.Run, run.space, run._id)
+  return `🗑️ Run **${String(run.name)}** deleted with ${results.length} result(s).`
+})
+
+export const deleteTestPlan = wrapToolHandler<z.infer<typeof S.DeleteTestPlanSchema>>(async (args) => {
+  const client: any = await getConnection(args.workspace)
+  const project = await findProject(client, args.project)
+  const plans: any[] = await client.findAll(TM.Plan, { space: project._id })
+  const plan = plans.find((p) => p._id === args.plan || String(p.name).toLowerCase() === args.plan.toLowerCase())
+  if (plan == null) throw new Error(`Test plan '${args.plan}' not found.`)
+  const items: any[] = await client.findAll(TM.PlanItem, { attachedTo: plan._id })
+  for (const i of items) await client.removeCollection(TM.PlanItem, i.space, i._id, plan._id, TM.Plan, 'items')
+  await client.removeDoc(TM.Plan, plan.space, plan._id)
+  return `🗑️ Test plan **${String(plan.name)}** deleted (${items.length} item(s); runs made from it stay).`
 })
