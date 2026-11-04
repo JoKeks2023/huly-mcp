@@ -5,7 +5,7 @@ import { z } from 'zod'
 // Mutations always require it; reads may omit it only when exactly one
 // workspace is available.
 const WorkspaceArg = z.string().min(1).describe('Workspace slug/name/id')
-const ReadWorkspaceArg = z.string().min(1).optional().describe('Workspace slug/name/id (optional if only one)')
+const ReadWorkspaceArg = z.string().min(1).optional().describe('Workspace slug/name/id')
 
 const PriorityEnum = z.enum(['NoPriority', 'Urgent', 'High', 'Medium', 'Low'])
 
@@ -729,6 +729,12 @@ export const CreateIssueTreeSchema = z.object({
   milestoneLabel: z.string().optional().describe('Default for children'),
   skipDuplicates: z.boolean().default(true).describe('Reuse same-title issues'),
   dryRun: z.boolean().default(true)
+})
+
+export const MyDaySchema = z.object({
+  workspace: ReadWorkspaceArg,
+  date: z.string().optional().describe('YYYY-MM-DD, default today'),
+  limit: z.number().int().min(1).max(50).default(10).describe('Per section')
 })
 
 export const ChangesSinceSchema = z.object({
