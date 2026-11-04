@@ -66,5 +66,5 @@ test('plugin files: marketplace points to the plugin, MCP env covers every setti
   for (const key of Object.keys(manifest.userConfig)) {
     assert.ok(Object.values(env).includes(`\${user_config.${key}}`), `${key} is not passed to the server`)
   }
-  assert.match(mcp.mcpServers.huly.args.join(' '), new RegExp(`huly-mcp-selfhost@\\^${pkg.version.replace(/\./g, '\\.')}`))
+  assert.match(mcp.mcpServers.huly.args.join(' '), new RegExp(`huly-mcp-selfhost@\\^${pkg.version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`))
 })

@@ -22,7 +22,6 @@ import { createFakeEnv, PERSONAL, type FakeDoc } from './helpers'
 
 const W = 'jokeks2023'
 const NP = tracker.ids.NoParent as string
-const DAY = 86_400_000
 
 function issue (n: number, extra: Record<string, unknown> = {}): FakeDoc {
   return {

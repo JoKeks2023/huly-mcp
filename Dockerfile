@@ -23,14 +23,20 @@ WORKDIR /app
 
 # mcp-proxy (Python) bridges stdio <-> HTTP/SSE, same pattern used by other
 # self-hosted MCP wrappers. Versions pinned deliberately.
+# apt-get upgrade picks up Debian security fixes released after the base image was built.
 RUN apt-get update \
+    && apt-get upgrade -y \
     && apt-get install -y --no-install-recommends python3 python3-pip \
     && rm -rf /var/lib/apt/lists/* \
-    && pip3 install --no-cache-dir --break-system-packages "mcp==1.29.0" "mcp-proxy==0.12.0"
+    && pip3 install --no-cache-dir --break-system-packages "mcp==1.30.0" "mcp-proxy==0.14.0"
 
 COPY --from=builder /app/dist ./dist
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev && npm cache clean --force
+# npm (and corepack) are only needed to install; removing them drops their bundled dependencies
+# from the image, along with their security alerts.
+RUN npm ci --omit=dev && npm cache clean --force \
+    && rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \
+              /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack
 
 USER node
 

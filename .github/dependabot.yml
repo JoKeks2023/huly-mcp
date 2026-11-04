@@ -5,6 +5,10 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 10
+    ignore:
+      # Types follow the oldest supported Node major (package.json engines), not the newest.
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
     groups:
       # Huly's packages move together; one PR per release keeps them consistent.
       huly:
