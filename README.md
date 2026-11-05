@@ -411,14 +411,15 @@ Claude Code then asks for your Huly settings (e-mail + password or token, and fo
 
 | Part | What it does |
 |------|--------------|
-| MCP server | `huly-mcp-selfhost` via `npx`, configured from the plugin settings (toolsets and writable projects included) |
+| MCP server | `huly-mcp-selfhost` via `npx`, configured from the plugin settings (toolsets, on-demand loading, pinned workspace and writable projects included) |
 | Skill `huly-workflow` | When and how to use Huly while coding: find the project for the repo, duplicate check before new issues, component + milestone, status flow, PR → issue links, epics for plans |
 | Hook on session start | Reports the GitHub repo and branch; a branch like `proj-12-login` points Claude to issue `PROJ-12` (no network, no credentials) |
 | Hook after `gh pr create` / `gh pr merge` | Reminds Claude to link the new PR to its issue (`finish_work`) or to check the status after a merge |
 | `/huly:start [PROJ-12]` | Pick up an issue (from the argument or the branch), load the context, plan |
 | `/huly:finish [PROJ-12] [PR]` | Honest summary, PR link, status to review |
 | `/huly:plan <goal>` | Plan → epic + sub-issues (dry run first) |
-| `/huly:triage`, `/huly:standup [24h]` | Inbox triage, stand-up from recent changes |
+| `/huly:day`, `/huly:standup [since]`, `/huly:triage` | My day, stand-up, inbox triage — one call each (`my_day`, `standup`, `triage_inbox`) |
+| `/huly:report <PROJECT> [7d]` | Project status: progress, milestones, blockers (`project_report`) |
 
 Without the plugin, the same server works in Claude Code as a plain MCP server (see below); the MCP prompts `start`, `finish`, `plan`, `triage`, `standup` are available there too.
 
@@ -861,6 +862,7 @@ Secrets:
 - **New `HULY_TRANSACTOR_URL`:** a server running next to Huly (same Docker network) can reach the transactor internally, e.g. `ws://huly/_transactor`, instead of the public address — no detour through the uplink or a tunnel.
 - **Fixed: Huly client log lines on stdout.** `Client: onConnect 1` landed in the JSON-RPC stream; mcp-proxy logged "Failed to parse JSONRPC message". Such logs now go to stderr.
 - **Fixed: session tokens in logs.** Huly's client logs its websocket URL including the workspace token (`client websocket error: … /_transactor/<token>`), which ended up in `docker compose logs`. Tokens in log output are now masked as `***`.
+- **Claude Code plugin:** `/huly:standup` and `/huly:triage` (and the MCP prompts) now use the one-call tools `standup` and `triage_inbox`; new commands `/huly:day` (`my_day`) and `/huly:report` (`project_report`); new settings for a pinned workspace (`HULY_WORKSPACE`) and on-demand toolsets (`HULY_DYNAMIC_TOOLSETS`). The skill points to the overview tools and to `create_issue` with component/milestone.
 - CI: CodeQL Action v4; runs on `main` are no longer cancelled by the next push.
 
 ### 3.1.1 — 2026-11-04

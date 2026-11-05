@@ -11,7 +11,7 @@ Huly is the source of truth for what is being worked on. Keep it current as you 
 
 - **Project for this repo:** call `find_project_for_repo` with the git remote (`git remote get-url origin`). It returns the workspace and project key. If nothing is linked, ask the user which workspace/project to use — never guess a workspace.
 - **Issue for this branch:** branch names like `proj-12-short-title` carry the issue id (`PROJ-12`). The session-start hook of this plugin reports it when it finds one.
-- **Catching up:** after a break, `changes_since` (`24h`, `7d`) shows what others changed.
+- **Catching up — one call each:** `my_day` (my work today), `standup` (since the last working day), `triage_inbox` (unread with what changed), `project_report` (a project's state), `changes_since` (`24h`, `7d`, what others changed). Prefer these over assembling the picture from many list calls.
 
 ## 2. Pick up work
 
@@ -23,7 +23,7 @@ Huly is the source of truth for what is being worked on. Keep it current as you 
 ## 3. Create issues — only after a duplicate check
 
 - Before creating anything, search: `search_issues` (content) and `list_issues` in the project. Reuse or comment on an existing issue instead of creating a near-duplicate.
-- Every new issue gets a **component** and, if it belongs to a release, a **milestone** (`update_issue` with `componentLabel` / `milestoneLabel`, or the fields in `create_issue_tree`). If nothing fits, say so in your reply instead of silently creating new components or milestones.
+- Every new issue gets a **component** and, if it belongs to a release, a **milestone** — pass `componentLabel` / `milestoneLabel` (and `assignee`) directly to `create_issue`, or use the fields in `create_issue_tree`. If nothing fits, say so in your reply instead of silently creating new components or milestones.
 - Bugs or TODOs you notice while working: create an issue right away (after the duplicate check) and mention it in your reply.
 - Larger plans become an **epic with sub-issues**: `create_issue_tree` with `dryRun: true` first, show the plan, create after the user confirms. Express order with `blockedBy`.
 - Milestones are releases or real delivery targets, not phases. Phases and work packages are epics.
@@ -37,7 +37,7 @@ Huly is the source of truth for what is being worked on. Keep it current as you 
 | PR is open | Review in progress (`finish_work`) |
 | PR merged | Done / Merged — usually set by the GitHub sync |
 
-Use the project's actual status names (`list_issue_statuses`); if a name does not exist, pick the closest one and say which.
+Status goes in `statusName`. Use the project's actual status names (`list_issue_statuses`); an unknown name is an error — pick the closest existing one and say which.
 
 ## 5. Hand back
 
