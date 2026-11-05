@@ -53,6 +53,8 @@ export interface ConnectionManagerOptions {
   token?: string
   /** Legacy HULY_WORKSPACE: restricts this server to that single workspace. */
   restrictTo?: string
+  /** HULY_TRANSACTOR_URL: use this transactor instead of the one the account service names (e.g. an internal address). */
+  transactorUrl?: string
   createAccountClient?: (accountsUrl: string, token?: string) => AccountClient
   openConnection?: (endpoint: string, token: string, socialId: PersonId) => Promise<OpenConnection>
 }
@@ -256,6 +258,7 @@ export class WorkspaceConnectionManager {
       workspaceUuid = String(wsInfo.workspace ?? ws.uuid)
     }
 
+    endpoint = transactorEndpoint(endpoint, this.opts.transactorUrl)
     const { client, close } = await this.openConnection(endpoint, wsToken, session.socialId)
     return {
       workspace: ws,
@@ -266,6 +269,16 @@ export class WorkspaceConnectionManager {
       close
     }
   }
+}
+
+/**
+ * The account service answers with the public transactor address (e.g. wss://huly.example.com/_transactor).
+ * Next to Huly — same Docker network — that detour goes out through the uplink and a tunnel and back in.
+ * HULY_TRANSACTOR_URL replaces it, e.g. ws://huly/_transactor or ws://transactor:3333.
+ */
+export function transactorEndpoint (endpoint: string, override: string | undefined): string {
+  const o = override?.trim()
+  return o != null && o !== '' ? o.replace(/\/+$/, '') : endpoint
 }
 
 // ── Process-wide manager (configured from env) ──────────────────────────────
@@ -279,7 +292,8 @@ export function getConnectionManager (): WorkspaceConnectionManager {
       email: process.env.HULY_EMAIL,
       password: process.env.HULY_PASSWORD,
       token: process.env.HULY_TOKEN,
-      restrictTo: process.env.HULY_WORKSPACE
+      restrictTo: process.env.HULY_WORKSPACE,
+      transactorUrl: process.env.HULY_TRANSACTOR_URL
     })
   }
   return manager

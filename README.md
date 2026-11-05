@@ -383,6 +383,7 @@ A single Huly account can belong to several workspaces — e.g. a personal one a
 | `HULY_TOKEN` | one auth option | Account token for SSO accounts (Google/GitHub) — get it with `npm run setup` |
 | `HULY_ACCOUNTS_URL` | self-hosted only | Account service — login and workspace discovery. Default `https://account.huly.app`. Self-hosted: your instance's accounts URL, e.g. `https://huly.example.com/_accounts` |
 | `HULY_FRONT_URL` | self-hosted (optional on Cloud) | Front service — document/description content and file uploads. Not involved in login or workspace discovery. Self-hosted: e.g. `https://huly.example.com` |
+| `HULY_TRANSACTOR_URL` | no | Self-hosted, server next to Huly: connect to the transactor directly instead of the public address the account service returns, e.g. `ws://huly/_transactor` (via nginx) or `ws://transactor:3333`. Saves the detour through your uplink/tunnel. `HULY_ACCOUNTS_URL` can be internal too (`http://huly/_accounts`); an internal `HULY_FRONT_URL` also works but then invite links show the internal address |
 | `HULY_WORKSPACE` | no | Pin the server to one workspace; tools then take no `workspace` argument (fewer tokens) |
 | `HULY_DYNAMIC_TOOLSETS` | no | `1`: start with `HULY_TOOLSETS` and load more on demand via `enable_toolsets` (see [Toolsets](#toolsets)) |
 | `HULY_TOOLSETS` | no | Comma-separated toolsets to enable, or `all` (see [Toolsets](#toolsets)). Default: `agent,tracker,documents,chat,contacts,inbox,activity,planner,generic` |
@@ -857,6 +858,7 @@ Secrets:
 - **`create_issue` takes `assignee`, `componentLabel` and `milestoneLabel`**, so a new issue no longer needs a second `update_issue` call. An unknown `statusName` is now an error (it used to fall back to the first status). Everything is checked before anything is written.
 - **`get_issue` is shorter:** empty fields (no milestone, 0 comments, …) are left out and the fields share one line.
 - **Smaller tool list:** the `workspace` parameter no longer repeats its description in every tool (the server instructions explain it once). Default set 38.7k → 35.2k characters, all toolsets 88.8k → 80.3k.
+- **New `HULY_TRANSACTOR_URL`:** a server running next to Huly (same Docker network) can reach the transactor internally, e.g. `ws://huly/_transactor`, instead of the public address — no detour through the uplink or a tunnel.
 - **Fixed: Huly client log lines on stdout.** `Client: onConnect 1` landed in the JSON-RPC stream; mcp-proxy logged "Failed to parse JSONRPC message". Such logs now go to stderr.
 
 ### 3.1.1 — 2026-11-04
