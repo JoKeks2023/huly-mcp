@@ -71,6 +71,7 @@ export function createServer (options: { toolsets?: string, workspace?: string, 
     registerPrompts(server)
   }
   slimToolList(server)
+  checkArguments(server, new Map(TOOLS.map((t) => [t.name, new Set(Object.keys(t.schema.shape))])))
   return server
 }
 
@@ -106,6 +107,52 @@ export function stripLimits (node: any): void {
   if (node == null || typeof node !== 'object') return
   for (const k of LIMIT_KEYS) if (typeof node[k] === 'number') delete node[k]
   for (const v of Object.values(node)) stripLimits(v)
+}
+
+/** Names models often use instead of ours. Applied only when the tool has the target and not the alias. */
+export const ARG_ALIASES: Record<string, string> = {
+  status: 'statusName',
+  project: 'projectIdentifier',
+  projectId: 'projectIdentifier',
+  issue: 'identifier',
+  issueId: 'identifier',
+  id: 'identifier',
+  component: 'componentLabel',
+  milestone: 'milestoneLabel'
+}
+
+/**
+ * zod drops unknown keys silently, so `update_issue {status: "Done"}` answered "No changes made"
+ * and the model never learned why. Before validation: map common aliases to the real name and
+ * reject anything else unknown with the list of valid parameters — one cheap retry instead of
+ * a wrong result. `workspace` is always accepted (it is ignored when the server is pinned).
+ */
+export function normalizeArguments (tool: string, args: Record<string, unknown>, known: Set<string>): { args: Record<string, unknown> } | { error: string } {
+  const out: Record<string, unknown> = {}
+  const unknown: string[] = []
+  for (const [k, v] of Object.entries(args)) {
+    if (known.has(k) || k === 'workspace') { out[k] = v; continue }
+    const target = ARG_ALIASES[k]
+    if (target != null && known.has(target) && !(target in args)) { out[target] = v; continue }
+    unknown.push(k)
+  }
+  if (unknown.length === 0) return { args: out }
+  const valid = [...known].filter((k) => k !== 'workspace')
+  return { error: `Unknown parameter(s) for ${tool}: ${unknown.join(', ')}. Valid: ${valid.join(', ')}. Nothing was done.` }
+}
+
+function checkArguments (server: McpServer, shapes: Map<string, Set<string>>): void {
+  const handlers: Map<string, (req: any, extra: any) => Promise<any>> | undefined = (server.server as any)._requestHandlers
+  const original = handlers?.get('tools/call')
+  if (handlers == null || original == null) return
+  handlers.set('tools/call', async (req, extra) => {
+    const known = shapes.get(req?.params?.name)
+    const args = req?.params?.arguments
+    if (known == null || args == null || typeof args !== 'object' || Array.isArray(args)) return await original(req, extra)
+    const res = normalizeArguments(req.params.name, args, known)
+    if ('error' in res) return { isError: true, content: [{ type: 'text', text: res.error }] }
+    return await original({ ...req, params: { ...req.params, arguments: res.args } }, extra)
+  })
 }
 
 /**

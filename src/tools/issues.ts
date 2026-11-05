@@ -139,22 +139,28 @@ export const getIssue = wrapToolHandler<z.infer<typeof GetIssueSchema>>(async (a
     return names.join(', ')
   }
 
+  // Only fields that are set: empty ones ("None", "0") cost tokens and say nothing.
+  const blockedBy = await refIds(issue.blockedBy)
+  const related = await refIds(issue.relations)
+  const fieldsOut: Array<[string, string | undefined]> = [
+    ['Status', status?.name ?? 'Unknown'],
+    ['Priority', priorityLabel(issue.priority)],
+    ['Assignee', issue.assignee != null ? assignee : undefined],
+    ['Milestone', milestone?.label],
+    ['Component', component?.label],
+    ['Labels', labelRefs.length > 0 ? labelRefs.map((l) => l.title).join(', ') : undefined],
+    ['Parent', issue.parents?.[0] != null ? `${issue.parents[0].identifier} — ${issue.parents[0].parentTitle}` : undefined],
+    ['Blocked by', blockedBy !== 'None' ? blockedBy : undefined],
+    ['Related', related !== 'None' ? related : undefined],
+    ['Due date', issue.dueDate != null ? formatDate(issue.dueDate) : undefined],
+    ['Comments', (issue.comments ?? 0) > 0 ? String(issue.comments) : undefined],
+    ['Sub-issues', (issue.subIssues ?? 0) > 0 ? String(issue.subIssues) : undefined],
+    ['Estimation', issue.estimation > 0 ? `${issue.estimation}h` : undefined],
+    ['Reported time', issue.reportedTime > 0 ? `${issue.reportedTime}h` : undefined]
+  ]
   const lines = [
     `## ${issue.identifier}: ${issue.title}`,
-    `**Status:** ${status?.name ?? 'Unknown'}`,
-    `**Priority:** ${priorityLabel(issue.priority)}`,
-    `**Assignee:** ${assignee}`,
-    `**Milestone:** ${milestone?.label ?? 'None'}`,
-    `**Component:** ${component?.label ?? 'None'}`,
-    `**Labels:** ${labelRefs.length > 0 ? labelRefs.map((l) => l.title).join(', ') : 'None'}`,
-    `**Parent:** ${issue.parents?.[0] != null ? `${issue.parents[0].identifier} — ${issue.parents[0].parentTitle}` : 'None'}`,
-    `**Blocked by:** ${await refIds(issue.blockedBy)}`,
-    `**Related:** ${await refIds(issue.relations)}`,
-    `**Due date:** ${formatDate(issue.dueDate)}`,
-    `**Comments:** ${issue.comments ?? 0}`,
-    `**Sub-issues:** ${issue.subIssues ?? 0}`,
-    `**Estimation:** ${issue.estimation > 0 ? `${issue.estimation}h` : 'None'}`,
-    `**Reported time:** ${issue.reportedTime > 0 ? `${issue.reportedTime}h` : 'None'}`
+    fieldsOut.filter(([, v]) => v != null).map(([k, v]) => `**${k}:** ${v as string}`).join(' · ')
   ]
 
   if (issue.description != null) {
@@ -193,6 +199,15 @@ export const createIssue = wrapToolHandler<z.infer<typeof CreateIssueSchema>>(as
   const project = await client.findOne(tracker.class.Project, { identifier: args.projectIdentifier })
   if (project == null) throw new Error(`Project '${args.projectIdentifier}' not found.`)
 
+  // Resolve everything that can fail before the sequence number is taken.
+  const statuses = await client.findAll(tracker.class.IssueStatus, {})
+  if (args.statusName != null && !statuses.some((s) => s.name === args.statusName)) {
+    throw new Error(`Status '${args.statusName}' not found. Available: ${[...new Set(statuses.map((s) => s.name))].join(', ')}.`)
+  }
+  const fields = await resolveFieldUpdates(client, { space: project._id } as unknown as Issue, {
+    assignee: args.assignee, componentLabel: args.componentLabel, milestoneLabel: args.milestoneLabel
+  })
+
   // 2. Increment sequence counter
   const incResult = await client.updateDoc(
     tracker.class.Project,
@@ -205,7 +220,6 @@ export const createIssue = wrapToolHandler<z.infer<typeof CreateIssueSchema>>(as
   const identifier = `${project.identifier}-${issueNumber}`
 
   // 3. Resolve status
-  const statuses = await client.findAll(tracker.class.IssueStatus, {})
   const status = args.statusName != null
     ? (statuses.find((s) => s.name === args.statusName) ?? statuses[0])
     : (project.defaultIssueStatus != null
@@ -260,9 +274,9 @@ export const createIssue = wrapToolHandler<z.infer<typeof CreateIssueSchema>>(as
       comments: 0,
       subIssues: 0,
       dueDate: args.dueDate != null ? new Date(args.dueDate).getTime() : null,
-      assignee: null,
-      component: null,
-      milestone: null,
+      assignee: (fields.assignee ?? null) as any,
+      component: (fields.component ?? null) as any,
+      milestone: (fields.milestone ?? null) as any,
       parents: [],
       remainingTime: 0,
       estimation: 0,
@@ -274,7 +288,8 @@ export const createIssue = wrapToolHandler<z.infer<typeof CreateIssueSchema>>(as
     issueId
   )
 
-  return `✅ Created **${identifier}**: ${args.title}\nStatus: ${status.name} | Priority: ${priorityLabel(IssuePriority[args.priority as keyof typeof IssuePriority])}`
+  const extra = [args.assignee != null ? `Assignee: ${args.assignee}` : '', args.componentLabel != null ? `Component: ${args.componentLabel}` : '', args.milestoneLabel != null ? `Milestone: ${args.milestoneLabel}` : ''].filter((x) => x !== '')
+  return `✅ Created **${identifier}**: ${args.title}\nStatus: ${status.name} | Priority: ${priorityLabel(IssuePriority[args.priority as keyof typeof IssuePriority])}${extra.length > 0 ? ` | ${extra.join(' | ')}` : ''}`
 })
 
 export const deleteIssue = wrapToolHandler<z.infer<typeof DeleteIssueSchema>>(async (args) => {
