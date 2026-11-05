@@ -737,6 +737,18 @@ export const CreateIssueTreeSchema = z.object({
   dryRun: z.boolean().default(true)
 })
 
+export const IssuesFromDocumentSchema = z.object({
+  workspace: WorkspaceArg,
+  document: z.string().describe('Document id or exact title'),
+  projectIdentifier: z.string().describe('Project key'),
+  epicTitle: z.string().optional().describe('Default: document title'),
+  epicIdentifier: z.string().optional().describe('Or an existing epic'),
+  componentLabel: z.string().optional(),
+  milestoneLabel: z.string().optional(),
+  skipDuplicates: z.boolean().default(true),
+  dryRun: z.boolean().default(true)
+})
+
 export const MyDaySchema = z.object({
   workspace: ReadWorkspaceArg,
   date: z.string().optional().describe('YYYY-MM-DD, default today'),

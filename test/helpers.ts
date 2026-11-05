@@ -87,9 +87,11 @@ export class FakeTxClient {
     return id ?? 'new-id'
   }
 
-  async addCollection (_class: string, space: string, attachedTo: string, _attachedToClass: string, _coll: string, data: unknown): Promise<string> {
+  async addCollection (_class: string, space: string, attachedTo: string, _attachedToClass: string, _coll: string, data: unknown, id?: string): Promise<string> {
     this.mutations.push({ op: 'addCollection', _class, space, attachedTo, data })
-    return 'new-id'
+    // Store new issues so follow-up steps (set_parent, links) can find them, as on a real server.
+    if (id != null && _class === 'tracker:class:Issue') this.docs.push({ ...(data as object), _id: id, _class, space, attachedTo } as any)
+    return id ?? 'new-id'
   }
 
   async updateDoc (_class: string, space: string, id: string, data: unknown, retrieve?: boolean): Promise<unknown> {

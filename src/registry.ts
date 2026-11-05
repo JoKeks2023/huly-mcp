@@ -24,7 +24,7 @@ import { listClasses, describeClass, queryDocuments, genericCreate, genericUpdat
 import { attachFile, listAttachments, deleteAttachment } from './tools/attachments'
 import { listIssueStatuses, createIssueStatus } from './tools/statuses'
 import { listOrganizations, getOrganization, createOrganization, updateOrganization } from './tools/organizations'
-import { getIssueContext, startWork, finishWork, createIssueTree, changesSince, claimIssue, releaseIssue, findProjectForRepo } from './tools/agent'
+import { getIssueContext, startWork, finishWork, createIssueTree, changesSince, claimIssue, releaseIssue, findProjectForRepo, issuesFromDocument } from './tools/agent'
 import { listCollaborators, addCollaborator, removeCollaborator, createPublicLink, listPublicLinks, revokePublicLink } from './tools/sharing'
 import { listCardTypes, listCards, getCard, createCard, updateCard, deleteCard, createCardType, deleteCardType } from './tools/cards'
 import { createInviteLink, sendInvite, setMemberRole, getWorkspaceSettings, listProjectTypes } from './tools/workspace-admin'
@@ -167,6 +167,7 @@ export const TOOLS: ToolDef[] = [
   { name: 'finish_work', toolset: 'agent', description: 'Hand back: summary comment, link PR, status to review', schema: S.FinishWorkSchema, handler: finishWork },
   { name: 'create_issue_tree', toolset: 'agent', description: 'Plan → epic + sub-issues with blockers; skips duplicates; dry run first', schema: S.CreateIssueTreeSchema, handler: createIssueTree },
   { name: 'my_day', toolset: 'agent', description: 'Today at a glance: calendar, to-dos, my issues, reviews, unread inbox', schema: S.MyDaySchema, handler: myDay },
+  { name: 'issues_from_document', toolset: 'agent', description: 'Spec → epic + sub-issues from a document\'s open checklist items (else its sections); links the doc. Dry run first', schema: S.IssuesFromDocumentSchema, handler: issuesFromDocument },
   { name: 'standup', toolset: 'agent', description: 'Standup: what I did since the last working day, today, blockers', schema: S.StandupSchema, handler: standup },
   { name: 'release_notes', toolset: 'agent', description: 'Release notes from a milestone: features, fixes, PRs, still open', schema: S.ReleaseNotesSchema, handler: releaseNotes },
   { name: 'project_report', toolset: 'agent', description: 'Weekly report: done, new, blocked, overdue, PRs, milestones, time', schema: S.ProjectReportSchema, handler: projectReport },

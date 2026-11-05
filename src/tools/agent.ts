@@ -7,14 +7,16 @@ import { getConnection, listWorkspaces } from '../connection'
 import { wrapToolHandler } from '../utils/errors'
 import { formatDate, priorityLabel } from '../utils/format'
 import { currentPerson, peopleNames, socialIdNames } from '../utils/people'
-import { readMarkup } from '../utils/content'
+import { readMarkup, readMarkupJson } from '../utils/content'
+import { planFromMarkup } from '../utils/spec'
+import { linkDocument } from './documents'
 import { C, IDS } from '../utils/classes'
 import { createIssue, updateIssue, listSubIssues } from './issues'
 import { addComment, listComments } from './comments'
 import { setParent, addBlockedBy } from './relations'
 import { addLabel, removeLabel } from './labels'
 import type { z } from 'zod'
-import type { GetIssueContextSchema, StartWorkSchema, FinishWorkSchema, CreateIssueTreeSchema, ChangesSinceSchema, ClaimIssueSchema, ReleaseIssueSchema, FindProjectForRepoSchema } from '../schemas'
+import type { IssuesFromDocumentSchema, GetIssueContextSchema, StartWorkSchema, FinishWorkSchema, CreateIssueTreeSchema, ChangesSinceSchema, ClaimIssueSchema, ReleaseIssueSchema, FindProjectForRepoSchema } from '../schemas'
 
 const text = (r: { content: Array<{ text: string }> }): string => r.content[0]?.text ?? ''
 const PR_STATE = ['open', 'closed', 'merged']
@@ -217,18 +219,13 @@ export const createIssueTree = wrapToolHandler<z.infer<typeof CreateIssueTreeSch
   if (args.dryRun) return `🔍 Dry run in ${args.projectIdentifier}:\n${plan.map((p) => `- ${p}`).join('\n')}\nRun again with dryRun=false to create.`
 
   const ws = args.workspace
-  const create = async (title: string, description: string | undefined, priority: string | undefined): Promise<string> => {
-    const out = text(await createIssue({ workspace: ws, projectIdentifier: args.projectIdentifier, title, description, priority: priority ?? 'NoPriority' } as any))
+  const create = async (title: string, description: string | undefined, priority: string | undefined, f: { componentLabel?: string, milestoneLabel?: string, assignee?: string } = {}): Promise<string> => {
+    const out = text(await createIssue({ workspace: ws, projectIdentifier: args.projectIdentifier, title, description, priority: priority ?? 'NoPriority', componentLabel: f.componentLabel, milestoneLabel: f.milestoneLabel, assignee: f.assignee } as any))
     const id = /\*\*([A-Z][A-Z0-9]*-\d+)\*\*/.exec(out)?.[1]
     if (id == null) throw new Error(`Could not read new issue id from: ${out}`)
     return id
   }
-  const decorate = async (id: string, c: { componentLabel?: string, milestoneLabel?: string, assignee?: string, labels?: string[] }): Promise<void> => {
-    const component = c.componentLabel ?? args.componentLabel
-    const milestone = c.milestoneLabel ?? args.milestoneLabel
-    if (component != null || milestone != null || c.assignee != null) {
-      await updateIssue({ workspace: ws, identifier: id, componentLabel: component, milestoneLabel: milestone, assignee: c.assignee } as any)
-    }
+  const decorate = async (id: string, c: { labels?: string[] }): Promise<void> => {
     for (const label of c.labels ?? []) await addLabel({ workspace: ws, identifier: id, labelName: label } as any)
   }
 
@@ -247,7 +244,7 @@ export const createIssueTree = wrapToolHandler<z.infer<typeof CreateIssueTreeSch
   for (const c of args.children) {
     const dup = byTitle.get(norm(c.title))
     if (dup != null && args.skipDuplicates) { ids.push(dup); continue }
-    const id = await create(c.title, c.description, c.priority)
+    const id = await create(c.title, c.description, c.priority, { componentLabel: c.componentLabel ?? args.componentLabel, milestoneLabel: c.milestoneLabel ?? args.milestoneLabel, assignee: c.assignee })
     await decorate(id, c)
     await setParent({ workspace: ws, identifier: id, parentIdentifier: epicId } as any)
     created.push(id)
@@ -261,6 +258,48 @@ export const createIssueTree = wrapToolHandler<z.infer<typeof CreateIssueTreeSch
   }
   const reused = args.children.length - (created.length - (created[0]?.endsWith('(epic)') === true ? 1 : 0))
   return `✅ Issue tree under **${epicId}**: created ${created.length > 0 ? created.join(', ') : 'nothing'}${reused > 0 ? `; ${reused} existing reused` : ''}.\n${args.children.map((c, i) => `- ${ids[i]}: ${c.title}`).join('\n')}`
+})
+
+/**
+ * Spec → issues: open checklist items (or, without a checklist, the sections) of a Huly document
+ * become sub-issues of an epic; the document is linked to the epic. Dry run by default. The model
+ * does not have to read the document and repeat every task — one call plans, a second creates.
+ */
+export const issuesFromDocument = wrapToolHandler<z.infer<typeof IssuesFromDocumentSchema>>(async (args) => {
+  const client: any = await getConnection(args.workspace)
+  const DOC = 'document:class:Document'
+  let doc = await client.findOne(DOC, { _id: args.document })
+  if (doc == null) {
+    const hits: any[] = (await client.findAll(DOC, {})).filter((d: any) => String(d.title).trim().toLowerCase() === args.document.trim().toLowerCase())
+    if (hits.length > 1) throw new Error(`Several documents are titled '${args.document}' — pass the id (list_documents): ${hits.map((d) => d._id).join(', ')}.`)
+    doc = hits[0]
+  }
+  if (doc == null) throw new Error(`Document '${args.document}' not found (id or exact title).`)
+  if (doc.content == null || doc.content === '') throw new Error(`Document "${doc.title}" is empty.`)
+
+  const plan = planFromMarkup(await readMarkupJson(args.workspace, doc.content))
+  if (plan.tasks.length === 0) {
+    throw new Error(`No ${plan.source === 'checklist' ? 'open checklist items (all checked)' : 'checklist items or sections'} in "${doc.title}". Read it with get_document and pass your own children to create_issue_tree.`)
+  }
+  if (plan.tasks.length > 50) throw new Error(`"${doc.title}" yields ${plan.tasks.length} issues (max 50). Split the document or use create_issue_tree.`)
+
+  const tree = text(await createIssueTree({
+    workspace: args.workspace,
+    projectIdentifier: args.projectIdentifier,
+    epic: args.epicIdentifier == null ? { title: args.epicTitle ?? String(doc.title), description: `Spec: ${String(doc.title)}` } : undefined,
+    epicIdentifier: args.epicIdentifier,
+    children: plan.tasks,
+    componentLabel: args.componentLabel,
+    milestoneLabel: args.milestoneLabel,
+    skipDuplicates: args.skipDuplicates,
+    dryRun: args.dryRun
+  } as any))
+  const from = plan.source === 'checklist' ? 'open checklist items' : 'sections'
+  const head = `📄 "${String(doc.title)}" → ${plan.tasks.length} issue(s) from ${from}${plan.skippedDone > 0 ? ` (${plan.skippedDone} checked item(s) skipped)` : ''}.`
+  if (args.dryRun) return `${head}\n${tree}\nNot the right split? Use create_issue_tree with your own children.`
+  const epicId = /under \*\*([A-Z][A-Z0-9]*-\d+)\*\*/.exec(tree)?.[1]
+  const link = epicId != null ? text(await linkDocument({ workspace: args.workspace, identifier: epicId, documentId: String(doc._id) } as any)) : '⚠️ Could not read the epic id; document not linked.'
+  return `${head}\n${tree}\n${link}`
 })
 
 // ── What changed ──────────────────────────────────────────────────────────────
