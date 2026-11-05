@@ -59,7 +59,7 @@ test('pinned workspace: no workspace argument, calls run in the pinned workspace
   const b = (await pinned.listTools()).tools
   assert.equal(a.length, b.length)
   assert.ok(b.every((t: any) => t.inputSchema.properties?.workspace == null && !(t.inputSchema.required ?? []).includes('workspace')))
-  assert.ok(JSON.stringify(b).length < JSON.stringify(a).length - 5000)
+  assert.ok(JSON.stringify(b).length < JSON.stringify(a).length - 2500)
   assert.match(pinned.getInstructions() ?? '', /All tools work in workspace 'jokeks2023'/)
   assert.doesNotMatch(pinned.getInstructions() ?? '', /Reads may omit it/)
 

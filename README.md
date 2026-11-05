@@ -853,7 +853,11 @@ Secrets:
 
 ### Unreleased
 
-_Nothing yet._
+- **Unknown tool parameters are rejected instead of silently dropped.** Before, `update_issue {status: "Done"}` answered "No changes made". Now the call fails with the list of valid parameters and nothing is done. Common mix-ups are mapped automatically: `status`→`statusName`, `project`/`projectId`→`projectIdentifier`, `issue`/`issueId`/`id`→`identifier`, `component`→`componentLabel`, `milestone`→`milestoneLabel`.
+- **`create_issue` takes `assignee`, `componentLabel` and `milestoneLabel`**, so a new issue no longer needs a second `update_issue` call. An unknown `statusName` is now an error (it used to fall back to the first status). Everything is checked before anything is written.
+- **`get_issue` is shorter:** empty fields (no milestone, 0 comments, …) are left out and the fields share one line.
+- **Smaller tool list:** the `workspace` parameter no longer repeats its description in every tool (the server instructions explain it once). Default set 38.7k → 35.2k characters, all toolsets 88.8k → 80.3k.
+- **Fixed: Huly client log lines on stdout.** `Client: onConnect 1` landed in the JSON-RPC stream; mcp-proxy logged "Failed to parse JSONRPC message". Such logs now go to stderr.
 
 ### 3.1.1 — 2026-11-04
 

@@ -4,8 +4,8 @@ import { z } from 'zod'
 // are only unique within a workspace, so the workspace is part of their identity.
 // Mutations always require it; reads may omit it only when exactly one
 // workspace is available.
-const WorkspaceArg = z.string().min(1).describe('Workspace slug/name/id')
-const ReadWorkspaceArg = z.string().min(1).optional().describe('Workspace slug/name/id')
+const WorkspaceArg = z.string().min(1)
+const ReadWorkspaceArg = z.string().min(1).optional()
 
 const PriorityEnum = z.enum(['NoPriority', 'Urgent', 'High', 'Medium', 'Low'])
 
@@ -54,7 +54,10 @@ export const CreateIssueSchema = z.object({
   description: z.string().optional().describe('Issue description as Markdown (headings, bold, code, lists, tables, mermaid supported)'),
   priority: PriorityEnum.default('NoPriority').describe('Issue priority'),
   statusName: z.string().optional().describe('Default: project default'),
-  dueDate: z.string().optional().describe('Due date as ISO 8601 string, e.g. "2026-04-01"')
+  dueDate: z.string().optional().describe('Due date as ISO 8601 string, e.g. "2026-04-01"'),
+  assignee: z.string().optional(),
+  componentLabel: z.string().optional(),
+  milestoneLabel: z.string().optional()
 })
 
 export const DeleteIssueSchema = z.object({
