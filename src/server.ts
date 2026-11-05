@@ -46,7 +46,7 @@ export function createServer (options: { toolsets?: string, workspace?: string, 
   const dynamic = options.dynamic ?? ['1', 'true', 'yes'].includes(String(process.env.HULY_DYNAMIC_TOOLSETS ?? '').toLowerCase())
   let instructions = pinned != null ? pinnedInstructions(pinned) : SERVER_INSTRUCTIONS
   if (dynamic) instructions = instructions.replace('- Missing tools may be in a disabled toolset (HULY_TOOLSETS).', '- More tools (calendar, cards, drive, testing, recruiting, …) load on demand: enable_toolsets.')
-  const server = new McpServer({ name: 'huly-mcp-selfhost', version: '3.1.1' }, { instructions })
+  const server = new McpServer({ name: 'huly-mcp-selfhost', version: '3.2.0' }, { instructions })
   const asker = elicitationAsker(server)
   // Load on demand (HULY_DYNAMIC_TOOLSETS=1): every tool is registered, those outside HULY_TOOLSETS
   // start disabled; enable_toolsets switches them on and the client is told the tool list changed.
