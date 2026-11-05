@@ -1,20 +1,71 @@
 {
   "name": "huly",
   "version": "3.1.1",
-  "description": "Huly for Claude Code: 100+ MCP tools, a workflow skill, session/PR hooks and /huly commands",
-  "author": { "name": "JoKeks2023" },
+  "description": "Huly for Claude Code: 200+ MCP tools, a workflow skill, session/PR hooks and /huly commands",
+  "author": {
+    "name": "JoKeks2023"
+  },
   "homepage": "https://github.com/JoKeks2023/huly-mcp",
   "repository": "https://github.com/JoKeks2023/huly-mcp",
   "license": "EPL-2.0",
-  "keywords": ["huly", "mcp", "issues", "project-management"],
+  "keywords": [
+    "huly",
+    "mcp",
+    "issues",
+    "project-management"
+  ],
   "userConfig": {
-    "huly_email": { "type": "string", "title": "Huly e-mail", "description": "Login e-mail (or use a token instead)" },
-    "huly_password": { "type": "string", "title": "Huly password", "description": "Password of the Huly account", "sensitive": true },
-    "huly_token": { "type": "string", "title": "Huly token", "description": "Alternative to e-mail/password for SSO accounts (npx huly-mcp-selfhost setup)", "sensitive": true },
-    "huly_accounts_url": { "type": "string", "title": "Accounts URL", "description": "Self-hosted: e.g. https://huly.example.com/_accounts — leave empty for Huly Cloud" },
-    "huly_front_url": { "type": "string", "title": "Front URL", "description": "Self-hosted: e.g. https://huly.example.com — needed to read/write descriptions and files" },
-    "huly_toolsets": { "type": "string", "title": "Toolsets", "description": "Comma-separated toolsets or 'all'; empty = defaults" },
-    "huly_write_projects": { "type": "string", "title": "Writable projects", "description": "Only allow changes in these project keys, e.g. TSK,WEB; empty = all" },
-    "huly_file_root": { "type": "string", "title": "Local file folder", "description": "Drive uploads/downloads may use local paths inside this folder; empty = off" }
+    "huly_email": {
+      "type": "string",
+      "title": "Huly e-mail",
+      "description": "Login e-mail (or use a token instead)"
+    },
+    "huly_password": {
+      "type": "string",
+      "title": "Huly password",
+      "description": "Password of the Huly account",
+      "sensitive": true
+    },
+    "huly_token": {
+      "type": "string",
+      "title": "Huly token",
+      "description": "Alternative to e-mail/password for SSO accounts (npx huly-mcp-selfhost setup)",
+      "sensitive": true
+    },
+    "huly_accounts_url": {
+      "type": "string",
+      "title": "Accounts URL",
+      "description": "Self-hosted: e.g. https://huly.example.com/_accounts — leave empty for Huly Cloud"
+    },
+    "huly_front_url": {
+      "type": "string",
+      "title": "Front URL",
+      "description": "Self-hosted: e.g. https://huly.example.com — needed to read/write descriptions and files"
+    },
+    "huly_workspace": {
+      "type": "string",
+      "title": "Workspace",
+      "description": "Pin to one workspace (slug or name): tools need no workspace argument, fewer tokens; empty = all"
+    },
+    "huly_toolsets": {
+      "type": "string",
+      "title": "Toolsets",
+      "description": "Comma-separated toolsets or 'all'; empty = defaults"
+    },
+    "huly_dynamic_toolsets": {
+      "type": "string",
+      "title": "Load toolsets on demand",
+      "description": "1 = start small and load more toolsets when needed (enable_toolsets); empty = off"
+    },
+    "huly_write_projects": {
+      "type": "string",
+      "title": "Writable projects",
+      "description": "Only allow changes in these project keys, e.g. TSK,WEB; empty = all"
+    },
+    "huly_file_root": {
+      "type": "string",
+      "title": "Local file folder",
+      "description": "Drive uploads/downloads may use local paths inside this folder; empty = off"
+    }
   }
 }

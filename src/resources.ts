@@ -139,17 +139,17 @@ export function registerPrompts (server: McpServer): void {
     description: 'Go through unread notifications and suggest actions',
     argsSchema: { workspace: wsArg() }
   }, ({ workspace }) => user(
-    `Triage my Huly inbox in workspace ${workspace}: list_notifications (unread), group them by urgency, and for each ` +
-    'suggest one action (reply, start work, delegate, ignore). Do not change anything until I pick.'
+    `Triage my Huly inbox in workspace ${workspace}: call triage_inbox once (unread items with what changed), group them by urgency, and for each ` +
+    'suggest one action (reply, start work, delegate, mark read). Do not change anything until I pick.'
   ))
 
   server.registerPrompt('standup', {
     title: 'Stand-up summary',
-    description: 'What changed since yesterday and what is next',
+    description: 'What I did since the last working day, today, blockers',
     argsSchema: { workspace: wsArg(), since: z.string().optional() }
   }, ({ workspace, since }) => user(
-    `Write my stand-up for Huly workspace ${workspace}: call changes_since with since="${since ?? '24h'}", ` +
-    'then my open assigned issues. Format: Done / In progress / Blocked / Next — short bullet points with issue ids.'
+    `Write my stand-up for Huly workspace ${workspace}: call standup once${since != null ? ` with since="${since}"` : ''} — it already covers ` +
+    'what I did, what is in progress, blockers and today. Format: Done / In progress / Blocked / Next — short bullet points with issue ids.'
   ))
 }
 
