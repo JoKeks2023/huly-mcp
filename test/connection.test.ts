@@ -221,3 +221,10 @@ test('a failed connection is not cached', async () => {
   env.workspaces.push(acme)
   assert.equal((await env.manager.getWorkspace('acme')).workspace.uuid, ACME.uuid)
 })
+
+test('transactorEndpoint: HULY_TRANSACTOR_URL replaces the public address', async () => {
+  const { transactorEndpoint } = await import('../src/connection')
+  assert.equal(transactorEndpoint('wss://huly.example.com/_transactor', undefined), 'wss://huly.example.com/_transactor')
+  assert.equal(transactorEndpoint('wss://huly.example.com/_transactor', '  '), 'wss://huly.example.com/_transactor')
+  assert.equal(transactorEndpoint('wss://huly.example.com/_transactor', 'ws://huly/_transactor/'), 'ws://huly/_transactor')
+})

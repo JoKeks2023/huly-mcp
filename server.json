@@ -52,6 +52,13 @@
           "format": "string"
         },
         {
+          "name": "HULY_TRANSACTOR_URL",
+          "description": "Optional, self-hosted: internal transactor address (e.g. ws://huly/_transactor) instead of the public one",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string"
+        },
+        {
           "name": "HULY_WORKSPACE",
           "description": "Optional: pin the server to one workspace (slug, name or id); tools then need no workspace argument",
           "isRequired": false,
