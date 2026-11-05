@@ -5,6 +5,7 @@ import { closeConnection } from './connection'
 import { normalizeEnv } from './env'
 import { runWatch } from './watch'
 import { runJUnit } from './junit-cli'
+import { routeConsoleToStderr } from './utils/redact'
 
 async function main (): Promise<void> {
   if (process.argv[2] === 'watch') {
@@ -17,8 +18,9 @@ async function main (): Promise<void> {
   }
   normalizeEnv()
   // stdout is the JSON-RPC channel. Huly's client logs to it ("Client: onConnect 1"),
-  // which breaks strict MCP clients and makes mcp-proxy log parse errors. Send it to stderr.
-  console.log = console.info = console.debug = (...args: unknown[]) => { console.error(...args) }
+  // which breaks strict MCP clients and makes mcp-proxy log parse errors. Send it to stderr,
+  // with session tokens masked (Huly logs its websocket URL including the token).
+  routeConsoleToStderr()
   const server = createServer()
   const transport = new StdioServerTransport()
 
