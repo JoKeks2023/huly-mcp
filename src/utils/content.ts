@@ -22,6 +22,18 @@ export async function readMarkup (workspace: string | undefined, blobRef: string
   }
 }
 
+/** Parsed ProseMirror JSON of a markup blob (throws if it cannot be loaded). */
+export async function readMarkupJson (workspace: string | undefined, blobRef: string): Promise<any> {
+  const frontUrl = process.env.HULY_FRONT_URL
+  if (frontUrl == null || frontUrl === '') throw new Error('Reading document content needs HULY_FRONT_URL.')
+  const { wsToken, workspaceUuid } = await getWorkspaceInfo(workspace)
+  const url = `${frontUrl.replace(/\/$/, '')}/files?file=${encodeURIComponent(blobRef)}&workspace=${workspaceUuid}`
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${wsToken}` } })
+  if (!res.ok) throw new Error(`Content fetch failed: HTTP ${res.status}`)
+  const text = await res.text()
+  try { return JSON.parse(text) } catch { throw new Error('Document content is not Huly markup JSON.') }
+}
+
 /** Uploads Markdown as a markup blob and returns the blob ref to store on the doc. */
 export async function writeMarkup (workspace: string | undefined, idHint: string, markdown: string): Promise<string> {
   const { wsToken, workspaceUuid } = await getWorkspaceInfo(workspace)

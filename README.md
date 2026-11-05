@@ -33,7 +33,7 @@ This is a fork of [varaprasadreddy9676/huly-mcp](https://github.com/varaprasadre
 
 ---
 
-## Tools (222 total, grouped in toolsets)
+## Tools (223 total, grouped in toolsets)
 
 All tools except `list_workspaces` take a `workspace` argument — required for every change, optional for reads when only one workspace is available.
 
@@ -50,7 +50,7 @@ HULY_TOOLSETS=tracker,documents,planner # just these ('core' = list_workspaces i
 
 | Toolset | Default | Tools | Contents |
 |---------|:-:|--:|----------|
-| `agent` | ✓ | 12 | agent workflow: my day at a glance, standup, project report, release notes, issue context in one call, start/finish work, plan → issue tree, changes since, claims, repo → project — plus [resources and prompts](#agent-workflow) |
+| `agent` | ✓ | 13 | agent workflow: my day at a glance, standup, project report, release notes, issue context in one call, start/finish work, plan → issue tree, spec document → issues, changes since, claims, repo → project — plus [resources and prompts](#agent-workflow) |
 | `tracker` | ✓ | 37 | projects, issues, comments, time, labels, relations, milestones, components, statuses, attachments, search |
 | `documents` | ✓ | 8 | teamspaces and documents (tree, move, rename) |
 | `chat` | ✓ | 12 | channels, DMs, threads, edit/delete, reactions, pins |
@@ -82,7 +82,7 @@ HULY_TOOLSETS=tracker,documents,planner # just these ('core' = list_workspaces i
 
 Context cost of `tools/list` (≈3.5 chars/token):
 
-| | default (94 tools) | `all` (222 tools) |
+| | default (95 tools) | `all` (223 tools) |
 |---|--:|--:|
 | several workspaces | ~38.7k chars ≈ **11k tokens** | ~88.8k chars ≈ **25.4k tokens** |
 | pinned with `HULY_WORKSPACE` | ~31.6k chars ≈ **9k tokens** | ~72k chars ≈ **20.6k tokens** |
@@ -103,6 +103,7 @@ Tools, resources and prompts for AI agents working on Huly issues (toolset `agen
 | `start_work` | Status → In Progress, assign to me, optionally claim — returns the full context |
 | `finish_work` | Work summary as comment, PR (`#12`, URL or Huly id) linked as sub-issue, status → Review in progress, claim released. Validates the PR before changing anything |
 | `create_issue_tree` | Plan → epic + sub-issues with priorities, components, milestones, assignees, labels and blockers (`"#2"` = second child). Same-title issues are reused, dry run by default |
+| `issues_from_document` | Spec → issues: the open checklist items of a Huly document (without a checklist: its sections) become sub-issues of an epic, checked items are skipped, the document is linked to the epic. Dry run by default; one call instead of reading the document and repeating every task |
 | `changes_since` | Issues/PRs changed since `24h`, `7d` or an ISO time — which fields changed, new comments, by whom |
 | `find_project_for_repo` | Workspace + project linked to a GitHub repo (`owner/name`, URL or git remote) via Huly's GitHub integration |
 | `claim_issue` / `release_issue` | Lease an issue to an agent (label `agent:working` + comment marker) so parallel agents skip it; expires after `minutes` |
@@ -862,6 +863,8 @@ Secrets:
 - **New `HULY_TRANSACTOR_URL`:** a server running next to Huly (same Docker network) can reach the transactor internally, e.g. `ws://huly/_transactor`, instead of the public address — no detour through the uplink or a tunnel.
 - **Fixed: Huly client log lines on stdout.** `Client: onConnect 1` landed in the JSON-RPC stream; mcp-proxy logged "Failed to parse JSONRPC message". Such logs now go to stderr.
 - **Fixed: session tokens in logs.** Huly's client logs its websocket URL including the workspace token (`client websocket error: … /_transactor/<token>`), which ended up in `docker compose logs`. Tokens in log output are now masked as `***`.
+- **New: `issues_from_document`** — spec → issues in one call: open checklist items of a Huly document (or, without a checklist, its sections) become sub-issues of an epic; checked items are skipped; the document is linked to the epic. Dry run by default.
+- `create_issue_tree` passes component, milestone and assignee straight to `create_issue`, so a wrong name fails before the issue exists (before: the issue was created, then the update failed).
 - **Claude Code plugin:** `/huly:standup` and `/huly:triage` (and the MCP prompts) now use the one-call tools `standup` and `triage_inbox`; new commands `/huly:day` (`my_day`) and `/huly:report` (`project_report`); new settings for a pinned workspace (`HULY_WORKSPACE`) and on-demand toolsets (`HULY_DYNAMIC_TOOLSETS`). The skill points to the overview tools and to `create_issue` with component/milestone.
 - CI: CodeQL Action v4; runs on `main` are no longer cancelled by the next push.
 
