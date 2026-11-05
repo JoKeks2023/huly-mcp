@@ -6,9 +6,10 @@ import { SortingOrder } from '@hcengineering/core'
 import { getConnection, listWorkspaces } from '../connection'
 import { wrapToolHandler } from '../utils/errors'
 import { formatDate, priorityLabel } from '../utils/format'
-import { currentPerson, peopleNames, socialIdNames } from '../utils/people'
+import { currentPerson, findPerson, peopleNames, socialIdNames } from '../utils/people'
 import { readMarkup, readMarkupJson } from '../utils/content'
 import { planFromMarkup } from '../utils/spec'
+import { actionsFromMarkup, type MeetingTask } from '../utils/meeting'
 import { linkDocument } from './documents'
 import { C, IDS } from '../utils/classes'
 import { createIssue, updateIssue, listSubIssues } from './issues'
@@ -16,7 +17,7 @@ import { addComment, listComments } from './comments'
 import { setParent, addBlockedBy } from './relations'
 import { addLabel, removeLabel } from './labels'
 import type { z } from 'zod'
-import type { IssuesFromDocumentSchema, GetIssueContextSchema, StartWorkSchema, FinishWorkSchema, CreateIssueTreeSchema, ChangesSinceSchema, ClaimIssueSchema, ReleaseIssueSchema, FindProjectForRepoSchema } from '../schemas'
+import type { IssuesFromDocumentSchema, IssuesFromMeetingSchema, GetIssueContextSchema, StartWorkSchema, FinishWorkSchema, CreateIssueTreeSchema, ChangesSinceSchema, ClaimIssueSchema, ReleaseIssueSchema, FindProjectForRepoSchema } from '../schemas'
 
 const text = (r: { content: Array<{ text: string }> }): string => r.content[0]?.text ?? ''
 const PR_STATE = ['open', 'closed', 'merged']
@@ -265,17 +266,23 @@ export const createIssueTree = wrapToolHandler<z.infer<typeof CreateIssueTreeSch
  * become sub-issues of an epic; the document is linked to the epic. Dry run by default. The model
  * does not have to read the document and repeat every task — one call plans, a second creates.
  */
-export const issuesFromDocument = wrapToolHandler<z.infer<typeof IssuesFromDocumentSchema>>(async (args) => {
-  const client: any = await getConnection(args.workspace)
+/** A document by id or exact (case-insensitive) title; must have content. */
+async function findDocumentWithContent (client: any, ref: string): Promise<any> {
   const DOC = 'document:class:Document'
-  let doc = await client.findOne(DOC, { _id: args.document })
+  let doc = await client.findOne(DOC, { _id: ref })
   if (doc == null) {
-    const hits: any[] = (await client.findAll(DOC, {})).filter((d: any) => String(d.title).trim().toLowerCase() === args.document.trim().toLowerCase())
-    if (hits.length > 1) throw new Error(`Several documents are titled '${args.document}' — pass the id (list_documents): ${hits.map((d) => d._id).join(', ')}.`)
+    const hits: any[] = (await client.findAll(DOC, {})).filter((d: any) => String(d.title).trim().toLowerCase() === ref.trim().toLowerCase())
+    if (hits.length > 1) throw new Error(`Several documents are titled '${ref}' — pass the id (list_documents): ${hits.map((d) => d._id).join(', ')}.`)
     doc = hits[0]
   }
-  if (doc == null) throw new Error(`Document '${args.document}' not found (id or exact title).`)
+  if (doc == null) throw new Error(`Document '${ref}' not found (id or exact title).`)
   if (doc.content == null || doc.content === '') throw new Error(`Document "${doc.title}" is empty.`)
+  return doc
+}
+
+export const issuesFromDocument = wrapToolHandler<z.infer<typeof IssuesFromDocumentSchema>>(async (args) => {
+  const client: any = await getConnection(args.workspace)
+  const doc = await findDocumentWithContent(client, args.document)
 
   const plan = planFromMarkup(await readMarkupJson(args.workspace, doc.content))
   if (plan.tasks.length === 0) {
@@ -300,6 +307,61 @@ export const issuesFromDocument = wrapToolHandler<z.infer<typeof IssuesFromDocum
   const epicId = /under \*\*([A-Z][A-Z0-9]*-\d+)\*\*/.exec(tree)?.[1]
   const link = epicId != null ? text(await linkDocument({ workspace: args.workspace, identifier: epicId, documentId: String(doc._id) } as any)) : '⚠️ Could not read the epic id; document not linked.'
   return `${head}\n${tree}\n${link}`
+})
+
+/**
+ * Meeting notes → issues: action items (open checkboxes, "TODO:"/"Action:" lines, lists under an
+ * "Action items"/"Next steps" heading) become issues with assignee and due date taken from the line;
+ * each new issue is linked to the document. Dry run by default.
+ */
+export const issuesFromMeeting = wrapToolHandler<z.infer<typeof IssuesFromMeetingSchema>>(async (args) => {
+  const client: any = await getConnection(args.workspace)
+  const doc = await findDocumentWithContent(client, args.document)
+  const plan = actionsFromMarkup(await readMarkupJson(args.workspace, doc.content))
+  if (plan.tasks.length === 0) {
+    throw new Error(`No open action items in "${doc.title}"${plan.skippedDone > 0 ? ` (${plan.skippedDone} checked)` : ''}. Recognised: open checkboxes, lines starting with "TODO:"/"Action:", list items under a heading like "Action items" or "Next steps".`)
+  }
+  if (plan.tasks.length > 50) throw new Error(`"${doc.title}" has ${plan.tasks.length} action items (max 50).`)
+  const project = await client.findOne(tracker.class.Project, { identifier: args.projectIdentifier })
+  if (project == null) throw new Error(`Project '${args.projectIdentifier}' not found.`)
+
+  const existing: any[] = await client.findAll(tracker.class.Issue, { space: project._id })
+  const byTitle = new Map(existing.map((i) => [norm(i.title), i.identifier as string]))
+  // People are resolved up front; an unknown or ambiguous name is reported and the issue stays unassigned.
+  const people = new Map<string, { name?: string, problem?: string }>()
+  for (const name of new Set(plan.tasks.map((t) => t.assignee).filter((a): a is string => a != null))) {
+    try { people.set(name, { name: (await findPerson(client, name)).name }) } catch (e) { people.set(name, { problem: e instanceof Error ? e.message : String(e) }) }
+  }
+  const who = (t: MeetingTask): string | undefined => t.assignee != null ? people.get(t.assignee)?.name : undefined
+  const describe = (t: MeetingTask): string => {
+    const p = t.assignee != null ? people.get(t.assignee) : undefined
+    return [p?.name, p?.problem != null ? `⚠️ ${p.problem} → unassigned` : undefined, t.dueDate != null ? `due ${t.dueDate}` : undefined].filter((x) => x != null).join(' · ')
+  }
+
+  const head = `📝 "${String(doc.title)}" → ${plan.tasks.length} action item(s)${plan.skippedDone > 0 ? ` (${plan.skippedDone} checked skipped)` : ''}.`
+  if (args.dryRun) {
+    const lines = plan.tasks.map((t, i) => {
+      const dup = byTitle.get(norm(t.title))
+      const extra = describe(t)
+      return `- #${i + 1} ${dup != null && args.skipDuplicates ? `"${t.title}" → exists as **${dup}**, skipped` : `create "${t.title}"`}${extra !== '' ? ` · ${extra}` : ''}`
+    })
+    const fields = [args.componentLabel, args.milestoneLabel].filter((x) => x != null)
+    return `${head}\n🔍 Dry run in ${args.projectIdentifier}${fields.length > 0 ? ` (${fields.join(', ')})` : ''}:\n${lines.join('\n')}\nRun again with dryRun=false to create; each new issue is linked to the document.`
+  }
+
+  const out: string[] = []
+  for (const t of plan.tasks) {
+    const dup = byTitle.get(norm(t.title))
+    if (dup != null && args.skipDuplicates) { out.push(`- ${dup}: ${t.title} (exists, skipped)`); continue }
+    const res = text(await createIssue({ workspace: args.workspace, projectIdentifier: args.projectIdentifier, title: t.title, description: t.description, priority: 'NoPriority', dueDate: t.dueDate, assignee: who(t), componentLabel: args.componentLabel, milestoneLabel: args.milestoneLabel } as any))
+    const id = /\*\*([A-Z][A-Z0-9]*-\d+)\*\*/.exec(res)?.[1]
+    if (id == null) throw new Error(`Could not read new issue id from: ${res}`)
+    await linkDocument({ workspace: args.workspace, identifier: id, documentId: String(doc._id) } as any)
+    byTitle.set(norm(t.title), id)
+    const extra = describe(t)
+    out.push(`- ${id}: ${t.title}${extra !== '' ? ` · ${extra}` : ''}`)
+  }
+  return `${head}\n✅ Created in ${args.projectIdentifier}, linked to the document:\n${out.join('\n')}`
 })
 
 // ── What changed ──────────────────────────────────────────────────────────────
