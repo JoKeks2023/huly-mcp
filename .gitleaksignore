@@ -1,0 +1,2 @@
+# Fake JWT in a test (commit 4a3acd9, PR #51); the test now builds it at runtime.
+4a3acd9e6dc5dcfc17ca579ac711855ade450c36:test/redact.test.ts:jwt:5
