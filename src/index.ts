@@ -16,6 +16,9 @@ async function main (): Promise<void> {
     process.exit()
   }
   normalizeEnv()
+  // stdout is the JSON-RPC channel. Huly's client logs to it ("Client: onConnect 1"),
+  // which breaks strict MCP clients and makes mcp-proxy log parse errors. Send it to stderr.
+  console.log = console.info = console.debug = (...args: unknown[]) => { console.error(...args) }
   const server = createServer()
   const transport = new StdioServerTransport()
 
