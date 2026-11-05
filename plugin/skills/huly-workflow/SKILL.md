@@ -26,6 +26,7 @@ Huly is the source of truth for what is being worked on. Keep it current as you 
 - Every new issue gets a **component** and, if it belongs to a release, a **milestone** — pass `componentLabel` / `milestoneLabel` (and `assignee`) directly to `create_issue`, or use the fields in `create_issue_tree`. If nothing fits, say so in your reply instead of silently creating new components or milestones.
 - Bugs or TODOs you notice while working: create an issue right away (after the duplicate check) and mention it in your reply.
 - Larger plans become an **epic with sub-issues**: `create_issue_tree` with `dryRun: true` first, show the plan, create after the user confirms. Express order with `blockedBy`.
+- A spec or meeting notes in a Huly document: `issues_from_document` (spec → epic + sub-issues) or `issues_from_meeting` (action items with assignee and due date). Both plan first (dry run) — no need to read the document and repeat every task.
 - Milestones are releases or real delivery targets, not phases. Phases and work packages are epics.
 - Never create Huly projects yourself — the user does that (it needs OAuth for the GitHub link).
 
