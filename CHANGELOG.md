@@ -4,6 +4,7 @@ All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mc
 
 ### Unreleased
 
+- **`list_issues`: two new filters** — `title` (title contains text, case-insensitive) and `due` (`overdue`, `set`, `none`). Both run as one query on the server and combine with all other filters. Verified live on a self-hosted instance.
 - **Faster first call:** the server logs in and opens the workspace (when there is only one, e.g. pinned with `HULY_WORKSPACE`) in the background right after start-up. Measured on a self-hosted instance: first `list_issues` 4.4 s → 0.17 s; start-up itself unchanged. `HULY_PREWARM=0` turns it off; a failed login is reported by the first real call as before.
 - **Fixed: MCP registry entry.** The `server.json` description was longer than the registry's 100 characters, so 3.3.0 was refused there; a test now checks the length and the release workflow warns when the registry refuses an entry.
 - **Docs:** clearer positioning ("Huly for AI agents"), a table of measured token costs and a measured comparison with another popular Huly MCP server (2.9× less text per answer, 14× smaller tool definitions) in the README.

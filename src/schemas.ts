@@ -38,6 +38,8 @@ export const ListIssuesSchema = z.object({
   labelName: z.string().min(1).optional().describe('Filter by label name'),
   assignee: z.string().min(1).nullable().optional().describe('Person name; null = unassigned'),
   parentIdentifier: z.string().min(1).nullable().optional().describe('Direct sub-issues of this issue; null = top-level only'),
+  title: z.string().min(1).optional().describe('Title contains this text'),
+  due: z.enum(['overdue', 'set', 'none']).optional().describe('Due date: overdue, set or none'),
   limit: z.number().int().min(1).max(250).default(50),
   offset: z.number().int().min(0).optional()
 })
