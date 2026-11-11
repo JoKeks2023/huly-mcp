@@ -2,6 +2,11 @@
 
 All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mcp-selfhost). Versions follow [semver](https://semver.org).
 
+### 3.3.1 — 2026-11-11
+
+- **Fixed: MCP registry entry.** The `server.json` description was longer than the registry's 100 characters, so 3.3.0 was refused there; a test now checks the length and the release workflow warns when the registry refuses an entry.
+- **Docs:** clearer positioning ("Huly for AI agents") and a table of measured token costs in the README.
+
 ### 3.3.0 — 2026-11-11
 
 - **Claude Code plugin: `/huly:setup`** — the agent asks once per repo how Huly is used there (role, where new issues go, initiative, how token-saving) and writes the answers as a `## Huly` section; every later session follows it. You choose where: `CLAUDE.md` (shared), `CLAUDE.local.md` (only you; added to `.gitignore` if needed) or split — shared rules in `CLAUDE.md`, initiative and efficiency in `CLAUDE.local.md`. The project and its GitHub sync are detected first, so only the questions that matter are asked; "Not now" writes nothing. Optional import: status set, components, milestones, TODO/FIXME proposals, architecture document. The session-start hook reads the rules from all three files and offers `/huly:setup` while a repo has none.
