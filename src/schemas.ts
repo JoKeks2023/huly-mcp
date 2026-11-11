@@ -11,6 +11,11 @@ const PriorityEnum = z.enum(['NoPriority', 'Urgent', 'High', 'Medium', 'Low'])
 
 export const ListWorkspacesSchema = z.object({})
 
+export const CheckSetupSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  skipVersionCheck: z.boolean().optional().describe('Skip asking npm for the latest version')
+})
+
 export const ListProjectsSchema = z.object({
   workspace: ReadWorkspaceArg
 })
@@ -38,6 +43,8 @@ export const ListIssuesSchema = z.object({
   labelName: z.string().min(1).optional().describe('Filter by label name'),
   assignee: z.string().min(1).nullable().optional().describe('Person name; null = unassigned'),
   parentIdentifier: z.string().min(1).nullable().optional().describe('Direct sub-issues of this issue; null = top-level only'),
+  title: z.string().min(1).optional().describe('Title contains this text'),
+  due: z.enum(['overdue', 'set', 'none']).optional().describe('Due date: overdue, set or none'),
   limit: z.number().int().min(1).max(250).default(50),
   offset: z.number().int().min(0).optional()
 })
@@ -481,6 +488,12 @@ export const MarkNotificationsReadSchema = z.object({
   notificationIds: z.array(z.string()).optional().describe('From list_notifications'),
   all: z.boolean().optional().describe('Mark everything read'),
   archive: z.boolean().default(false).describe('Also archive')
+})
+
+export const ManageNotificationsSchema = z.object({
+  workspace: WorkspaceArg,
+  object: z.string().describe('Issue id or object id'),
+  action: z.enum(['pin', 'unpin', 'hide', 'unhide', 'unread', 'unarchive', 'follow', 'unfollow'])
 })
 
 export const GetActivitySchema = z.object({

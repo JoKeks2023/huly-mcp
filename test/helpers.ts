@@ -30,6 +30,11 @@ export class FakeTxClient {
         if ('$lte' in ops && !(actual != null && actual <= ops.$lte)) return false
         if ('$gte' in ops && !(actual != null && actual >= ops.$gte)) return false
         if ('$ne' in ops && actual === ops.$ne) return false
+        if ('$lt' in ops && !(actual != null && actual < ops.$lt)) return false
+        if ('$like' in ops) {
+          const re = new RegExp('^' + String(ops.$like).split(/(?<!\\)%/).map((p) => p.replace(/\\([%_\\])/g, '$1').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('.*') + '$', 'is')
+          if (typeof actual !== 'string' || !re.test(actual)) return false
+        }
         return true
       }
       return actual === v

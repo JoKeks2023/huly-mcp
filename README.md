@@ -6,15 +6,15 @@
 [![MCP Registry](https://img.shields.io/badge/MCP_Registry-io.github.jokeks2023%2Fhuly--mcp--selfhost-blue)](https://registry.modelcontextprotocol.io)
 [![License: EPL-2.0](https://img.shields.io/badge/license-EPL--2.0-blue)](https://github.com/JoKeks2023/huly-mcp/blob/main/LICENSE)
 
-**Huly for AI agents.** An MCP server for [Huly](https://huly.io) — self-hosted or Huly Cloud — that lets Claude and other agents work in your workspaces: issues, epics, milestones, documents, chat, inbox, planner, test management and more. 224 tools, built for agent workflows and to spend as few tokens as possible.
+**Huly for AI agents.** An MCP server for [Huly](https://huly.io) — self-hosted or Huly Cloud — that lets Claude and other agents work in your workspaces: issues, epics, milestones, documents, chat, inbox, planner, test management and more. 226 tools, built for agent workflows and to spend as few tokens as possible.
 
-[Website](https://jokeks2023.github.io/huly-mcp/) · [Quick start](#quick-start) · [Tools](#tools-224-total-grouped-in-toolsets) · [Claude Code plugin](#claude-code-plugin) · [Changelog](https://github.com/JoKeks2023/huly-mcp/blob/main/CHANGELOG.md)
+[Website](https://jokeks2023.github.io/huly-mcp/) · [Quick start](#quick-start) · [Tools](#tools-226-total-grouped-in-toolsets) · [Claude Code plugin](#claude-code-plugin) · [Changelog](https://github.com/JoKeks2023/huly-mcp/blob/main/CHANGELOG.md)
 
 ## Highlights
 
 - **Everything in Huly:** tracker, documents, chat, inbox, activity, planner, calendar, GitHub PRs, contacts, drive, cards, templates, test management, recruiting, CRM, HR and more — plus read access to *any* Huly class.
 - **Made for agents:** one-call overviews (`my_day`, `standup`, `project_report`, `get_issue_context`), `start_work` → `finish_work`, plans → epics with sub-issues, specs and meeting notes → issues, claims for parallel agents, and `huly-mcp watch` to hand issues to Claude from Huly.
-- **Few tokens:** tools come in toolsets (default ≈10k tokens, everything ≈23k), optionally loaded on demand; pin a workspace for −10 %; compact outputs; wrong parameters are rejected with the valid list instead of silently ignored.
+- **Few tokens:** tools come in toolsets (default ≈11k tokens, everything ≈24k), optionally loaded on demand; pin a workspace for −10 %; compact outputs; wrong parameters are rejected with the valid list instead of silently ignored.
 - **Safe by default:** every change names its workspace, risky tools ask first, writes can be limited to projects, optional audit log.
 - **Claude Code plugin:** `/huly:setup` asks once per repo how Huly is used there and writes the rules; skill, hooks and `/huly:*` commands. Guides and a `setup` prompt for every other MCP client too.
 - **Self-hosted first:** document and description content, file uploads and internal URLs work on `huly-selfhost`; one account, all its workspaces.
@@ -25,14 +25,41 @@ What the model reads — measured on a real self-hosted project (≈60 issues):
 
 | | Characters | ≈ Tokens |
 |---|--:|--:|
-| Tool list, default toolsets (96 tools, each callable directly) | 36,527 | 10.4k |
-| Tool list, pinned workspace | 32,962 | 9.4k |
-| Open issues of a project (23) | 1,965 | 0.6k |
+| Tool list, default toolsets (98 tools, each callable directly) | 37,435 | 10.7k |
+| Tool list, pinned workspace | 33,798 | 9.7k |
+| Open issues of a project (one call, ≈30 issues) | 2,768 | 0.8k |
 | One issue with description | 318 | 0.1k |
 | Project report (done, in progress, blocked, milestones, PRs, time) | ~2,700 | 0.8k |
 | My day (calendar, to-dos, my issues, PRs, inbox) | ~1,200 | 0.3k |
 
 Lists default to open items, empty fields are left out, and one call answers what would otherwise take four or five. Per call and question: [`costs.md`](https://github.com/JoKeks2023/huly-mcp/blob/main/plugin/skills/huly/costs.md).
+
+### Compared with another popular Huly MCP server
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/JoKeks2023/huly-mcp/main/docs/assets/benchmark-dark.svg">
+  <img alt="Characters per answer: huly-mcp-selfhost needs 2.9× less text per answer (median), 14× smaller tool definitions, one call instead of up to four" src="https://raw.githubusercontent.com/JoKeks2023/huly-mcp/main/docs/assets/benchmark-light.svg" width="900">
+</picture>
+
+Same self-hosted Huly, same questions, the best parameters on both sides, measured 2026-11-11. For the other server only the text content is counted, not the duplicate JSON copy it also returns. Where we return more (components), it is because we include each component's description and code paths.
+
+<details>
+<summary>All numbers (characters)</summary>
+
+| Question | huly-mcp-selfhost | Other server | Ratio |
+|---|--:|--:|--:|
+| Open issues of a project | 2,768 (1 call) | 11,601 (3 calls) | 4.2× less |
+| Issues in progress | 211 (1 call) | 790 (1 call) | 3.7× less |
+| One issue | 318 (1 call) | 585 (1 call) | 1.8× less |
+| Everything about an issue (fields, sub-issues, comments, relations) | 1,246 (1 call) | 3,585 (4 calls) | 2.9× less |
+| Search | 406 (1 call) | 1,405 (1 call) | 3.5× less |
+| Projects | 550 (1 call) | 1,041 (1 call) | 1.9× less |
+| Milestones | 208 (1 call) | 503 (1 call) | 2.4× less |
+| Components | 1,302 (1 call) | 692 (1 call) | 2.0× more |
+| Documents of a teamspace | 106 (1 call) | 305 (1 call) | 2.9× less |
+| Tool definitions (49 tools with the same name) | 15,728 | 216,890 | 13.8× less |
+
+</details>
 
 ## Quick start
 
@@ -70,7 +97,7 @@ Then run `/huly:setup` in a repository. Details: [Claude Code plugin](#claude-co
 
 Config file locations and examples for each client: [Compatible clients](#compatible-clients).
 
-**Server for a team or remote clients** — run the Docker image (HTTP/SSE on port 8000): see [Docker](#docker).
+**Server for a team or remote clients** — `huly-mcp-selfhost http` or the Docker image, with one Huly login per person: see [Team server over HTTP](#team-server-over-http).
 
 Then ask: *"What's on my plate today?"*, *"Plan the login redesign as an epic in WEB"*, *"Write release notes for v1.2"*. More in [Example prompts](#example-prompts).
 
@@ -85,7 +112,7 @@ The repo is also a Claude Code plugin marketplace. The plugin bundles the MCP se
 /plugin install huly@huly-mcp
 ```
 
-> **Note:** the plugin starts the npm package at exactly its own version (e.g. `huly-mcp-selfhost@3.3.0`; the plugin directory does not accept version ranges), so a plugin update brings the matching server. To try a local checkout instead: `npm run build`, then point `plugin/.mcp.json` at `dist/index.js` and start `claude --plugin-dir ./plugin`.
+> **Note:** the plugin starts the npm package at exactly its own version (e.g. `huly-mcp-selfhost@3.4.0`; the plugin directory does not accept version ranges), so a plugin update brings the matching server. To try a local checkout instead: `npm run build`, then point `plugin/.mcp.json` at `dist/index.js` and start `claude --plugin-dir ./plugin`.
 
 Claude Code then asks for your Huly settings (e-mail + password or token, and for self-hosted Huly the accounts and front URL; passwords and tokens go to the OS keychain).
 
@@ -106,7 +133,7 @@ Without the plugin, the same server works in Claude Code as a plain MCP server (
 
 ---
 
-## Tools (224 total, grouped in toolsets)
+## Tools (226 total, grouped in toolsets)
 
 All tools except `list_workspaces` take a `workspace` argument — required for every change, optional for reads when only one workspace is available.
 
@@ -116,7 +143,7 @@ Every tool schema is sent to the model in each session (Claude Desktop loads all
 
 ```bash
 HULY_TOOLSETS=all                       # everything
-HULY_TOOLSETS=tracker,documents,planner # just these ('core' = list_workspaces is always on)
+HULY_TOOLSETS=tracker,documents,planner # just these ('core' = list_workspaces and check_setup, always on)
 ```
 
 **Load on demand** (`HULY_DYNAMIC_TOOLSETS=1`): `HULY_TOOLSETS` becomes the starting set, and Claude loads more toolsets itself via `enable_toolsets`. Called without arguments, it lists every toolset with its tools; called with names, it loads them and tells the client that the tool list changed. With `HULY_TOOLSETS=agent,inbox` a session starts at ≈1.8k tokens instead of ≈9–11k. This needs a client that reloads the tool list on `notifications/tools/list_changed`: it is tested with the MCP SDK client, but **not yet verified in Claude Desktop**. Without the variable, nothing changes.
@@ -128,7 +155,7 @@ HULY_TOOLSETS=tracker,documents,planner # just these ('core' = list_workspaces i
 | `documents` | ✓ | 8 | teamspaces and documents (tree, move, rename) |
 | `chat` | ✓ | 12 | channels, DMs, threads, edit/delete, reactions, pins |
 | `contacts` | ✓ | 11 | members, organizations, persons, contact channels |
-| `inbox` | ✓ | 3 | notifications, triage (what changed since last read), mark read/archive |
+| `inbox` | ✓ | 4 | notifications, triage (what changed since last read), mark read/archive; pin, hide, mark unread, follow/unfollow per object |
 | `activity` | ✓ | 1 | change history of an issue/object |
 | `planner` | ✓ | 5 | to-dos, time blocking |
 | `generic` | ✓ | 4 | fulltext search across everything, read any Huly class |
@@ -155,10 +182,10 @@ HULY_TOOLSETS=tracker,documents,planner # just these ('core' = list_workspaces i
 
 Context cost of `tools/list` (≈3.5 chars/token):
 
-| | default (96 tools) | `all` (224 tools) |
+| | default (98 tools) | `all` (226 tools) |
 |---|--:|--:|
-| several workspaces | ~36.5k chars ≈ **10.4k tokens** | ~81.6k chars ≈ **23.3k tokens** |
-| pinned with `HULY_WORKSPACE` | ~33k chars ≈ **9.4k tokens** | ~73.3k chars ≈ **20.9k tokens** |
+| several workspaces | ~37.4k chars ≈ **10.7k tokens** | ~82.5k chars ≈ **23.6k tokens** |
+| pinned with `HULY_WORKSPACE` | ~33.8k chars ≈ **9.7k tokens** | ~74.1k chars ≈ **21.2k tokens** |
 
 For comparison, 2.2.0 needed ≈12.8k tokens for 64 tools. **Using one workspace? Set `HULY_WORKSPACE`** — the `workspace` argument then disappears from every tool (−10%). **Claude Code** loads MCP tools on demand, so there even `HULY_TOOLSETS=all` costs little up front.
 
@@ -238,11 +265,12 @@ Options: `--run <name>`, `--parent-suite <suite>`, `--no-create` (only existing 
 | Category | Tool | Description |
 |----------|------|-------------|
 | **Workspaces** | `list_workspaces` | List the workspaces this account can access (name, slug, id) |
+| | `check_setup` | Diagnose the setup in one call: version and whether a newer one exists, login (incl. API-token expiry), workspaces, front URL reachable, active settings — never prints secrets |
 | **Projects** | `list_projects` | List all projects in a workspace |
 | | `get_project` | Get project details + available statuses |
 | | `create_project` | Create a new tracker project with a unique identifier *(tracker-admin)* |
 | | `update_project` | Change name, description, default assignee or default status *(tracker-admin)* |
-| **Issues** | `list_issues` | List issues — open ones by default (`status: "all"` or a status name for others), filterable by priority, milestone, component, label, assignee, parent; `offset` pages through long lists ("51–100 of 118") |
+| **Issues** | `list_issues` | List issues — open ones by default (`status: "all"` or a status name for others), filterable by priority, milestone, component, label, assignee, parent (`null` = none for each), text in the title and due date (`overdue`, `set`, `none`); `offset` pages through long lists ("51–100 of 118") |
 | | `get_issue` | Full details of an issue (e.g. `PROJ-42`): assignee, milestone, component, labels, parent, links |
 | | `create_issue` | Create a new issue (with optional Markdown description) |
 | | `update_issue` | Update title, description, status, priority, assignee, due date, component, milestone |
@@ -318,6 +346,7 @@ Options: `--run <name>`, `--parent-suite <suite>`, `--no-create` (only existing 
 | **Inbox** (`inbox`) | `list_notifications` | Your notifications, grouped by issue/PR/document |
 | | `triage_inbox` | Work through the inbox in one call: per unread item its status and assignee, which fields changed and the new comments (plain text, shortened) since you last read it |
 | | `mark_notifications_read` | Mark read by object, ids or all; optionally archive |
+| | `manage_notifications` | For one object: `pin`/`unpin`, `hide`/`unhide`, `unread`, `unarchive`, `follow`/`unfollow` (follow = its changes reach your inbox) |
 | **Activity** (`activity`) | `get_activity` | Who changed what, plus comments, for an issue or object |
 | **Planner** (`planner`) | `list_todos` | Your to-dos (open/done, due date filter) |
 | | `create_todo` | Create a to-do, optionally attached to an issue |
@@ -414,6 +443,9 @@ A single Huly account can belong to several workspaces — e.g. a personal one a
 | `HULY_AGENT_NAME` | no | Default agent name for `claim_issue` (default `claude`) |
 | `HULY_CONFIRM` | no | `auto` (default), `strict` or `off` — ask before deletes and other risky tools (see [Agent workflow](#agent-workflow)) |
 | `HULY_FILE_ROOT` | no | Directory for local files: `upload_file` (`localPath`) and `download_file` (`savePath`) only work inside it. Off when unset — the server may run remotely |
+| `MCP_TRANSPORT` | no | Docker only: `http` = the server's own HTTP endpoint (`/mcp`, per-user logins) instead of mcp-proxy (see [Team server over HTTP](#team-server-over-http)) |
+| `MCP_AUTH_TOKEN` | no | HTTP mode: bearer token every client must send; required before the server's own `HULY_*` login is used over HTTP |
+| `HULY_PREWARM` | no | `0` turns off connecting at start-up. By default the server logs in (and opens the workspace when there is only one) right after it starts, so the first tool call answers in well under a second instead of 4–12 s |
 | `HULY_SUBSCRIBE_POLL_MS` | no | How often subscribed `huly://` resources are checked for changes (default 30000, minimum 5000) |
 
 ---
@@ -447,6 +479,10 @@ HULY_TOKEN=your-token-here
 A token copied from the browser (DevTools → Application → Local Storage → `token`) also works, but may be scoped to the single workspace open in that tab. If the account service refuses to list workspaces for such a token, the server falls back to that one workspace. Use `npx huly-mcp-selfhost setup` for full multi-workspace discovery.
 
 > Tokens expire after some time. If you get an auth error, run `npx huly-mcp-selfhost setup` again or switch to email + password.
+
+**Option C — API token (Huly → Settings → API tokens; in Huly's development branch since 2026-08, not yet in every release or self-hosted install):** bound to one workspace, with an expiry date, revocable without changing your password — the best choice for agents and CI. Use it as `HULY_TOKEN`. The server keeps it to its own workspace (even where Huly itself would allow switching), checks the expiry up front, and `check_setup` warns two weeks before it runs out. Tested against Huly's token format, not yet against a live server that issues such tokens.
+
+**Something not working?** Ask Claude to run `check_setup`: version (and whether a newer one exists), login, workspaces, whether the front URL is reachable and which settings are active — without printing secrets.
 
 **Self-hosted Huly:**
 
@@ -642,7 +678,7 @@ For network access (HTTP/SSE) use the [Docker image](#docker).
 
 ### npx (recommended)
 
-Every client example uses `"command": "npx", "args": ["-y", "huly-mcp-selfhost"]`. Pin a version (`huly-mcp-selfhost@3.3.0`) if you want updates only when you choose.
+Every client example uses `"command": "npx", "args": ["-y", "huly-mcp-selfhost"]`. Pin a version (`huly-mcp-selfhost@3.4.0`) if you want updates only when you choose.
 
 ### From source
 
@@ -671,6 +707,26 @@ docker compose up -d
 ```
 
 The container wraps the server with [`mcp-proxy`](https://github.com/sparfenyuk/mcp-proxy) to expose it over HTTP/SSE at `:8000/sse`, since standard MCP stdio transport can't be reached over a network directly. **Behind a reverse proxy or on a public hostname, set `MCP_ALLOWED_HOSTS`** to the host name(s) clients use, e.g. `MCP_ALLOWED_HOSTS=huly-mcp.example.com`. Otherwise mcp-proxy only accepts `localhost` and answers `421 Invalid Host header`. See [`Dockerfile`](https://github.com/JoKeks2023/huly-mcp/blob/main/Dockerfile) / [`docker-compose.yml`](https://github.com/JoKeks2023/huly-mcp/blob/main/docker-compose.yml).
+
+### Team server over HTTP
+
+`huly-mcp-selfhost http` serves MCP over Streamable HTTP at `/mcp` (health check `/healthz`) — no proxy, one long-lived session per client, so logins and connections are reused (the first call of a session takes ~0.2 s). In Docker: `MCP_TRANSPORT=http`.
+
+```bash
+npx huly-mcp-selfhost http --host 0.0.0.0 --port 8000
+```
+
+**Everyone with their own Huly account.** A client sends its own login as headers; the session then acts as that person:
+
+```bash
+claude mcp add --transport http huly https://huly-mcp.example.com/mcp \
+  --header "X-Huly-Token: <your token>"            # or X-Huly-Email + X-Huly-Password
+  # optional: --header "X-Huly-Workspace: acme"    # pin one workspace (fewer tokens)
+```
+
+**One shared account.** The server's own `HULY_*` login is only used behind a bearer token — set `MCP_AUTH_TOKEN` and give clients `Authorization: Bearer <token>`. Without it an open port would act as that account, so the server refuses and asks for per-user headers instead. With `MCP_AUTH_TOKEN` set, every request needs the bearer token, also when it brings its own login.
+
+Set `MCP_ALLOWED_HOSTS` to the host names clients use (DNS-rebinding protection). Use HTTPS (reverse proxy) as soon as logins travel over a network. Idle sessions close after 30 minutes.
 
 ---
 
@@ -893,7 +949,7 @@ See [CHANGELOG.md](https://github.com/JoKeks2023/huly-mcp/blob/main/CHANGELOG.md
 
 ## Credits
 
-Started as a fork of [varaprasadreddy9676/huly-mcp](https://github.com/varaprasadreddy9676/huly-mcp) (npm `huly-mcp-sdk`) by SaiVaraprasad Medapati and grown from its 33 tools to 224, with self-hosted support, toolsets, agent workflow and the Claude Code plugin. Published separately as `huly-mcp-selfhost`. Not affiliated with Huly Labs.
+Started as a fork of [varaprasadreddy9676/huly-mcp](https://github.com/varaprasadreddy9676/huly-mcp) (npm `huly-mcp-sdk`) by SaiVaraprasad Medapati and grown from its 33 tools to 226, with self-hosted support, toolsets, agent workflow and the Claude Code plugin. Published separately as `huly-mcp-selfhost`. Not affiliated with Huly Labs.
 
 ## Links
 

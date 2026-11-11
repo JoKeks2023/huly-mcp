@@ -24,7 +24,7 @@ Keep Huly current as you work, in the same turn as the action. Every call costs 
 | Everything about PROJ-12 | `get_issue_context` (just status/assignee: `get_issue`) |
 | Find something | `search_issues`, `search` — not `list_issues status=all` |
 
-Narrow lists with filters (`status`, `assignee`, `milestoneLabel`, `componentLabel`, `parentIdentifier`, `limit`). More questions with measured sizes: [costs.md](costs.md).
+Narrow lists with filters (`status`, `assignee`, `milestoneLabel`, `componentLabel`, `parentIdentifier`, `title`, `due: overdue`, `limit`). More questions with measured sizes: [costs.md](costs.md).
 
 ## 2. Pick up and hand back
 
@@ -59,4 +59,5 @@ Narrow lists with filters (`status`, `assignee`, `milestoneLabel`, `componentLab
 - Bulk changes, `move_issue`, deletes: show what will change first.
 - GitHub-synced projects: every change appears on GitHub too; don't cross-post.
 - `HULY_WRITE_PROJECTS` refusals: tell the user, don't work around them.
+- Huly calls fail with login/connection errors: run `check_setup` and show the user what it says.
 - A tool you need is missing: it is in a disabled toolset — `enable_toolsets` if available, otherwise tell the user which toolset to enable ([features.md](features.md)).

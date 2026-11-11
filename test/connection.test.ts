@@ -176,7 +176,7 @@ test('HULY_TOKEN (workspace-scoped) falls back to its own workspace if enumerati
 
 test('invalid HULY_TOKEN is reported', async () => {
   const { manager } = createFakeEnv({ workspaces: [PERSONAL], token: 'expired', tokenInfo: null })
-  await assert.rejects(manager.listWorkspaces(), /HULY_TOKEN is invalid or expired/)
+  await assert.rejects(manager.listWorkspaces(), /HULY_TOKEN is invalid, expired or revoked\. API token: create a new one/)
 })
 
 test('closeAll closes every connection and the next call reconnects', async () => {
@@ -227,4 +227,51 @@ test('transactorEndpoint: HULY_TRANSACTOR_URL replaces the public address', asyn
   assert.equal(transactorEndpoint('wss://huly.example.com/_transactor', undefined), 'wss://huly.example.com/_transactor')
   assert.equal(transactorEndpoint('wss://huly.example.com/_transactor', '  '), 'wss://huly.example.com/_transactor')
   assert.equal(transactorEndpoint('wss://huly.example.com/_transactor', 'ws://huly/_transactor/'), 'ws://huly/_transactor')
+})
+
+test('prewarm: logs in and opens the only workspace in the background; off, no credentials and failures are quiet', async () => {
+  const { prewarm, setConnectionManager, getWorkspace } = await import('../src/connection')
+  const creds = { HULY_EMAIL: 'me@example.com', HULY_PASSWORD: 'pw' }
+  const one = createFakeEnv({ workspaces: [PERSONAL] })
+  setConnectionManager(one.manager)
+  assert.equal(await prewarm(creds), 'workspace')
+  assert.equal(one.calls.opened.length, 1)
+  await getWorkspace() // the first real call reuses the warm connection
+  assert.equal(one.calls.opened.length, 1)
+  const two = createFakeEnv({ workspaces: [PERSONAL, ACME] })
+  setConnectionManager(two.manager)
+  assert.equal(await prewarm(creds), 'account')
+  assert.equal(two.calls.opened.length, 0, 'several workspaces: only log in, open none')
+  assert.equal(await prewarm({ ...creds, HULY_PREWARM: '0' }), 'off')
+  assert.equal(await prewarm({}), 'no-credentials')
+  const bad = createFakeEnv({ workspaces: [PERSONAL] })
+  ;(bad.manager as any).opts.password = 'wrong'
+  setConnectionManager(bad.manager)
+  assert.equal(await prewarm(creds), 'failed')
+  ;(bad.manager as any).opts.password = 'pw'
+  assert.equal((await bad.manager.listWorkspaces()).length, 1, 'a failed prewarm does not poison later calls')
+  setConnectionManager(null)
+})
+
+const jwt = (claims: Record<string, unknown>): string => `h.${Buffer.from(JSON.stringify(claims)).toString('base64url')}.sig`
+
+test('managed API token: stays in its own workspace even if the account has more; expiry is checked up front', async () => {
+  const { tokenClaims } = await import('../src/connection')
+  const exp = Math.floor(Date.now() / 1000) + 3600
+  const api = jwt({ account: 'account-1', workspace: ACME.uuid, extra: { apiTokenId: 'tok-1' }, exp })
+  assert.deepEqual(tokenClaims(api), { workspace: ACME.uuid, exp, apiTokenId: 'tok-1' })
+  assert.equal(tokenClaims('not-a-jwt'), undefined)
+
+  const { manager, calls } = createFakeEnv({
+    workspaces: [PERSONAL, ACME],
+    token: api,
+    tokenInfo: { account: 'account-1', socialId: 'social-id', token: 'api-inner', workspace: ACME.uuid, workspaceUrl: 'acme', endpoint: 'ws://huly/acme', role: 'USER' }
+  })
+  assert.deepEqual((await manager.listWorkspaces()).map((w) => w.url), ['acme'])
+  assert.deepEqual(calls.getUserWorkspacesTokens, [], 'other workspaces are not enumerated')
+  await assert.rejects(manager.getWorkspace('jokeks2023'), /Unknown workspace 'jokeks2023'\. Available: .*acme/)
+
+  const expired = createFakeEnv({ workspaces: [PERSONAL], token: jwt({ exp: Math.floor(Date.now() / 1000) - 60, extra: { apiTokenId: 't' } }), tokenInfo: {} })
+  await assert.rejects(expired.manager.listWorkspaces(), /HULY_TOKEN expired on \d{4}-\d{2}-\d{2}\. API token: create a new one in Huly → Settings → API tokens/)
+  assert.equal(expired.calls.getLoginInfoByToken, 0)
 })

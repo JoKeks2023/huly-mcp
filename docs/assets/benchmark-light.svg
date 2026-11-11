@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 584" width="900" height="584" role="img" aria-labelledby="t d" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+<title id="t">Characters the model reads per answer: huly-mcp-selfhost vs. another popular Huly MCP server</title>
+<desc id="d">Open issues of a project: 2768 vs 11601 characters; Issues in progress: 211 vs 790 characters; One issue: 318 vs 585 characters; Everything about an issue (fields, sub-issues, comments, relations): 1246 vs 3585 characters; Search: 406 vs 1405 characters; Projects: 550 vs 1041 characters; Milestones: 208 vs 503 characters; Components: 1302 vs 692 characters; Documents of a teamspace: 106 vs 305 characters. Tool definitions of 49 same-named tools: 15728 vs 216890 characters.</desc>
+<rect width="900" height="584" rx="8" fill="#fcfcfb"/>
+<text x="28" y="58" font-size="34" font-weight="650" fill="#0b0b0b">2.9×</text><text x="28" y="82" font-size="14" fill="#52514e">less text per answer (median)</text>
+<text x="308" y="58" font-size="34" font-weight="650" fill="#0b0b0b">14×</text><text x="308" y="82" font-size="14" fill="#52514e">smaller tool definitions</text>
+<text x="588" y="58" font-size="34" font-weight="650" fill="#0b0b0b">1</text><text x="588" y="82" font-size="14" fill="#52514e">call instead of up to 4</text>
+<rect x="28" y="108" width="12" height="12" rx="3" fill="#2a78d6"/><text x="46" y="119" font-size="13" fill="#0b0b0b">huly-mcp-selfhost</text>
+<rect x="190" y="108" width="12" height="12" rx="3" fill="#eb6834"/><text x="208" y="119" font-size="13" fill="#0b0b0b">another popular Huly MCP server</text>
+<text x="872" y="119" font-size="12" fill="#52514e" text-anchor="end">characters per answer · fewer is better</text>
+<line x1="210" y1="142" x2="210" y2="506" stroke="#e4e3df" stroke-width="1"/><text x="210" y="524" font-size="11" fill="#52514e" text-anchor="middle">0</text>
+<line x1="336.6666666666667" y1="142" x2="336.6666666666667" y2="506" stroke="#e4e3df" stroke-width="1"/><text x="336.6666666666667" y="524" font-size="11" fill="#52514e" text-anchor="middle">3k</text>
+<line x1="463.33333333333337" y1="142" x2="463.33333333333337" y2="506" stroke="#e4e3df" stroke-width="1"/><text x="463.33333333333337" y="524" font-size="11" fill="#52514e" text-anchor="middle">6k</text>
+<line x1="590" y1="142" x2="590" y2="506" stroke="#e4e3df" stroke-width="1"/><text x="590" y="524" font-size="11" fill="#52514e" text-anchor="middle">9k</text>
+<line x1="716.6666666666667" y1="142" x2="716.6666666666667" y2="506" stroke="#e4e3df" stroke-width="1"/><text x="716.6666666666667" y="524" font-size="11" fill="#52514e" text-anchor="middle">12k</text>
+<g><title>Open issues of a project — huly-mcp-selfhost: 2,768 chars in 1 call · other: 11,601 chars in 3 calls</title>
+<rect x="0" y="144" width="900" height="40" fill="transparent"/>
+<text x="198" y="165" font-size="13" fill="#0b0b0b" text-anchor="end">Open issues of a project</text>
+<path d="M210,150 h112.87111111111108 a4,4 0 0 1 4,4 v4 a4,4 0 0 1 -4,4 h-112.87111111111108 z" fill="#2a78d6"/>
+<path d="M210,164 h485.81999999999994 a4,4 0 0 1 4,4 v4 a4,4 0 0 1 -4,4 h-485.81999999999994 z" fill="#eb6834"/>
+<text x="705.8199999999999" y="174" font-size="11" fill="#52514e">3 calls</text>
+<text x="872" y="165" font-size="13" font-weight="600" fill="#0b0b0b" text-anchor="end">4.2× less</text></g>
+<g><title>Issues in progress — huly-mcp-selfhost: 211 chars in 1 call · other: 790 chars in 1 call</title>
+<rect x="0" y="184" width="900" height="40" fill="transparent"/>
+<text x="198" y="205" font-size="13" fill="#0b0b0b" text-anchor="end">Issues in progress</text>
+<path d="M210,190 h4.908888888888896 a4,4 0 0 1 4,4 v4 a4,4 0 0 1 -4,4 h-4.908888888888896 z" fill="#2a78d6"/>
+<path d="M210,204 h29.355555555555554 a4,4 0 0 1 4,4 v4 a4,4 0 0 1 -4,4 h-29.355555555555554 z" fill="#eb6834"/>
+<text x="872" y="205" font-size="13" font-weight="600" fill="#0b0b0b" text-anchor="end">3.7× less</text></g>
+<g><title>One issue — huly-mcp-selfhost: 318 chars in 1 call · other: 585 chars in 1 call</title>
+<rect x="0" y="224" width="900" height="40" fill="transparent"/>
+<text x="198" y="245" font-size="13" fill="#0b0b0b" text-anchor="end">One issue</text>
+<path d="M210,230 h9.426666666666677 a4,4 0 0 1 4,4 v4 a4,4 0 0 1 -4,4 h-9.426666666666677 z" fill="#2a78d6"/>
+<path d="M210,244 h20.69999999999999 a4,4 0 0 1 4,4 v4 a4,4 0 0 1 -4,4 h-20.69999999999999 z" fill="#eb6834"/>
+<text x="872" y="245" font-size="13" font-weight="600" fill="#0b0b0b" text-anchor="end">1.8× less</text></g>
+<g><title>Everything about an issue (fields, sub-issues, comments, relations) — huly-mcp-selfhost: 1,246 chars in 1 call · other: 3,585 chars in 4 calls</title>
+<rect x="0" y="264" width="900" height="40" fill="transparent"/>
+<text x="198" y="285" font-size="13" fill="#0b0b0b" text-anchor="end">Everything about an issue</text>
+<path d="M210,270 h48.608888888888885 a4,4 0 0 1 4,4 v4 a4,4 0 0 1 -4,4 h-48.608888888888885 z" fill="#2a78d6"/>
+<path d="M210,284 h147.36666666666667 a4,4 0 0 1 4,4 v4 a4,4 0 0 1 -4,4 h-147.36666666666667 z" fill="#eb6834"/>
+<text x="367.3666666666667" y="294" font-size="11" fill="#52514e">4 calls</text>
+<text x="872" y="285" font-size="13" font-weight="600" fill="#0b0b0b" text-anchor="end">2.9× less</text></g>
+<g><title>Search — huly-mcp-selfhost: 406 chars in 1 call · other: 1,405 chars in 1 call</title>
+<rect x="0" y="304" width="900" height="40" fill="transparent"/>
+<text x="198" y="325" font-size="13" fill="#0b0b0b" text-anchor="end">Search</text>
+<path d="M210,310 h13.142222222222216 a4,4 0 0 1 4,4 v4 a4,4 0 0 1 -4,4 h-13.142222222222216 z" fill="#2a78d6"/>
+<path d="M210,324 h55.322222222222194 a4,4 0 0 1 4,4 v4 a4,4 0 0 1 -4,4 h-55.322222222222194 z" fill="#eb6834"/>
+<text x="872" y="325" font-size="13" font-weight="600" fill="#0b0b0b" text-anchor="end">3.5× less</text></g>
+<g><title>Projects — huly-mcp-selfhost: 550 chars in 1 call · other: 1,041 chars in 1 call</title>
+<rect x="0" y="344" width="900" height="40" fill="transparent"/>
+<text x="198" y="365" font-size="13" fill="#0b0b0b" text-anchor="end">Projects</text>
+<path d="M210,350 h19.22222222222223 a4,4 0 0 1 4,4 v4 a4,4 0 0 1 -4,4 h-19.22222222222223 z" fill="#2a78d6"/>
+<path d="M210,364 h39.95333333333332 a4,4 0 0 1 4,4 v4 a4,4 0 0 1 -4,4 h-39.95333333333332 z" fill="#eb6834"/>
+<text x="872" y="365" font-size="13" font-weight="600" fill="#0b0b0b" text-anchor="end">1.9× less</text></g>
+<g><title>Milestones — huly-mcp-selfhost: 208 chars in 1 call · other: 503 chars in 1 call</title>
+<rect x="0" y="384" width="900" height="40" fill="transparent"/>
+<text x="198" y="405" font-size="13" fill="#0b0b0b" text-anchor="end">Milestones</text>
+<path d="M210,390 h4.782222222222231 a4,4 0 0 1 4,4 v4 a4,4 0 0 1 -4,4 h-4.782222222222231 z" fill="#2a78d6"/>
+<path d="M210,404 h17.23777777777778 a4,4 0 0 1 4,4 v4 a4,4 0 0 1 -4,4 h-17.23777777777778 z" fill="#eb6834"/>
+<text x="872" y="405" font-size="13" font-weight="600" fill="#0b0b0b" text-anchor="end">2.4× less</text></g>
+<g><title>Components — huly-mcp-selfhost: 1,302 chars in 1 call · other: 692 chars in 1 call</title>
+<rect x="0" y="424" width="900" height="40" fill="transparent"/>
+<text x="198" y="445" font-size="13" fill="#0b0b0b" text-anchor="end">Components</text>
+<path d="M210,430 h50.97333333333336 a4,4 0 0 1 4,4 v4 a4,4 0 0 1 -4,4 h-50.97333333333336 z" fill="#2a78d6"/>
+<path d="M210,444 h25.21777777777777 a4,4 0 0 1 4,4 v4 a4,4 0 0 1 -4,4 h-25.21777777777777 z" fill="#eb6834"/>
+<text x="872" y="445" font-size="13" font-weight="600" fill="#0b0b0b" text-anchor="end">2.0× more</text></g>
+<g><title>Documents of a teamspace — huly-mcp-selfhost: 106 chars in 1 call · other: 305 chars in 1 call</title>
+<rect x="0" y="464" width="900" height="40" fill="transparent"/>
+<text x="198" y="485" font-size="13" fill="#0b0b0b" text-anchor="end">Documents of a teamspace</text>
+<path d="M210,470 h2.2377777777777794 a2.2377777777777794,2.2377777777777794 0 0 1 2.2377777777777794,2.2377777777777794 v7.524444444444441 a2.2377777777777794,2.2377777777777794 0 0 1 -2.2377777777777794,2.2377777777777794 h-2.2377777777777794 z" fill="#2a78d6"/>
+<path d="M210,484 h8.877777777777766 a4,4 0 0 1 4,4 v4 a4,4 0 0 1 -4,4 h-8.877777777777766 z" fill="#eb6834"/>
+<text x="872" y="485" font-size="13" font-weight="600" fill="#0b0b0b" text-anchor="end">2.9× less</text></g>
+<text x="28" y="550" font-size="11" fill="#52514e">Same self-hosted Huly, same questions, best parameters on both sides, measured 2026-11-11.</text>
+<text x="28" y="566" font-size="11" fill="#52514e">Other server: text content only — its duplicate JSON copy is not counted. Components: ours includes descriptions and paths.</text>
+</svg>

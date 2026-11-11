@@ -12,12 +12,13 @@ Every Huly call costs a round trip and its output stays in context. Aim for **on
 | Everything about PROJ-12 before working on it | `get_issue_context` | ~1.3k | `get_issue` + `list_sub_issues` + `list_comments` + relations (4+ calls) |
 | Status/assignee of PROJ-12 | `get_issue` | ~0.4k | `get_issue_context` |
 | What changed? | `changes_since` with `projectIdentifiers` and a short `since` | — | whole workspace for 7d: ~8k |
+| Inbox housekeeping for one object (pin, hide, unread, follow) | `manage_notifications` | small | several updates |
 | What needs my attention? | `triage_inbox` with a small `limit` | ~4k at 10 | `list_notifications` + `get_issue` per item |
 | What's in release v1.2? | `release_notes` | ~2k | `list_issues milestoneLabel=…` + reading every issue |
 | Find issues about X | `search_issues` | ~2k | `list_issues status=all` and scanning |
 | Find anything (docs, chat, issues) | `search` | ~2.5k | several list calls |
 
-**Narrow lists with filters, not by reading them:** `list_issues` takes `status` (`open` default, `all`, or a name), `assignee` (`null` = unassigned), `milestoneLabel`, `componentLabel`, `labelName`, `parentIdentifier` (`null` = top level) and `limit`.
+**Narrow lists with filters, not by reading them:** `list_issues` takes `status` (`open` default, `all`, or a name), `assignee` (`null` = unassigned), `milestoneLabel`, `componentLabel`, `labelName`, `parentIdentifier` (`null` = top level), `title` (contains text), `due` (`overdue`, `set`, `none`) and `limit`.
 
 **Avoid** `query_documents` / generic tools when a specific tool exists: one issue there is ~1.8k raw fields vs ~0.4k from `get_issue`. Use them only for classes without a tool.
 

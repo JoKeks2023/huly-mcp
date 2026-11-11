@@ -82,6 +82,15 @@ export const listIssues = wrapToolHandler<z.infer<typeof ListIssuesSchema>>(asyn
     }
   }
 
+  if (args.title != null) {
+    // $like with % wildcards; escape the user's own % and _ so they match literally.
+    query.title = { $like: `%${args.title.replace(/[%_\\]/g, (c) => `\\${c}`)}%` }
+  }
+
+  if (args.due === 'overdue') query.dueDate = { $lt: Date.now() }
+  else if (args.due === 'set') query.dueDate = { $ne: null }
+  else if (args.due === 'none') query.dueDate = null
+
   if (args.labelName != null) {
     const label = await client.findOne(tags.class.TagElement, { targetClass: tracker.class.Issue, title: args.labelName })
     if (label == null) throw new Error(`Label '${args.labelName}' not found.`)

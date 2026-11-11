@@ -5,7 +5,7 @@ import { C } from '../utils/classes'
 import { currentAccountUuid } from '../utils/people'
 import { loadLabel, resolveObject } from '../utils/resolve'
 import type { z } from 'zod'
-import type { ListNotificationsSchema, MarkNotificationsReadSchema } from '../schemas'
+import type { ListNotificationsSchema, MarkNotificationsReadSchema, ManageNotificationsSchema } from '../schemas'
 
 const when = (ts: number | undefined): string => ts == null ? '' : new Date(ts).toISOString().slice(0, 16).replace('T', ' ')
 
@@ -73,4 +73,55 @@ export const markNotificationsRead = wrapToolHandler<z.infer<typeof MarkNotifica
     if (ctx != null) await client.updateDoc(ctx._class, ctx.space, ctx._id, { lastViewedTimestamp: now })
   }
   return `✅ ${notes.length} notification(s) ${args.archive ? 'archived' : 'marked read'} (${scope}).`
+})
+
+/**
+ * Inbox housekeeping for one object, the way Huly's inbox does it: pin/unpin and hide/unhide its
+ * conversation (DocNotifyContext), mark it unread again, restore archived notifications, and
+ * follow/unfollow it (a Collaborator row for my account). unhide is our own addition — Huly only
+ * un-hides on new activity.
+ */
+export const manageNotifications = wrapToolHandler<z.infer<typeof ManageNotificationsSchema>>(async (args) => {
+  const client: any = await getConnection(args.workspace)
+  const user = await currentAccountUuid(client)
+  const target = await resolveObject(client, args.object)
+
+  if (args.action === 'follow' || args.action === 'unfollow') {
+    const rows: any[] = await client.findAll(C.Collaborator, { attachedTo: target._id, collaborator: user })
+    if (args.action === 'follow') {
+      if (rows.length > 0) return `You already follow ${target.label}.`
+      await client.addCollection(C.Collaborator, target.space, target._id, target._class, 'collaborators', { collaborator: user })
+      return `✅ You now follow ${target.label} — its changes reach your inbox.`
+    }
+    if (rows.length === 0) return `You do not follow ${target.label}.`
+    for (const r of rows) await client.removeCollection(C.Collaborator, r.space, r._id, r.attachedTo, r.attachedToClass, r.collection ?? 'collaborators')
+    return `✅ You no longer follow ${target.label}.`
+  }
+
+  const ctx: any = await client.findOne(C.DocNotifyContext, { user, objectId: target._id })
+  if (ctx == null) throw new Error(`${target.label} is not in your inbox (no notifications for it yet). Nothing was changed.`)
+  const set = async (update: Record<string, unknown>): Promise<void> => { await client.updateDoc(ctx._class, ctx.space, ctx._id, update) }
+
+  switch (args.action) {
+    case 'pin': await set({ isPinned: true }); return `✅ Pinned ${target.label} in your inbox.`
+    case 'unpin': await set({ isPinned: false }); return `✅ Unpinned ${target.label}.`
+    case 'hide': await set({ hidden: true }); return `✅ Hidden ${target.label} — it comes back with new activity.`
+    case 'unhide': await set({ hidden: false }); return `✅ ${target.label} is visible in your inbox again.`
+    case 'unarchive': {
+      const notes: any[] = await client.findAll(C.InboxNotification, { user, docNotifyContext: ctx._id, archived: true })
+      for (const n of notes) await client.updateDoc(n._class, n.space, n._id, { archived: false })
+      return `✅ ${notes.length} notification(s) of ${target.label} restored from the archive.`
+    }
+    case 'unread': {
+      // Like Huly's "mark as unread": the notifications become unviewed and the context's
+      // last-viewed time goes back to just before the oldest of them.
+      const notes: any[] = await client.findAll(C.InboxNotification, { user, docNotifyContext: ctx._id, archived: false })
+      if (notes.length === 0) return `${target.label} has no notifications to mark unread.`
+      for (const n of notes) if (n.isViewed === true) await client.updateDoc(n._class, n.space, n._id, { isViewed: false })
+      const oldest = Math.min(...notes.map((n) => n.createdOn ?? Date.now()))
+      await set({ lastViewedTimestamp: oldest - 1 })
+      return `✅ ${target.label} is unread again (${notes.length} notification(s)).`
+    }
+  }
+  throw new Error(`Unknown action '${args.action as string}'.`)
 })
