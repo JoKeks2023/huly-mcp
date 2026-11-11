@@ -19,7 +19,11 @@ const DONE = new Set<string>([task.statusCategory.Won, task.statusCategory.Lost]
 /** Open issues assigned to me, newest first — offered as huly:// resources. */
 async function myOpenIssues (limit = 30): Promise<Array<{ uri: string, name: string, description: string }>> {
   const out: Array<{ uri: string, name: string, description: string }> = []
-  for (const ws of await listWorkspaces()) {
+  // Not logged in (no or a wrong login): list no issues instead of failing resources/list —
+  // the guides must stay readable, and inspectors like Glama's start the server without a login.
+  let workspaces: Awaited<ReturnType<typeof listWorkspaces>>
+  try { workspaces = await listWorkspaces() } catch { return [] }
+  for (const ws of workspaces) {
     try {
       const client: any = await getConnection(ws.url)
       const me = await currentPerson(client)

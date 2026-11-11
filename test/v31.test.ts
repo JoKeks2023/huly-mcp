@@ -244,3 +244,18 @@ test('resource subscriptions notify when a subscribed issue changes', async () =
   assert.equal(subs.subscriptions.size, 0)
   await mcp.close()
 })
+
+test('resources/list works without a usable login: guides are listed, issues are simply left out', async () => {
+  const env = createFakeEnv({ workspaces: [PERSONAL] })
+  ;(env.manager as any).opts.email = undefined
+  setConnectionManager(env.manager)
+  const server = createServer({ toolsets: 'agent' })
+  const [c, s] = InMemoryTransport.createLinkedPair()
+  await server.connect(s)
+  const mcp = new Client({ name: 't', version: '0' })
+  await mcp.connect(c)
+  const uris = (await mcp.listResources()).resources.map((r) => r.uri)
+  assert.ok(uris.includes('huly://guide/workflow'))
+  assert.equal(uris.filter((u) => u.includes('/issue/')).length, 0)
+  await mcp.close()
+})
