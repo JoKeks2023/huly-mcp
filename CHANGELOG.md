@@ -2,7 +2,7 @@
 
 All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mcp-selfhost). Versions follow [semver](https://semver.org).
 
-### Unreleased
+### 3.3.0 — 2026-11-11
 
 - **Claude Code plugin: `/huly:setup`** — the agent asks once per repo how Huly is used there (role, where new issues go, initiative, how token-saving) and writes the answers as a `## Huly` section; every later session follows it. You choose where: `CLAUDE.md` (shared), `CLAUDE.local.md` (only you; added to `.gitignore` if needed) or split — shared rules in `CLAUDE.md`, initiative and efficiency in `CLAUDE.local.md`. The project and its GitHub sync are detected first, so only the questions that matter are asked; "Not now" writes nothing. Optional import: status set, components, milestones, TODO/FIXME proposals, architecture document. The session-start hook reads the rules from all three files and offers `/huly:setup` while a repo has none.
 - **Feature guide: all of Huly for a software project** (`features.md` in the skill, resource `huly://guide/features`) — what each Huly feature is for in a repo (components, milestones, epics, labels + categories, status set, issue templates, test management and CI JUnit import, documents, chat, GitHub, time, planner, calendar, drive, custom fields, cards, products), the tools, when to propose it, and which toolsets must be enabled. `/huly:setup` offers the extras as imports and reports which toolsets to keep on. A test checks that every tool and toolset named in the guides exists.
@@ -11,6 +11,8 @@ All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mc
 - **New: `HULY_ANNOTATIONS=1`** — MCP tool annotations: a title per tool, `readOnlyHint` for reads, `destructiveHint` for deletes, removals and bulk changes. Off by default because it adds ~16% to the tool list (default set: 36.5k → 42.6k chars); the Claude Code plugin turns it on.
 - **Fixed: SSO token setup outside the repo.** `npx huly-mcp-selfhost setup` now runs the token wizard (before, it started the server — the plugin settings pointed to a command that did not exist). It asks for your Huly address (or `--url`), and outside a repo checkout prints the token and URLs to paste instead of writing a `.env` into the npm cache. One line reader for the whole run (piped input no longer loses lines); an unreachable address gets a clear error.
 - **Plugin:** starts the npm package at exactly its own version (`@3.2.0`, was `^3.2.0`) — the Claude plugin directory does not accept ranges; `plugin/README.md` describes what the plugin runs and where data goes.
+- **Docs:** new README (highlights and quick start first, links work on npmjs.com), the changelog moved to `CHANGELOG.md`, current npm description, keywords and homepage.
+- **Build** clears `dist/` first, so no stale files end up in the package.
 
 ### 3.2.0 — 2026-11-11
 
