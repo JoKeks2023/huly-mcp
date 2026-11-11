@@ -325,6 +325,26 @@ export async function getWorkspaceInfo (workspace?: string): Promise<{ wsToken: 
   return { wsToken, workspaceUuid }
 }
 
+/**
+ * Connect in the background right after start-up, so the first tool call does not pay for the
+ * account login, workspace discovery and the workspace model load (measured 4–12 s on a
+ * self-hosted instance). With one workspace (pinned or the only one) its connection is opened
+ * too. Never throws: a failure here is reported by the first real call. HULY_PREWARM=0 turns it off.
+ */
+export async function prewarm (env: NodeJS.ProcessEnv = process.env): Promise<'off' | 'no-credentials' | 'account' | 'workspace' | 'failed'> {
+  if (['0', 'false', 'no', 'off'].includes(String(env.HULY_PREWARM ?? '').trim().toLowerCase())) return 'off'
+  const set = (v: string | undefined): boolean => (v ?? '').trim() !== ''
+  if (!set(env.HULY_TOKEN) && !(set(env.HULY_EMAIL) && set(env.HULY_PASSWORD))) return 'no-credentials'
+  try {
+    const workspaces = await listWorkspaces()
+    if (workspaces.length !== 1) return 'account'
+    await getWorkspace()
+    return 'workspace'
+  } catch {
+    return 'failed'
+  }
+}
+
 export async function closeConnection (): Promise<void> {
   if (manager !== null) await manager.closeAll()
 }

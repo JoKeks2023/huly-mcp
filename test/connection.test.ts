@@ -228,3 +228,27 @@ test('transactorEndpoint: HULY_TRANSACTOR_URL replaces the public address', asyn
   assert.equal(transactorEndpoint('wss://huly.example.com/_transactor', '  '), 'wss://huly.example.com/_transactor')
   assert.equal(transactorEndpoint('wss://huly.example.com/_transactor', 'ws://huly/_transactor/'), 'ws://huly/_transactor')
 })
+
+test('prewarm: logs in and opens the only workspace in the background; off, no credentials and failures are quiet', async () => {
+  const { prewarm, setConnectionManager, getWorkspace } = await import('../src/connection')
+  const creds = { HULY_EMAIL: 'me@example.com', HULY_PASSWORD: 'pw' }
+  const one = createFakeEnv({ workspaces: [PERSONAL] })
+  setConnectionManager(one.manager)
+  assert.equal(await prewarm(creds), 'workspace')
+  assert.equal(one.calls.opened.length, 1)
+  await getWorkspace() // the first real call reuses the warm connection
+  assert.equal(one.calls.opened.length, 1)
+  const two = createFakeEnv({ workspaces: [PERSONAL, ACME] })
+  setConnectionManager(two.manager)
+  assert.equal(await prewarm(creds), 'account')
+  assert.equal(two.calls.opened.length, 0, 'several workspaces: only log in, open none')
+  assert.equal(await prewarm({ ...creds, HULY_PREWARM: '0' }), 'off')
+  assert.equal(await prewarm({}), 'no-credentials')
+  const bad = createFakeEnv({ workspaces: [PERSONAL] })
+  ;(bad.manager as any).opts.password = 'wrong'
+  setConnectionManager(bad.manager)
+  assert.equal(await prewarm(creds), 'failed')
+  ;(bad.manager as any).opts.password = 'pw'
+  assert.equal((await bad.manager.listWorkspaces()).length, 1, 'a failed prewarm does not poison later calls')
+  setConnectionManager(null)
+})
