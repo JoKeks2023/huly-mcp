@@ -3,7 +3,7 @@
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import type { z } from 'zod'
-import { listWorkspaces, getWorkspace, tokenClaims } from '../connection'
+import { listWorkspaces, getWorkspace, tokenClaims, getConnectionManager } from '../connection'
 import { wrapToolHandler } from '../utils/errors'
 import type { CheckSetupSchema } from '../schemas'
 
@@ -70,10 +70,12 @@ export async function checkSetupReport (args: z.infer<typeof CheckSetupSchema>, 
   if (latest != null && isNewer(latest, version)) warn(`Version ${version} — ${latest} is available (npx -y huly-mcp-selfhost@latest, or update the plugin / Docker image)`)
   else ok(`Version ${version}${latest != null ? ' (latest)' : ''}, Node.js ${process.versions.node}`)
 
-  const claims = set('HULY_TOKEN') ? tokenClaims(env.HULY_TOKEN) : undefined
-  const auth = set('HULY_TOKEN') ? (claims?.apiTokenId != null ? 'API token' : 'token') : (set('HULY_EMAIL') && set('HULY_PASSWORD')) ? 'e-mail + password' : undefined
+  // The login of this connection: the environment over stdio, the session's own login over HTTP/OAuth.
+  const session = getConnectionManager().describeAuth()
+  const claims = session.token != null ? tokenClaims(session.token) : undefined
+  const auth = session.kind === 'token' ? (claims?.apiTokenId != null ? 'API token' : 'token') : session.kind
   if (auth == null) fail('No credentials: set HULY_TOKEN, or HULY_EMAIL and HULY_PASSWORD (Google/GitHub login: npx huly-mcp-selfhost setup)')
-  const accounts = hostOf(env.HULY_ACCOUNTS_URL) ?? 'https://account.huly.app (Huly Cloud)'
+  const accounts = hostOf(session.accountsUrl) ?? 'https://account.huly.app (Huly Cloud)'
   lines.push(`ℹ️ Login: ${auth ?? '—'} · accounts ${accounts}${set('HULY_TRANSACTOR_URL') ? ` · transactor ${hostOf(env.HULY_TRANSACTOR_URL) ?? ''}` : ''}`)
 
   if (claims?.exp != null) {
@@ -106,7 +108,7 @@ export async function checkSetupReport (args: z.infer<typeof CheckSetupSchema>, 
   else fail(`Front service ${hostOf(env.HULY_FRONT_URL) ?? ''} not reachable: ${frontStatus}`)
 
   const opts = [
-    set('HULY_WORKSPACE') ? `pinned workspace ${env.HULY_WORKSPACE as string}` : 'all workspaces',
+    session.pinned != null ? `pinned workspace ${session.pinned}` : 'all workspaces',
     `toolsets ${set('HULY_TOOLSETS') ? env.HULY_TOOLSETS as string : 'default'}`,
     set('HULY_DYNAMIC_TOOLSETS') ? 'load on demand' : null,
     set('HULY_WRITE_PROJECTS') ? `writes only in ${env.HULY_WRITE_PROJECTS as string}` : null,

@@ -109,6 +109,13 @@ export class WorkspaceConnectionManager {
     this.openConnection = opts.openConnection ?? defaultOpenConnection
   }
 
+  /** How this manager logs in (never the secrets themselves, except the token for reading its claims). */
+  describeAuth (): { kind?: 'token' | 'e-mail + password', token?: string, accountsUrl: string, pinned?: string } {
+    const set = (v: string | undefined): boolean => (v ?? '').trim() !== ''
+    const kind = set(this.opts.token) ? 'token' : (set(this.opts.email) && set(this.opts.password)) ? 'e-mail + password' : undefined
+    return { kind, token: set(this.opts.token) ? this.opts.token : undefined, accountsUrl: this.opts.accountsUrl, pinned: this.opts.restrictTo || undefined }
+  }
+
   /** All workspaces this account can use (after the optional legacy HULY_WORKSPACE restriction). */
   async listWorkspaces (): Promise<WorkspaceRef[]> {
     if (this.workspaces === null) {

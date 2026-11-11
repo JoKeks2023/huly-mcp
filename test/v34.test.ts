@@ -68,6 +68,9 @@ test('check_setup: version compare, hosts without paths, no secrets in the repor
   assert.match(out, /⚠️ HULY_FRONT_URL is not set/)
   assert.match(out, /writes only in TSK/)
   assert.doesNotMatch(out, /secret-pw|me@example\.com|_accounts/)
+  const noLogin = createFakeEnv({ workspaces: [PERSONAL] })
+  ;(noLogin.manager as any).opts.email = undefined
+  setConnectionManager(noLogin.manager)
   const none = await checkSetupReport({ skipVersionCheck: true }, {})
   assert.match(none, /❌ No credentials/)
 })
@@ -76,7 +79,9 @@ test('check_setup: API token kind and expiry warning', async () => {
   const { checkSetupReport } = await import('../src/tools/diagnostics')
   const jwt = (c: object): string => `h.${Buffer.from(JSON.stringify(c)).toString('base64url')}.s`
   const soon = jwt({ exp: Math.floor(Date.now() / 1000) + 3 * 86_400, extra: { apiTokenId: 't' } })
-  const out = await checkSetupReport({ skipVersionCheck: true }, { HULY_TOKEN: soon })
+  // The login is the connection's own (env over stdio, the session's over HTTP/OAuth), not the process env.
+  setConnectionManager(createFakeEnv({ workspaces: [PERSONAL], token: soon, tokenInfo: { account: 'a', socialId: 'social-id', token: 'inner', workspace: PERSONAL.uuid, workspaceUrl: 'jokeks2023', endpoint: 'ws://huly/jokeks2023', role: 'USER' } }).manager)
+  const out = await checkSetupReport({ skipVersionCheck: true }, {})
   assert.match(out, /Login: API token/)
   assert.match(out, /⚠️ Token expires on \d{4}-\d{2}-\d{2} \(in [23] day\(s\)\)/)
   assert.doesNotMatch(out, new RegExp(soon.split('.')[1]))
