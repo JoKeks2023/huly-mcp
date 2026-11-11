@@ -4,6 +4,7 @@ All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mc
 
 ### 3.5.0 — 2026-11-11
 
+- **Fixed: MCP registry name** — the registry namespace is case-sensitive and must match the GitHub owner: `io.github.JoKeks2023/huly-mcp-selfhost` (was lowercase, refused with 403). A test checks it.
 - **Fixed: `check_setup` in HTTP/OAuth sessions** reported "No credentials" — it read the server's environment instead of the session's own login. Found while testing OAuth from Claude Code.
 - **Install size: 126 MB → 4.3 MB.** The package is now one bundled, readable file (`dist/index.js`, esbuild, not minified) with no runtime dependencies — the first `npx huly-mcp-selfhost` downloads 900 kB instead of ~180 packages. Verified from a clean install of the packed tarball: MCP over stdio, CLI, reads (issues, documents via the front service, reports, search, inbox, drive), writes with undo, HTTP with header login and OAuth. `huly-mcp-setup` still works (now a small wrapper for `huly-mcp setup`).
 - **Fixed: `create_issue_tree` dropped the epic's component, milestone and status** — the epic only took title, description, priority and labels; anything else was silently ignored (and the dry run did not show it). The epic now takes `componentLabel`, `milestoneLabel`, `assignee` and `statusName` (children get `statusName` too), the top-level `componentLabel`/`milestoneLabel` defaults apply to the epic as well, and the dry run lists them.

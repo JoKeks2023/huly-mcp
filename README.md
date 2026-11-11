@@ -3,7 +3,7 @@
 [![npm](https://img.shields.io/npm/v/huly-mcp-selfhost?label=npm)](https://www.npmjs.com/package/huly-mcp-selfhost)
 [![CI](https://github.com/JoKeks2023/huly-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/JoKeks2023/huly-mcp/actions/workflows/ci.yml)
 [![Docker Pulls](https://img.shields.io/docker/pulls/jokeks2023/huly-mcp)](https://hub.docker.com/r/jokeks2023/huly-mcp)
-[![MCP Registry](https://img.shields.io/badge/MCP_Registry-io.github.jokeks2023%2Fhuly--mcp--selfhost-blue)](https://registry.modelcontextprotocol.io)
+[![MCP Registry](https://img.shields.io/badge/MCP_Registry-io.github.JoKeks2023%2Fhuly--mcp--selfhost-blue)](https://registry.modelcontextprotocol.io)
 [![License: EPL-2.0](https://img.shields.io/badge/license-EPL--2.0-blue)](https://github.com/JoKeks2023/huly-mcp/blob/main/LICENSE)
 
 **Huly for AI agents.** An MCP server for [Huly](https://huly.io) — self-hosted or Huly Cloud — that lets Claude and other agents work in your workspaces: issues, epics, milestones, documents, chat, inbox, planner, test management and more. 227 tools, built for agent workflows and to spend as few tokens as possible.
@@ -993,7 +993,7 @@ Started as a fork of [varaprasadreddy9676/huly-mcp](https://github.com/varaprasa
 
 - Website: https://jokeks2023.github.io/huly-mcp/
 - Source and issues: https://github.com/JoKeks2023/huly-mcp
-- npm: https://www.npmjs.com/package/huly-mcp-selfhost · Docker: https://hub.docker.com/r/jokeks2023/huly-mcp · MCP Registry: `io.github.jokeks2023/huly-mcp-selfhost`
+- npm: https://www.npmjs.com/package/huly-mcp-selfhost · Docker: https://hub.docker.com/r/jokeks2023/huly-mcp · MCP Registry: `io.github.JoKeks2023/huly-mcp-selfhost`
 - Security: [SECURITY.md](https://github.com/JoKeks2023/huly-mcp/blob/main/SECURITY.md)
 
 ## License

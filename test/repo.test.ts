@@ -55,6 +55,9 @@ test('version is the same in package.json, server.json, the plugin and the MCP s
   const version = json('package.json').version
   const server = json('server.json')
   assert.equal(server.version, version, 'server.json version')
+  // The registry namespace is case-sensitive: it must match the GitHub owner exactly.
+  assert.match(server.name, /^io\.github\.JoKeks2023\//, 'server.json name uses the exact GitHub owner')
+  assert.equal(json('package.json').mcpName, server.name, 'package.json mcpName matches server.json name')
   assert.ok(server.description.length <= 100, `server.json description is ${server.description.length} chars; the MCP registry rejects more than 100`)
   for (const p of server.packages ?? []) assert.equal(p.version, version, `server.json package ${String(p.identifier)} version`)
   assert.equal(json('plugin/.claude-plugin/plugin.json').version, version, 'plugin.json version')
