@@ -57,6 +57,10 @@ test('normalizeArguments: aliases, workspace always allowed, unknown keys listed
   assert.ok('error' in normalizeArguments('t', { identifier: 'P-1', id: 'P-2' }, known))
   // An alias whose target the tool does not have is unknown.
   assert.ok('error' in normalizeArguments('t', { identifier: 'P-1', milestone: 'v1' }, known))
+  // A tool without own parameters says so instead of "Valid: ."
+  const none = normalizeArguments('t', { projectIdentifier: 'P' }, new Set(['workspace']))
+  assert.ok('error' in none)
+  assert.match(none.error, /takes no parameters besides workspace\. Nothing was done/)
 })
 
 test('update_issue: "status" works like statusName; an unknown key changes nothing', async () => {

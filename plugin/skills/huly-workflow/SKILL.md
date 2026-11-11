@@ -12,6 +12,7 @@ Huly is the source of truth for what is being worked on. Keep it current as you 
 - **Project for this repo:** call `find_project_for_repo` with the git remote (`git remote get-url origin`). It returns the workspace and project key. If nothing is linked, ask the user which workspace/project to use — never guess a workspace.
 - **Issue for this branch:** branch names like `proj-12-short-title` carry the issue id (`PROJ-12`). The session-start hook of this plugin reports it when it finds one.
 - **Catching up — one call each:** `my_day` (my work today), `standup` (since the last working day), `triage_inbox` (unread with what changed), `project_report` (a project's state), `changes_since` (`24h`, `7d`, what others changed). Prefer these over assembling the picture from many list calls.
+- **Cost:** for which call answers which question most cheaply, see the `huly-efficient` skill.
 
 ## 2. Pick up work
 

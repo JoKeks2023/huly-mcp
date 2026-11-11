@@ -20,6 +20,9 @@
 // self-hosted /files contract. Otherwise we fall back to Huly Cloud's
 // datalake, preserving the original behavior for huly.app users.
 
+/** Uploads can be large files; without a limit a stalled connection hangs the tool call. */
+const UPLOAD_TIMEOUT_MS = 120_000
+
 const CLOUD_DATALAKE_URL = 'https://dl-eu.huly.app'
 
 export interface UploadResult {
@@ -69,7 +72,8 @@ async function uploadViaSelfHostedFront (
   const uploadRes = await fetch(uploadUrl, {
     method: 'POST',
     headers: { Authorization: `Bearer ${wsToken}` },
-    body: form
+    body: form,
+    signal: AbortSignal.timeout(UPLOAD_TIMEOUT_MS)
   })
 
   if (!uploadRes.ok) {
@@ -98,7 +102,8 @@ async function uploadViaCloudDatalake (
   const uploadRes = await fetch(uploadUrl, {
     method: 'POST',
     headers: { Authorization: `Bearer ${wsToken}` },
-    body: form
+    body: form,
+    signal: AbortSignal.timeout(UPLOAD_TIMEOUT_MS)
   })
 
   if (!uploadRes.ok) {
@@ -116,5 +121,5 @@ export async function deleteBlob (wsToken: string, workspaceUuid: string, blobId
     ? `${frontUrl.replace(/\/$/, '')}/files?file=${encodeURIComponent(blobId)}`
     : `${CLOUD_DATALAKE_URL}/blob/${encodeURIComponent(workspaceUuid)}/${encodeURIComponent(blobId)}`
 
-  await fetch(url, { method: 'DELETE', headers: { Authorization: `Bearer ${wsToken}` } }).catch(() => {})
+  await fetch(url, { method: 'DELETE', headers: { Authorization: `Bearer ${wsToken}` }, signal: AbortSignal.timeout(30_000) }).catch(() => {})
 }
