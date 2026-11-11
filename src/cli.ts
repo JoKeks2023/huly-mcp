@@ -11,6 +11,7 @@ import { guard, isMutation, isRisky, type Asker } from './guard'
 import { normalizeArguments, ARG_ALIASES } from './server'
 import { parseEnvFile } from './watch'
 import { closeConnection } from './connection'
+import { packageVersion } from './tools/diagnostics'
 
 // ── Parameters from the schema ─────────────────────────────────────────────────
 
@@ -339,6 +340,7 @@ Usage:
   huly-mcp help <tool>                         parameters of one tool
   huly-mcp <tool> [<value>] [--param value …]  run a tool
   huly-mcp completion bash|zsh                 shell completion (eval "$(huly-mcp completion zsh)")
+  huly-mcp --version                           version
 
 Server and helpers:
   huly-mcp                                     MCP server over stdio (what MCP clients start)
@@ -381,7 +383,7 @@ export function toolsList (search: string | undefined, toolset: string | undefin
 
 // ── Completion ────────────────────────────────────────────────────────────────
 
-const COMMANDS = ['tools', 'help', 'completion', 'http', 'setup', 'watch', 'junit']
+const COMMANDS = ['tools', 'help', 'completion', 'version', 'http', 'setup', 'watch', 'junit']
 
 /** Candidates for the word being completed, given the words before it. */
 export function complete (words: string[], current: string): string[] {
@@ -447,6 +449,7 @@ export async function runCli (argv: string[], io: Io): Promise<number> {
       for (const [k, v] of Object.entries(parseEnvFile(io.readFile(parsed.envFile)))) if (io.env[k] == null || io.env[k] === '') io.env[k] = v
     }
     const cmd = parsed.command
+    if (cmd === 'version' || (cmd == null && parsed.flags.has('version'))) { io.out(`huly-mcp-selfhost ${packageVersion()}\n`); return 0 }
     if (cmd == null || cmd === 'help') {
       const target = parsed.positionals[0]
       if (target == null) { io.out(mainHelp() + '\n'); return 0 }
