@@ -78,5 +78,5 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: ${{ env.DOCKERHUB_IMAGE }}
-          short-description: "MCP server for Huly (self-hosted + cloud) — connect Claude Desktop to your Huly workspace"
+          short-description: "Huly for AI agents — MCP server for self-hosted Huly and Huly Cloud; team server with Huly login"
           readme-filepath: ./DOCKERHUB.md

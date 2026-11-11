@@ -39,9 +39,12 @@ test('every tool appears in the README', () => {
 
 test('site and Docker Hub text use the registry numbers', () => {
   const site = read('site/index.html')
-  const counts = [...site.matchAll(/(\d+) (?:tools|handlers)\b/g), ...site.matchAll(/<b>(\d+)<\/b><span>tools/g)].map((m) => Number(m[1]))
+  const counts = [...site.matchAll(/(\d+) (?:tools|handlers)\b/g), ...site.matchAll(/<b>(\d+)<\/b><span>tools<\/span>/g)].map((m) => Number(m[1]))
   assert.ok(counts.length >= 3, 'tool counts not found on the site')
   assert.deepEqual([...new Set(counts)], [total], 'site tool counts')
+  assert.equal(Number(/<b>(\d+)<\/b><span>toolsets</.exec(site)?.[1]), TOOLSETS.length, 'site toolset count')
+  assert.equal(Number(/<b>(\d+)<\/b><span>loaded by default</.exec(site)?.[1]), TOOLS.filter((t) => t.toolset === 'core' || (DEFAULT_TOOLSETS as string[]).includes(t.toolset)).length, 'site default count')
+  for (const t of TOOLS) assert.ok(site.includes(`<span>${t.name}</span>`) || site.includes(`<span class="w">${t.name}</span>`), `site lists ${t.name}`)
   const hub = /(\d+) tools in toolsets \(`HULY_TOOLSETS`, default (\d+)\)/.exec(read('DOCKERHUB.md'))
   assert.ok(hub != null, 'DOCKERHUB.md tool sentence not found')
   assert.equal(Number(hub[1]), total)

@@ -3,13 +3,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>huly-mcp-selfhost — MCP server for Huly</title>
-  <meta name="description" content="MCP server for Huly. Self-hosted + cloud, multi-workspace, 227 tools for agent workflows, issues, documents, chat, planner, inbox and more. Open source, EPL-2.0.">
+  <title>huly-mcp — Huly for AI agents</title>
+  <meta name="description" content="Huly for AI agents: MCP server for self-hosted Huly and Huly Cloud. 227 tools, 2.9× fewer tokens per answer, agent workflows, log in with Huly for teams, undo, command line, no telemetry. Open source, EPL-2.0.">
   <meta name="theme-color" content="#fafaf9" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0c0c0c" media="(prefers-color-scheme: dark)">
-  <meta property="og:title" content="huly-mcp-selfhost">
-  <meta property="og:description" content="MCP server for Huly. Self-hosted + cloud. Multi-workspace. 227 tools.">
+  <meta property="og:title" content="huly-mcp — Huly for AI agents">
+  <meta property="og:description" content="MCP server for Huly, self-hosted or cloud. 227 tools, 2.9× fewer tokens per answer, agent workflows, log in with Huly, undo. No telemetry.">
   <meta property="og:type" content="website">
+  <meta property="og:image" content="https://raw.githubusercontent.com/JoKeks2023/huly-mcp/main/docs/assets/social-preview.png">
+  <meta property="og:image:width" content="1280">
+  <meta property="og:image:height" content="640">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
   <script>
@@ -25,7 +29,8 @@
     <a class="brand" href="#top">huly-mcp<span>-selfhost</span></a>
     <nav aria-label="Primary">
       <a class="opt-sm" href="#setup">Setup</a>
-      <a class="opt" href="#multi-workspace">Workspaces</a>
+      <a class="opt" href="#why">Why</a>
+      <a class="opt" href="#team">Team</a>
       <a class="opt" href="#tools">Tools</a>
       <a href="https://github.com/JoKeks2023/huly-mcp/wiki/">Docs</a>
       <a href="https://github.com/JoKeks2023/huly-mcp">GitHub</a>
@@ -44,10 +49,11 @@
       <span class="label">MCP server · open source · EPL-2.0</span>
       <h1>huly-mcp-selfhost</h1>
       <ul class="hero-lines">
-        <li>MCP server for Huly.</li>
-        <li>Self-hosted + cloud.</li>
-        <li>Multi-workspace.</li>
-        <li>227 tools in toolsets.</li>
+        <li>Huly for AI agents.</li>
+        <li>Self-hosted + Huly Cloud.</li>
+        <li>2.9× fewer tokens per answer.</li>
+        <li>One server for the team — log in with Huly.</li>
+        <li>227 tools · undo · no telemetry · 4 MB.</li>
       </ul>
       <p class="byline"><em>for Claude, by Claude.</em></p>
       <div class="actions">
@@ -58,7 +64,8 @@
       <div class="hero-meta">
         <span><b>npx</b> huly-mcp-selfhost</span>
         <span><b>docker</b> jokeks2023/huly-mcp</span>
-        <span><b>transport</b> stdio · HTTP via mcp-proxy</span>
+        <span><b>transport</b> stdio · HTTP + OAuth</span>
+        <span><b>plugin</b> Claude Code</span>
       </div>
     </div>
   </section>
@@ -70,7 +77,7 @@
         <div>
           <span class="label"><b>01</b> — Quick setup</span>
           <h2>Pick your client. Paste. Done.</h2>
-          <p class="lede">Account credentials only. The server finds your workspaces itself — no workspace to configure.</p>
+          <p class="lede">Account credentials only. The server finds your workspaces itself. Claude Code: install the plugin instead — <code>/plugin marketplace add JoKeks2023/huly-mcp</code>, then <code>/huly:setup</code> in your repo.</p>
         </div>
       </div>
 
@@ -102,25 +109,29 @@
   -- npx -y huly-mcp-selfhost</code></pre>
       </div>
       <p class="setup-note" id="setup-note">Add --scope user (all projects) or --scope project (.mcp.json — don’t commit secrets) after “add huly”. Check with: claude mcp list</p>
-      <p class="setup-note">SSO account without a password? Use <code>HULY_TOKEN</code> instead — see <a href="https://github.com/JoKeks2023/huly-mcp/wiki/Authentication">Authentication</a>. More clients (Windsurf, Cline, Continue) in the <a href="https://github.com/JoKeks2023/huly-mcp#compatible-clients">README</a>.</p>
+      <p class="setup-note">SSO account without a password? Use <code>HULY_TOKEN</code> instead — see <a href="https://github.com/JoKeks2023/huly-mcp/wiki/Authentication">Authentication</a>. More clients (Windsurf, Cline, Continue) in the <a href="https://github.com/JoKeks2023/huly-mcp#compatible-clients">README</a>. For a whole team: the <a href="#team">team server</a>.</p>
     </div>
   </section>
 
-  <!-- ── What it does ───────────────────────────────────────────────────── -->
-  <section id="what">
+  <!-- ── Why ─────────────────────────────────────────────────────────────── -->
+  <section id="why">
     <div class="wrap">
-      <span class="label"><b>02</b> — What it does</span>
-      <h2>Your Huly, as tools an agent can call.</h2>
-      <p class="lede">Native Huly SDK over WebSocket — not screen scraping, not a REST shim.</p>
+      <span class="label"><b>02</b> — Why this one</span>
+      <h2>Built for agents. Measured, not claimed.</h2>
+      <p class="lede">Native Huly SDK over WebSocket — not screen scraping, not a REST shim. Every answer is shaped for a model: open items by default, empty fields left out, one call instead of four.</p>
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/JoKeks2023/huly-mcp/main/docs/assets/benchmark-dark.svg">
+        <img class="chart" src="https://raw.githubusercontent.com/JoKeks2023/huly-mcp/main/docs/assets/benchmark-light.svg" width="900" height="574" alt="Characters per answer compared with another popular Huly MCP server: 2.9× less text per answer (median), 14× smaller tool definitions, one call instead of up to four. Components: ours is larger because it includes descriptions and paths.">
+      </picture>
+      <p class="setup-note">Same self-hosted Huly, same questions, the best parameters on both sides, measured 2026-11-11. <a href="https://github.com/JoKeks2023/huly-mcp#tokens-measured">All numbers</a>.</p>
       <dl class="rows">
-        <div class="row"><dt>Projects &amp; issues</dt><dd>List, create, update and delete issues; status, priority, assignee, due date, component, milestone; Markdown descriptions.</dd></div>
-        <div class="row"><dt>Documents</dt><dd>Teamspaces and documents, Markdown in and out — tables, code blocks and native Mermaid diagrams.</dd></div>
-        <div class="row"><dt>Chat</dt><dd>Channels and direct messages: list, create, send, read.</dd></div>
-        <div class="row"><dt>Attachments</dt><dd>Attach files to issues (base64), list and delete them.</dd></div>
-        <div class="row"><dt>Organizations</dt><dd>Company contacts with Markdown descriptions.</dd></div>
-        <div class="row"><dt>Time tracking</dt><dd>Log hours on issues.</dd></div>
-        <div class="row"><dt>Structure</dt><dd>Labels, relations, blockers, epics (parent issues), milestones, components, custom issue statuses, full-text search.</dd></div>
-        <div class="row"><dt>Multi-workspace</dt><dd>Every workspace your account can access, from one server and one login.</dd></div>
+        <div class="row"><dt>Agent workflows</dt><dd><code>my_day</code>, <code>standup</code>, <code>project_report</code>, <code>release_notes</code> and <code>get_issue_context</code> in one call each; <code>start_work</code> → <code>finish_work</code>; plans, specs and meeting notes → epics and issues; claims for parallel agents; <code>huly-mcp watch</code> hands Huly issues to Claude.</dd></div>
+        <div class="row"><dt>Undo</dt><dd><code>undo_changes</code> reverses your last changes through the server — for every write tool. Dry run first; skips what someone else changed since.</dd></div>
+        <div class="row"><dt>Claude Code plugin</dt><dd><code>/huly:setup</code> asks once per repo how Huly is used there and writes the rules; a skill that picks the cheapest call, hooks, <code>/huly:*</code> commands. Guides and a <code>setup</code> prompt for every other MCP client.</dd></div>
+        <div class="row"><dt>Team server</dt><dd>One container, everyone logs in with their own Huly account in the browser (OAuth). Persistent sessions, ~0.2 s per call.</dd></div>
+        <div class="row"><dt>Command line</dt><dd><code>huly-mcp &lt;tool&gt; --param value</code> for scripts and CI, generated from the same schemas; completion for bash and zsh.</dd></div>
+        <div class="row"><dt>Safe by default</dt><dd>Every change names its workspace; risky tools ask first; writes can be limited to projects; audit log; unknown parameters are rejected instead of ignored.</dd></div>
+        <div class="row"><dt>No telemetry</dt><dd>It talks to your Huly server and nothing else. One self-contained package, ~4 MB — no 180 dependencies on first start.</dd></div>
       </dl>
     </div>
   </section>
@@ -187,39 +198,48 @@
   <section id="tools">
     <div class="wrap">
       <span class="label"><b>04</b> — Tools</span>
-      <h2>Every tool, by category.</h2>
+      <h2>Every tool, by toolset.</h2>
+      <p class="lede">Only the default toolsets are loaded unless you choose more (<code>HULY_TOOLSETS</code>) — or let the agent load them on demand.</p>
       <div class="stats">
         <div class="stat"><b>227</b><span>tools</span></div>
-        <div class="stat"><b>16</b><span>categories</span></div>
-        <div class="stat"><b>28</b><span>write — workspace required</span></div>
-        <div class="stat"><b>19</b><span>read — workspace optional*</span></div>
+        <div class="stat"><b>30</b><span>toolsets</span></div>
+        <div class="stat"><b>99</b><span>loaded by default</span></div>
+        <div class="stat"><b>137</b><span>change data — workspace required</span></div>
       </div>
       <div class="rows">
-        <div class="row"><h3>Workspaces</h3><div class="toolnames"><span>list_workspaces</span></div><span class="count">1</span></div>
-        <div class="row"><h3>Projects</h3><div class="toolnames"><span>list_projects</span><span>get_project</span><span class="w">create_project</span><span class="w">update_project</span></div><span class="count">4</span></div>
-        <div class="row"><h3>Issues</h3><div class="toolnames"><span>list_issues</span><span>get_issue</span><span>list_sub_issues</span><span class="w">create_issue</span><span class="w">update_issue</span><span class="w">bulk_update_issues</span><span class="w">move_issue</span><span class="w">delete_issue</span></div><span class="count">8</span></div>
-        <div class="row"><h3>Comments</h3><div class="toolnames"><span class="w">add_comment</span><span>list_comments</span><span class="w">update_comment</span><span class="w">delete_comment</span></div><span class="count">4</span></div>
-        <div class="row"><h3>Time tracking</h3><div class="toolnames"><span class="w">log_time</span><span>list_time_reports</span></div><span class="count">2</span></div>
-        <div class="row"><h3>Labels</h3><div class="toolnames"><span>list_labels</span><span class="w">create_label</span><span class="w">update_label</span><span class="w">delete_label</span><span class="w">add_label</span><span class="w">remove_label</span></div><span class="count">6</span></div>
-        <div class="row"><h3>Relations</h3><div class="toolnames"><span class="w">add_relation</span><span class="w">remove_relation</span><span class="w">add_blocked_by</span><span class="w">remove_blocked_by</span><span class="w">set_parent</span><span class="w">repair_parent_links</span></div><span class="count">6</span></div>
-        <div class="row"><h3>Members</h3><div class="toolnames"><span>list_members</span><span>list_persons</span><span>get_person</span><span class="w">create_person</span><span class="w">update_person</span><span class="w">add_contact_channel</span><span class="w">remove_contact_channel</span></div><span class="count">7</span></div>
-        <div class="row"><h3>Milestones</h3><div class="toolnames"><span>list_milestones</span><span>get_milestone</span><span class="w">create_milestone</span><span class="w">update_milestone</span><span class="w">delete_milestone</span></div><span class="count">5</span></div>
-        <div class="row"><h3>Components</h3><div class="toolnames"><span>list_components</span><span class="w">create_component</span><span class="w">update_component</span><span class="w">delete_component</span></div><span class="count">4</span></div>
-        <div class="row"><h3>Documents</h3><div class="toolnames"><span>list_teamspaces</span><span class="w">create_teamspace</span><span>list_documents</span><span>get_document</span><span class="w">create_document</span><span class="w">delete_document</span><span class="w">update_document</span><span class="w">link_document</span></div><span class="count">8</span></div>
-        <div class="row"><h3>Search</h3><div class="toolnames"><span>search_issues</span></div><span class="count">1</span></div>
-        <div class="row"><h3>Chat</h3><div class="toolnames"><span>list_channels</span><span class="w">create_channel</span><span class="w">start_direct_message</span><span class="w">send_message</span><span>list_messages</span><span>list_thread</span><span class="w">reply_to_message</span><span class="w">update_message</span><span class="w">delete_message</span><span class="w">add_reaction</span><span class="w">remove_reaction</span><span class="w">pin_message</span></div><span class="count">12</span></div>
-        <div class="row"><h3>Attachments</h3><div class="toolnames"><span class="w">attach_file</span><span>list_attachments</span><span class="w">delete_attachment</span></div><span class="count">3</span></div>
-        <div class="row"><h3>Issue statuses</h3><div class="toolnames"><span>list_issue_statuses</span><span class="w">create_issue_status</span></div><span class="count">2</span></div>
-        <div class="row"><h3>Organizations</h3><div class="toolnames"><span>list_organizations</span><span>get_organization</span><span class="w">create_organization</span><span class="w">update_organization</span></div><span class="count">4</span></div>
-        <div class="row"><h3>Inbox</h3><div class="toolnames"><span>list_notifications</span><span class="w">mark_notifications_read</span></div><span class="count">2</span></div>
-        <div class="row"><h3>Activity</h3><div class="toolnames"><span>get_activity</span></div><span class="count">1</span></div>
-        <div class="row"><h3>Planner</h3><div class="toolnames"><span>list_todos</span><span class="w">create_todo</span><span class="w">update_todo</span><span class="w">delete_todo</span><span class="w">schedule_todo</span></div><span class="count">5</span></div>
+        <div class="row"><h3>Core <small class="def">default</small></h3><div class="toolnames"><span>list_workspaces</span><span class="w">undo_changes</span><span>check_setup</span></div><span class="count">3</span></div>
+        <div class="row"><h3>Agent workflow <small class="def">default</small></h3><div class="toolnames"><span>get_issue_context</span><span class="w">start_work</span><span class="w">finish_work</span><span class="w">create_issue_tree</span><span>my_day</span><span class="w">issues_from_document</span><span class="w">issues_from_meeting</span><span>standup</span><span>release_notes</span><span>project_report</span><span>changes_since</span><span class="w">claim_issue</span><span>find_project_for_repo</span><span class="w">release_issue</span></div><span class="count">14</span></div>
+        <div class="row"><h3>Tracker <small class="def">default</small></h3><div class="toolnames"><span>list_projects</span><span>get_project</span><span>list_issues</span><span>get_issue</span><span class="w">create_issue</span><span class="w">update_issue</span><span class="w">delete_issue</span><span class="w">bulk_update_issues</span><span class="w">move_issue</span><span>list_sub_issues</span><span class="w">add_comment</span><span>list_comments</span><span class="w">delete_comment</span><span class="w">update_comment</span><span class="w">log_time</span><span>list_time_reports</span><span>list_labels</span><span class="w">create_label</span><span class="w">add_label</span><span class="w">remove_label</span><span class="w">add_relation</span><span class="w">add_blocked_by</span><span class="w">set_parent</span><span class="w">remove_relation</span><span class="w">remove_blocked_by</span><span>list_milestones</span><span class="w">create_milestone</span><span>get_milestone</span><span class="w">update_milestone</span><span>list_components</span><span class="w">create_component</span><span class="w">update_component</span><span>search_issues</span><span class="w">attach_file</span><span>list_attachments</span><span class="w">delete_attachment</span><span>list_issue_statuses</span></div><span class="count">37</span></div>
+        <div class="row"><h3>Tracker admin</h3><div class="toolnames"><span class="w">create_project</span><span class="w">update_project</span><span class="w">update_label</span><span class="w">delete_label</span><span class="w">repair_parent_links</span><span class="w">delete_milestone</span><span class="w">delete_component</span><span class="w">create_issue_status</span><span>list_label_categories</span><span class="w">create_label_category</span><span class="w">set_label_category</span><span>list_project_types</span></div><span class="count">12</span></div>
+        <div class="row"><h3>Documents <small class="def">default</small></h3><div class="toolnames"><span>list_teamspaces</span><span class="w">create_teamspace</span><span>list_documents</span><span>get_document</span><span class="w">create_document</span><span class="w">delete_document</span><span class="w">update_document</span><span class="w">link_document</span></div><span class="count">8</span></div>
+        <div class="row"><h3>Chat <small class="def">default</small></h3><div class="toolnames"><span>list_channels</span><span class="w">create_channel</span><span class="w">start_direct_message</span><span class="w">send_message</span><span>list_messages</span><span>list_thread</span><span class="w">reply_to_message</span><span class="w">update_message</span><span class="w">delete_message</span><span class="w">add_reaction</span><span class="w">remove_reaction</span><span class="w">pin_message</span></div><span class="count">12</span></div>
+        <div class="row"><h3>Contacts <small class="def">default</small></h3><div class="toolnames"><span>list_members</span><span>list_organizations</span><span>get_organization</span><span class="w">create_organization</span><span class="w">update_organization</span><span>list_persons</span><span>get_person</span><span class="w">create_person</span><span class="w">update_person</span><span class="w">add_contact_channel</span><span class="w">remove_contact_channel</span></div><span class="count">11</span></div>
+        <div class="row"><h3>Inbox <small class="def">default</small></h3><div class="toolnames"><span>list_notifications</span><span>triage_inbox</span><span class="w">mark_notifications_read</span><span class="w">manage_notifications</span></div><span class="count">4</span></div>
+        <div class="row"><h3>Activity <small class="def">default</small></h3><div class="toolnames"><span>get_activity</span></div><span class="count">1</span></div>
+        <div class="row"><h3>Planner <small class="def">default</small></h3><div class="toolnames"><span>list_todos</span><span class="w">create_todo</span><span class="w">update_todo</span><span class="w">delete_todo</span><span class="w">schedule_todo</span></div><span class="count">5</span></div>
         <div class="row"><h3>Calendar</h3><div class="toolnames"><span>list_events</span><span class="w">create_event</span><span class="w">update_event</span><span class="w">delete_event</span></div><span class="count">4</span></div>
         <div class="row"><h3>GitHub</h3><div class="toolnames"><span>list_pull_requests</span><span>get_pull_request</span></div><span class="count">2</span></div>
-        <div class="row"><h3>Generic</h3><div class="toolnames"><span>list_classes</span><span>describe_class</span><span>query_documents</span><span class="w">generic_create</span><span class="w">generic_update</span><span class="w">generic_delete</span></div><span class="count">6</span></div>
+        <div class="row"><h3>Any Huly class <small class="def">default</small></h3><div class="toolnames"><span>search</span><span>list_classes</span><span>describe_class</span><span>query_documents</span></div><span class="count">4</span></div>
+        <div class="row"><h3>Any class — writes</h3><div class="toolnames"><span class="w">generic_create</span><span class="w">generic_update</span><span class="w">generic_delete</span></div><span class="count">3</span></div>
+        <div class="row"><h3>Collaboration</h3><div class="toolnames"><span>list_document_comments</span><span class="w">add_document_comment</span><span>list_collaborators</span><span class="w">add_collaborator</span><span class="w">remove_collaborator</span><span class="w">create_public_link</span><span>list_public_links</span><span class="w">revoke_public_link</span></div><span class="count">8</span></div>
+        <div class="row"><h3>Cards</h3><div class="toolnames"><span>list_card_types</span><span>list_cards</span><span>get_card</span><span class="w">create_card</span><span class="w">update_card</span><span class="w">delete_card</span><span class="w">create_card_type</span><span class="w">delete_card_type</span></div><span class="count">8</span></div>
+        <div class="row"><h3>Custom fields</h3><div class="toolnames"><span>list_custom_fields</span><span class="w">create_custom_field</span><span class="w">set_custom_fields</span></div><span class="count">3</span></div>
+        <div class="row"><h3>Drive</h3><div class="toolnames"><span>list_drives</span><span class="w">create_drive</span><span>list_drive_files</span><span class="w">create_folder</span><span class="w">upload_file</span><span>download_file</span><span class="w">update_drive_item</span><span class="w">delete_drive_item</span><span>list_file_versions</span><span class="w">restore_file_version</span></div><span class="count">10</span></div>
+        <div class="row"><h3>Templates</h3><div class="toolnames"><span>list_issue_templates</span><span>get_issue_template</span><span class="w">create_issue_template</span><span class="w">update_issue_template</span><span class="w">delete_issue_template</span><span class="w">create_issue_from_template</span><span>list_message_templates</span><span>get_message_template</span><span class="w">create_message_template</span><span class="w">update_message_template</span><span class="w">delete_message_template</span></div><span class="count">11</span></div>
+        <div class="row"><h3>Test management</h3><div class="toolnames"><span>list_test_projects</span><span class="w">create_test_project</span><span>list_test_cases</span><span class="w">create_test_suite</span><span>get_test_case</span><span class="w">create_test_case</span><span class="w">update_test_case</span><span class="w">delete_test_case</span><span>list_test_plans</span><span class="w">create_test_plan</span><span class="w">create_test_run</span><span>list_test_runs</span><span>get_test_run</span><span class="w">set_test_result</span><span class="w">create_test_cases</span><span class="w">update_test_suite</span><span class="w">delete_test_suite</span><span class="w">update_test_run</span><span class="w">delete_test_run</span><span class="w">delete_test_plan</span><span class="w">import_test_results</span><span>get_test_report</span><span class="w">create_issue_from_test_result</span></div><span class="count">23</span></div>
+        <div class="row"><h3>Products</h3><div class="toolnames"><span>list_products</span><span>get_product</span></div><span class="count">2</span></div>
+        <div class="row"><h3>Members & invites</h3><div class="toolnames"><span>get_workspace_settings</span><span class="w">create_invite_link</span><span class="w">send_invite</span><span class="w">set_member_role</span></div><span class="count">4</span></div>
+        <div class="row"><h3>Recruiting</h3><div class="toolnames"><span>list_vacancies</span><span class="w">create_vacancy</span><span class="w">update_vacancy</span><span>list_candidates</span><span class="w">create_candidate</span><span>list_applications</span><span class="w">create_application</span><span class="w">update_application</span><span class="w">delete_application</span></div><span class="count">9</span></div>
+        <div class="row"><h3>CRM</h3><div class="toolnames"><span>list_leads</span><span>list_customers</span><span class="w">create_lead</span><span class="w">update_lead</span><span class="w">delete_lead</span></div><span class="count">5</span></div>
+        <div class="row"><h3>HR</h3><div class="toolnames"><span>list_departments</span><span class="w">create_department</span><span class="w">delete_department</span><span class="w">set_department</span><span>list_time_off</span><span class="w">create_time_off</span><span class="w">delete_time_off</span></div><span class="count">7</span></div>
+        <div class="row"><h3>Inventory</h3><div class="toolnames"><span>list_inventory</span><span class="w">create_inventory_category</span><span class="w">create_inventory_product</span><span class="w">update_inventory_item</span><span class="w">delete_inventory_item</span></div><span class="count">5</span></div>
+        <div class="row"><h3>Meetings</h3><div class="toolnames"><span>list_meetings</span><span>get_meeting</span></div><span class="count">2</span></div>
+        <div class="row"><h3>Quality documents</h3><div class="toolnames"><span>list_controlled_documents</span><span>get_controlled_document</span><span>list_trainings</span><span>get_training</span></div><span class="count">4</span></div>
+        <div class="row"><h3>Processes</h3><div class="toolnames"><span>list_processes</span><span>list_executions</span><span class="w">start_process</span><span class="w">cancel_execution</span></div><span class="count">4</span></div>
+        <div class="row"><h3>Surveys</h3><div class="toolnames"><span>list_surveys</span><span>get_survey</span></div><span class="count">2</span></div>
       </div>
-      <div class="legend"><span class="w">changes data — <code>workspace</code> required</span><span>* only if exactly one workspace is available</span></div>
-      <a class="more" href="https://github.com/JoKeks2023/huly-mcp/wiki/Tools">Full tool reference with every argument →</a>
+      <div class="legend"><span class="w">changes data — <code>workspace</code> required</span><span>reads: <code>workspace</code> optional when only one is available</span></div>
+      <a class="more" href="https://github.com/JoKeks2023/huly-mcp#tools-227-total-grouped-in-toolsets">Full tool reference →</a>
     </div>
   </section>
 
@@ -228,10 +248,10 @@
     <div class="wrap">
       <span class="label"><b>05</b> — Architecture</span>
       <h2>A thin, stateful bridge.</h2>
-      <p class="lede">No database, no cache service, no extra infrastructure. All state is in process memory: one account session, the discovered workspace list and one connection per workspace in use.</p>
+      <p class="lede">No database, no cache service, no extra infrastructure. All state is in process memory: account sessions, the discovered workspaces, one connection per workspace in use and the undo history. OAuth tokens are sealed, so nothing needs storing.</p>
       <div class="layers">
-        <div class="layer"><div class="name">MCP client<small>Claude · Codex · Cursor · Zed</small></div><p>Calls tools over stdio — or HTTP when running the Docker image behind mcp-proxy.</p></div>
-        <div class="layer"><div class="name">MCP tools<small>src/tools/*.ts</small></div><p>227 handlers in toolsets (HULY_TOOLSETS). Each resolves its own connection from its <code>workspace</code> argument; inputs are validated against zod schemas first.</p></div>
+        <div class="layer"><div class="name">MCP client<small>Claude · Codex · Cursor · Zed · CLI</small></div><p>Calls tools over stdio, or over HTTP to the team server — each session with its own Huly login (OAuth or headers).</p></div>
+        <div class="layer"><div class="name">MCP tools<small>src/tools/*.ts</small></div><p>227 handlers in toolsets. Each resolves its own connection from its <code>workspace</code> argument; inputs are validated against zod schemas first; writes are recorded for <code>undo_changes</code>.</p></div>
         <div class="layer"><div class="name">Account client<small>HULY_ACCOUNTS_URL · account token</small></div><p><code>login</code> / <code>getLoginInfoByToken</code>, then <code>getUserWorkspaces()</code> and <code>selectWorkspace()</code>. Never holds a workspace token.</p></div>
         <div class="layer"><div class="name">Workspace connection manager<small>src/connection.ts</small></div><p>Caches the session, the workspace list and one connection per workspace id. Failed attempts are not cached; shutdown closes everything.</p></div>
         <div class="layer"><div class="name">Workspace client<small>per workspace · workspace token</small></div><p><code>TxOperations</code> for all reads and writes, plus a workspace-scoped account client for <code>getWorkspaceMembers()</code>.</p></div>
@@ -247,7 +267,7 @@
     <div class="wrap">
       <span class="label"><b>06</b> — Self-hosted</span>
       <h2>Built for huly-selfhost. Works on Huly Cloud.</h2>
-      <p class="lede">Upstream writes document content through Huly Cloud’s datalake service, which self-hosted instances don’t run. This fork routes blobs through the front service’s own <code>/files</code> endpoint instead.</p>
+      <p class="lede">Huly Cloud stores document content in its datalake service, which self-hosted instances don’t run. On a self-hosted instance the server reads and writes it through the front service’s own <code>/files</code> endpoint — and can connect to the transactor internally when it runs next to Huly.</p>
 
       <div class="cols">
         <div class="col">
@@ -276,61 +296,93 @@
     </div>
   </section>
 
-  <!-- ── Security ───────────────────────────────────────────────────────── -->
-  <section id="security">
+  <!-- ── Team server ────────────────────────────────────────────────────── -->
+  <section id="team">
     <div class="wrap split">
       <div>
-        <span class="label"><b>07</b> — Security</span>
-        <h2>Tokens stay in headers.</h2>
-        <p class="lede">Content fetches in <code>get_document</code>, <code>get_issue</code> and <code>get_organization</code> used to put the workspace token into the <code>/files</code> URL — and <code>get_document</code> printed that URL into the tool result. Now the token only travels as an <code>Authorization</code> header.</p>
+        <span class="label"><b>07</b> — Team server</span>
+        <h2>One server. Everyone logs in with Huly.</h2>
+        <p class="lede">Run the HTTP server once; people add its URL in Claude Code, Claude's custom connectors or another MCP client and log in in the browser with their own Huly account. Each session acts as that person.</p>
         <ul class="rules" style="margin-top:2rem">
-          <li>No <code>/files</code> URL carries <code>token=</code>.</li>
-          <li>No tool result contains a workspace token — covered by regression tests.</li>
-          <li>Each request uses the token of the workspace named in the call.</li>
+          <li><strong>Password or one-time code</strong> — Google/GitHub accounts get a code by e-mail.</li>
+          <li><strong>Nothing to store</strong> — registrations, codes and tokens are sealed with AES-256-GCM under one secret; logins survive restarts.</li>
+          <li><strong>The password is never kept</strong> — only the Huly token from the login, inside the sealed tokens. Access tokens last an hour, refresh tokens rotate.</li>
+          <li><strong>Protocol from the MCP SDK</strong> — client registration, PKCE, token endpoint, metadata.</li>
+          <li>Without OAuth: per-user <code>X-Huly-*</code> headers, or one shared account only behind <code>MCP_AUTH_TOKEN</code>.</li>
         </ul>
-        <a class="more" href="https://github.com/JoKeks2023/huly-mcp/wiki/Security">Security in the docs →</a>
+        <a class="more" href="https://github.com/JoKeks2023/huly-mcp#team-server-over-http">Team server in the README →</a>
       </div>
       <div>
         <div class="term">
-          <div class="term-head"><span class="file">GET /files — before → after</span></div>
-<pre><code><span class="del">- GET /files?file=&lt;blob&gt;&amp;workspace=&lt;uuid&gt;&amp;token=&lt;workspace token&gt;</span>
-<span class="add">+ GET /files?file=&lt;blob&gt;&amp;workspace=&lt;uuid&gt;</span>
-<span class="add">+ Authorization: Bearer &lt;workspace token&gt;</span></code></pre>
+          <div class="term-head"><span class="file">server</span><button class="copy" type="button" data-copy="c-team"><span class="copy-label">Copy</span></button></div>
+<pre><code id="c-team">docker run -d -p 8000:8000 \
+  -e MCP_TRANSPORT=http \
+  -e MCP_OAUTH_SECRET="$(openssl rand -hex 32)" \
+  -e MCP_PUBLIC_URL=https://huly-mcp.example.com \
+  -e HULY_ACCOUNTS_URL=https://huly.example.com/_accounts \
+  -e HULY_FRONT_URL=https://huly.example.com \
+  jokeks2023/huly-mcp</code></pre>
         </div>
-        <p class="callout"><strong>Remote deployments:</strong> the Docker image does not authenticate MCP clients. Anyone who can reach it acts as your Huly account — put it behind an authenticating reverse proxy or a private network.</p>
+        <div class="term" style="margin-top:1.5rem">
+          <div class="term-head"><span class="file">each person</span></div>
+<pre><code>claude mcp add --transport http huly \
+  https://huly-mcp.example.com/mcp
+<span class="c"># → browser: "Log in with Huly"</span></code></pre>
+        </div>
+        <p class="callout"><strong>Keep the secret fixed</strong> (env file) and put the server behind HTTPS at <code>MCP_PUBLIC_URL</code>. Changing the secret logs everyone out.</p>
       </div>
     </div>
   </section>
 
-  <!-- ── Install / Docker ───────────────────────────────────────────────── -->
+  <!-- ── Security ───────────────────────────────────────────────────────── -->
+  <section id="security">
+    <div class="wrap">
+      <span class="label"><b>08</b> — Security &amp; privacy</span>
+      <h2>Your data stays between you and your Huly.</h2>
+      <dl class="rows">
+        <div class="row"><dt>No telemetry</dt><dd>No analytics, no usage tracking, nothing to opt out of. The only other request — the npm version check — runs when you call <code>check_setup</code>.</dd></div>
+        <div class="row"><dt>Tokens in headers</dt><dd>Workspace tokens travel only as <code>Authorization</code> headers, never in URLs or tool results — covered by regression tests; tokens in logs are masked.</dd></div>
+        <div class="row"><dt>Guard rails</dt><dd>Writes always name their workspace; <code>HULY_WRITE_PROJECTS</code> limits where; risky tools ask first (<code>HULY_CONFIRM</code>); <code>HULY_AUDIT_LOG</code> records every change; <code>undo_changes</code> reverses them.</dd></div>
+        <div class="row"><dt>Supply chain</dt><dd>npm Trusted Publishing with provenance; Docker images with SBOM and build provenance; one bundled, readable file — no runtime dependencies to audit.</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ── Install ────────────────────────────────────────────────────────── -->
   <section id="install">
     <div class="wrap">
-      <span class="label"><b>08</b> — Install</span>
-      <h2>Three ways to run it.</h2>
+      <span class="label"><b>09</b> — Install</span>
+      <h2>Four ways to run it.</h2>
       <div class="cols wide">
         <div class="col">
           <h3>npm</h3>
-          <p>Launched by your MCP client over stdio. Node.js ≥ 20.</p>
+          <p>Launched by your MCP client over stdio. Node.js ≥ 20, ~4 MB.</p>
           <div class="term"><div class="term-head"><span class="file">terminal</span><button class="copy" type="button" data-copy="c-npm"><span class="copy-label">Copy</span></button></div>
 <pre><code id="c-npm">npx -y huly-mcp-selfhost</code></pre></div>
         </div>
         <div class="col">
-          <h3>From source</h3>
-          <p>Point your client at <code>node /path/to/huly-mcp/dist/index.js</code>.</p>
-          <div class="term"><div class="term-head"><span class="file">terminal</span><button class="copy" type="button" data-copy="c-src"><span class="copy-label">Copy</span></button></div>
-<pre><code id="c-src">git clone https://github.com/JoKeks2023/huly-mcp.git
-cd huly-mcp &amp;&amp; npm install &amp;&amp; npm run build</code></pre></div>
+          <h3>Claude Code plugin</h3>
+          <p>Server, skill, hooks and <code>/huly:*</code> commands.</p>
+          <div class="term"><div class="term-head"><span class="file">claude code</span><button class="copy" type="button" data-copy="c-plugin"><span class="copy-label">Copy</span></button></div>
+<pre><code id="c-plugin">/plugin marketplace add JoKeks2023/huly-mcp
+/plugin install huly@huly-mcp</code></pre></div>
         </div>
         <div class="col">
           <h3>Docker</h3>
-          <p>HTTP via mcp-proxy on port 8000: <code>/mcp</code> (streamable HTTP) and <code>/sse</code>. Credentials in <code>.env</code>.</p>
+          <p>The team server above, or classic mode via mcp-proxy (<code>/mcp</code>, <code>/sse</code>). amd64 + arm64.</p>
           <div class="term"><div class="term-head"><span class="file">terminal</span><button class="copy" type="button" data-copy="c-docker"><span class="copy-label">Copy</span></button></div>
 <pre><code id="c-docker">docker run -d --name huly-mcp -p 127.0.0.1:8000:8000 \
   --env-file .env jokeks2023/huly-mcp:latest</code></pre></div>
-          <p>Remote clients connect to <code>https://&lt;your-host&gt;/mcp</code> through your own authenticating proxy.</p>
+        </div>
+        <div class="col">
+          <h3>Command line</h3>
+          <p>Every tool from the terminal, for scripts and CI.</p>
+          <div class="term"><div class="term-head"><span class="file">terminal</span><button class="copy" type="button" data-copy="c-cli"><span class="copy-label">Copy</span></button></div>
+<pre><code id="c-cli">npm i -g huly-mcp-selfhost
+huly-mcp help list_issues</code></pre></div>
         </div>
       </div>
-      <a class="more" href="https://github.com/JoKeks2023/huly-mcp/wiki/Docker-Deployment">Docker deployment in the docs →</a>
+      <a class="more" href="https://github.com/JoKeks2023/huly-mcp#quick-start">Quick start in the README →</a>
     </div>
   </section>
 
@@ -345,7 +397,7 @@ cd huly-mcp &amp;&amp; npm install &amp;&amp; npm run build</code></pre></div>
       <a href="https://www.npmjs.com/package/huly-mcp-selfhost">npm</a>
       <a href="https://hub.docker.com/r/jokeks2023/huly-mcp">Docker</a>
       <a href="https://github.com/JoKeks2023/huly-mcp/wiki/">Documentation</a>
-      <a href="https://github.com/varaprasadreddy9676/huly-mcp">Upstream</a>
+      <a href="https://github.com/JoKeks2023/huly-mcp#credits">Credits</a>
     </nav>
     <span class="sig"><em>for Claude, by Claude.</em></span>
   </div>
