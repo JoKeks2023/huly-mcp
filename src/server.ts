@@ -138,7 +138,7 @@ export function normalizeArguments (tool: string, args: Record<string, unknown>,
   }
   if (unknown.length === 0) return { args: out }
   const valid = [...known].filter((k) => k !== 'workspace')
-  return { error: `Unknown parameter(s) for ${tool}: ${unknown.join(', ')}. Valid: ${valid.join(', ')}. Nothing was done.` }
+  return { error: `Unknown parameter(s) for ${tool}: ${unknown.join(', ')}. ${valid.length > 0 ? `Valid: ${valid.join(', ')}` : 'It takes no parameters besides workspace'}. Nothing was done.` }
 }
 
 function checkArguments (server: McpServer, shapes: Map<string, Set<string>>): void {

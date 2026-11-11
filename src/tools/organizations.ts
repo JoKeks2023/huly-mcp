@@ -5,6 +5,7 @@ import { wrapToolHandler } from '../utils/errors'
 import { markdownToProseMirror, extractText } from '../utils/markdown'
 import { uploadMarkupBlob } from '../utils/storage'
 import type { z } from 'zod'
+import { fetchBlob } from '../utils/content'
 import type { ListOrganizationsSchema, GetOrganizationSchema, CreateOrganizationSchema, UpdateOrganizationSchema } from '../schemas'
 
 export const listOrganizations = wrapToolHandler<z.infer<typeof ListOrganizationsSchema>>(async (args) => {
@@ -32,7 +33,7 @@ export const getOrganization = wrapToolHandler<z.infer<typeof GetOrganizationSch
       // Token goes in the Authorization header only — never in the URL (see get_document).
       const blobUrl = `${frontUrl}/files?file=${encodeURIComponent(org.description)}&workspace=${workspaceUuid}`
       try {
-        const res = await fetch(blobUrl, { headers: { Authorization: `Bearer ${wsToken}` } })
+        const res = await fetchBlob(blobUrl, wsToken)
         if (res.ok) {
           const text = await res.text()
           try {
