@@ -1,7 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import { TOOLS, TOOLSETS, DEFAULT_TOOLSETS, type Toolset } from './registry'
-import { guard, elicitationAsker } from './guard'
+import { guard, elicitationAsker, toolAnnotations } from './guard'
 import { registerResources, registerPrompts, registerSubscriptions } from './resources'
 
 const SERVER_INSTRUCTIONS = `
@@ -37,14 +37,16 @@ export function pinnedInstructions (workspace: string): string {
   return SERVER_INSTRUCTIONS.replace(/- workspace: [^\n]*\n[^\n]*\n/, `- All tools work in workspace '${workspace}' (HULY_WORKSPACE); there is no workspace argument.\n`)
 }
 
-export function createServer (options: { toolsets?: string, workspace?: string, dynamic?: boolean } = {}): McpServer {
+export function createServer (options: { toolsets?: string, workspace?: string, dynamic?: boolean, annotations?: boolean } = {}): McpServer {
   const enabled = parseToolsets(options.toolsets ?? process.env.HULY_TOOLSETS)
   // Pinned to one workspace: the workspace argument (~80 chars in each of ~90 schemas) carries no
   // information, so it is left out of the schemas and filled in here. Write checks use the
   // registry schema, which keeps it, so "every change names its workspace" still holds.
   const pinned = (options.workspace ?? process.env.HULY_WORKSPACE ?? '').trim() || undefined
+  const annotate = options.annotations ?? ['1', 'true', 'yes'].includes(String(process.env.HULY_ANNOTATIONS ?? '').toLowerCase())
   const dynamic = options.dynamic ?? ['1', 'true', 'yes'].includes(String(process.env.HULY_DYNAMIC_TOOLSETS ?? '').toLowerCase())
   let instructions = pinned != null ? pinnedInstructions(pinned) : SERVER_INSTRUCTIONS
+  if (enabled.has('agent')) instructions += '\n- Guides: resources huly://guide/workflow, huly://guide/costs, huly://guide/onboarding; prompt "setup" writes a project\'s Huly rules.'
   if (dynamic) instructions = instructions.replace('- Missing tools may be in a disabled toolset (HULY_TOOLSETS).', '- More tools (calendar, cards, drive, testing, recruiting, …) load on demand: enable_toolsets.')
   const server = new McpServer({ name: 'huly-mcp-selfhost', version: '3.2.0' }, { instructions })
   const asker = elicitationAsker(server)
@@ -56,10 +58,15 @@ export function createServer (options: { toolsets?: string, workspace?: string, 
     const handler = guard(tool, process.env, asker)
     let reg: any
     if (pinned == null || tool.schema.shape.workspace == null) {
-      reg = server.tool(tool.name, tool.description, tool.schema.shape, handler)
+      reg = annotate
+        ? server.tool(tool.name, tool.description, tool.schema.shape, toolAnnotations(tool), handler)
+        : server.tool(tool.name, tool.description, tool.schema.shape, handler)
     } else {
       const { workspace: _ws, ...shape } = tool.schema.shape
-      reg = server.tool(tool.name, tool.description, shape, async (args: any, extra: any) => await (handler as any)({ ...args, workspace: pinned }, extra))
+      const pinnedHandler = async (args: any, extra: any): Promise<any> => await (handler as any)({ ...args, workspace: pinned }, extra)
+      reg = annotate
+        ? server.tool(tool.name, tool.description, shape, toolAnnotations(tool), pinnedHandler)
+        : server.tool(tool.name, tool.description, shape, pinnedHandler)
     }
     if (!enabled.has(tool.toolset)) reg.disable()
     registered.set(tool.name, reg)

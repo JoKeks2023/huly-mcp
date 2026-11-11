@@ -69,6 +69,18 @@ export function isRisky (name: string): boolean {
   return name.startsWith('delete_') || RISKY.has(name)
 }
 
+/**
+ * MCP tool annotations: reads are read-only; deletes, removals and the risky tools above are
+ * destructive; every other change (create, add, update, set, …) is marked non-destructive —
+ * the MCP default for a write tool is "destructive", which would over-warn.
+ * Off by default (HULY_ANNOTATIONS=1): they add ~16% to tools/list in every session.
+ */
+export function toolAnnotations (tool: ToolDef): { title: string, readOnlyHint?: boolean, destructiveHint?: boolean } {
+  const title = tool.name.replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase())
+  if (!isMutation(tool)) return { title, readOnlyHint: true }
+  return { title, destructiveHint: isRisky(tool.name) || /^(remove|revoke)_/.test(tool.name) }
+}
+
 export type ConfirmMode = 'auto' | 'off' | 'strict'
 
 export function parseConfirmMode (value: string | undefined): ConfirmMode {

@@ -4,7 +4,7 @@
       "command": "npx",
       "args": [
         "-y",
-        "huly-mcp-selfhost@^3.2.0"
+        "huly-mcp-selfhost@3.2.0"
       ],
       "env": {
         "HULY_EMAIL": "${user_config.huly_email}",
@@ -16,7 +16,8 @@
         "HULY_TOOLSETS": "${user_config.huly_toolsets}",
         "HULY_DYNAMIC_TOOLSETS": "${user_config.huly_dynamic_toolsets}",
         "HULY_WRITE_PROJECTS": "${user_config.huly_write_projects}",
-        "HULY_FILE_ROOT": "${user_config.huly_file_root}"
+        "HULY_FILE_ROOT": "${user_config.huly_file_root}",
+        "HULY_ANNOTATIONS": "1"
       }
     }
   }

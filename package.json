@@ -37,7 +37,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "node --max-old-space-size=4096 node_modules/typescript/bin/tsc",
+    "build": "node --max-old-space-size=4096 node_modules/typescript/bin/tsc && node scripts/copy-guides.js",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
     "setup": "node scripts/setup.js",

@@ -7,3 +7,4 @@ dist
 .github
 *.md
 local-test*.mjs
+!plugin/skills/huly/*.md

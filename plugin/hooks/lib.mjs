@@ -42,7 +42,7 @@ export function emit (event, context) {
 /** Where the repo's Huly rules live: 'set' (a "## Huly" section in CLAUDE.md/AGENTS.md), 'none', or undefined without such files. */
 export function hulyRules (cwd) {
   let seen = false
-  for (const f of ['CLAUDE.md', '.claude/CLAUDE.md', 'AGENTS.md']) {
+  for (const f of ['CLAUDE.md', '.claude/CLAUDE.md', 'CLAUDE.local.md', 'AGENTS.md']) {
     let text
     try { text = readFileSync(join(cwd, f), 'utf8') } catch { continue }
     seen = true

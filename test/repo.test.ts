@@ -75,8 +75,8 @@ test('plugin: manifests parse, commands and skills have frontmatter, hook script
     }
   }
   const front = (p: string): string => { const m = /^---\n([\s\S]*?)\n---\n/.exec(read(p)); assert.ok(m != null, `${p} has frontmatter`); return m[1] }
-  const skill = front('plugin/skills/huly-workflow/SKILL.md')
-  assert.match(skill, /^name: huly-workflow$/m)
+  const skill = front('plugin/skills/huly/SKILL.md')
+  assert.match(skill, /^name: huly$/m)
   assert.match(skill, /^description: .{40,}/m)
   for (const c of ['start', 'finish', 'plan', 'standup', 'triage']) assert.match(front(`plugin/commands/${c}.md`), /^description: .+/m, `command ${c} has a description`)
 })

@@ -4,6 +4,8 @@ import { McpServer, ResourceTemplate } from '@modelcontextprotocol/sdk/server/mc
 import { completable } from '@modelcontextprotocol/sdk/server/completable.js'
 import { SubscribeRequestSchema, UnsubscribeRequestSchema } from '@modelcontextprotocol/sdk/types.js'
 import { z } from 'zod'
+import { readFileSync } from 'fs'
+import { join } from 'path'
 import tracker from '@hcengineering/tracker'
 import task from '@hcengineering/task'
 import { SortingOrder } from '@hcengineering/core'
@@ -75,7 +77,30 @@ const wsArg = (): any => completable(z.string(), async (v) => await completeWork
 const issueArg = (): any => completable(z.string(), async (v, ctx) => await completeIssue(v, ws(ctx)))
 const projectArg = (): any => completable(z.string(), async (v, ctx) => await completeProject(v, ws(ctx)))
 
+// ── Guides: the plugin skill as plain resources, so every MCP client (not only Claude Code) gets them ──
+export const GUIDES: Record<string, { file: string, title: string, description: string }> = {
+  workflow: { file: 'SKILL.md', title: 'Huly workflow for agents', description: 'Repo rules first, pick up/hand back issues, status flow, creating without duplicates' },
+  costs: { file: 'costs.md', title: 'Cheapest Huly call per question', description: 'Which call answers which question with the least output (measured sizes)' },
+  onboarding: { file: 'onboarding.md', title: 'Bringing a project into Huly', description: 'Status set, components, milestones, TODO scan, architecture document' }
+}
+
+/** Guide text: dist/guides (build output) or, when running from source, the plugin skill itself. */
+export function readGuide (name: string): string {
+  const g = GUIDES[name]
+  if (g == null) throw new Error(`Unknown guide: ${name}. Available: ${Object.keys(GUIDES).join(', ')}`)
+  let text: string
+  try { text = readFileSync(join(__dirname, 'guides', `${name}.md`), 'utf8') } catch {
+    text = readFileSync(join(__dirname, '..', 'plugin', 'skills', 'huly', g.file), 'utf8').replace(/^---\n[\s\S]*?\n---\n+/, '')
+  }
+  // Links between the skill files become links between the resources.
+  return text.replace(/\]\((SKILL|costs|onboarding)\.md\)/g, (_m, f: string) => `](huly://guide/${f === 'SKILL' ? 'workflow' : f})`)
+}
+
 export function registerResources (server: McpServer): void {
+  for (const [name, g] of Object.entries(GUIDES)) {
+    server.registerResource(`guide-${name}`, `huly://guide/${name}`, { title: g.title, description: g.description, mimeType: 'text/markdown' },
+      async (uri) => ({ contents: [{ uri: uri.href, mimeType: 'text/markdown', text: readGuide(name) }] }))
+  }
   server.registerResource(
     'issue',
     new ResourceTemplate('huly://{workspace}/issue/{identifier}', {
@@ -105,6 +130,23 @@ const user = (text: string): { messages: Array<{ role: 'user', content: { type: 
   ({ messages: [{ role: 'user', content: { type: 'text', text } }] })
 
 export function registerPrompts (server: McpServer): void {
+  server.registerPrompt('setup', {
+    title: 'Set up Huly for a project',
+    description: 'Ask how Huly should be used for a project, write the rules for your project instructions, optionally import it',
+    argsSchema: { repository: z.string().optional(), workspace: z.string().optional() }
+  }, ({ repository, workspace }) => user(
+    `Set up how you use Huly for ${repository != null ? `the repository ${repository}` : 'my current project'}${workspace != null ? ` (workspace ${workspace})` : ''}.\n\n` +
+    '1. Find the project: ' + (repository != null ? 'call find_project_for_repo with the repository; ' : '') +
+    'otherwise list_workspaces and list_projects and suggest the one that fits. Never create a Huly project — if none fits, suggest a short key and ask me to create it.\n' +
+    '2. Ask me in one message, with numbered options and your recommendation first: (a) role of Huly — leads / overview only / not used; ' +
+    '(b) where new issues go — code bugs on GitHub and product topics in Huly / everything in Huly / only when I ask; ' +
+    '(c) initiative — act and keep status current / propose first / only on request; (d) efficiency — normal / token-saving / minimal.\n' +
+    '3. Write a short "## Huly" rules section from my answers (workspace, project, where issues go, duplicate check, component + milestone on every issue, ' +
+    'status flow, initiative, efficiency) and give it to me to paste into my project instructions (CLAUDE.md, AGENTS.md, Cursor rules or the project instructions of this app).\n' +
+    '4. Ask which imports I want (components, milestones, status set, TODO/FIXME proposals, architecture document) and do them as described in resource huly://guide/onboarding, ' +
+    'dry runs first. For efficient calls follow huly://guide/costs. End with what was created and what I still have to do.'
+  ))
+
   server.registerPrompt('start', {
     title: 'Start working on an issue',
     description: 'Pick up an issue, load its context and propose a plan',
