@@ -11,6 +11,7 @@ import { markdownToProseMirror, extractText } from '../utils/markdown'
 import { uploadMarkupBlob } from '../utils/storage'
 import { findPerson, peopleNames } from '../utils/people'
 import type { z } from 'zod'
+import { fetchBlob } from '../utils/content'
 import type {
   ListIssuesSchema,
   GetIssueSchema,
@@ -170,7 +171,7 @@ export const getIssue = wrapToolHandler<z.infer<typeof GetIssueSchema>>(async (a
       // Token goes in the Authorization header only — never in the URL (see get_document).
       const blobUrl = `${frontUrl}/files?file=${encodeURIComponent(issue.description)}&workspace=${workspaceUuid}`
       try {
-        const res = await fetch(blobUrl, { headers: { Authorization: `Bearer ${wsToken}` } })
+        const res = await fetchBlob(blobUrl, wsToken)
         if (res.ok) {
           const text = await res.text()
           try {
