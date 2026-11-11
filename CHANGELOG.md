@@ -2,7 +2,7 @@
 
 All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mcp-selfhost). Versions follow [semver](https://semver.org).
 
-### Unreleased
+### 3.4.0 — 2026-11-11
 
 - **New: team server over HTTP** — `huly-mcp-selfhost http` (Docker: `MCP_TRANSPORT=http`) serves MCP at `/mcp` with persistent sessions instead of a proxy. Every client can bring its own Huly login (`X-Huly-Token` or `X-Huly-Email`/`X-Huly-Password`, optional `X-Huly-Workspace`), so one server works for a whole team and each person acts as themselves. The server's own login is only used behind `MCP_AUTH_TOKEN`. Measured: first call of a session ~0.2 s.
 - **New: `check_setup`** — one call that diagnoses the setup: version and newer releases, login (incl. API-token expiry), workspaces, front URL, active settings; never prints secrets.

@@ -52,7 +52,8 @@ test('check_setup: version compare, hosts without paths, no secrets in the repor
   assert.equal(isNewer('3.10.0', '3.9.9'), true)
   assert.equal(isNewer('3.4.0', '3.4.0'), false)
   assert.equal(isNewer('3.3.1', '3.4.0'), false)
-  assert.equal(hostOf('https://user:pw@huly.example.com/_accounts?x=1'), 'https://huly.example.com')
+  const withLogin = new URL('https://huly.example.com/_accounts?x=1'); withLogin.username = 'user'; withLogin.password = 'pw'
+  assert.equal(hostOf(withLogin.href), 'https://huly.example.com', 'no credentials, path or query')
   assert.equal(hostOf(''), undefined)
   const env = { HULY_EMAIL: 'me@example.com', HULY_PASSWORD: 'secret-pw', HULY_ACCOUNTS_URL: 'https://huly.example.com/_accounts', HULY_WRITE_PROJECTS: 'TSK' }
   const out = await checkSetupReport({ skipVersionCheck: true }, env)
