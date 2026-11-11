@@ -414,10 +414,11 @@ Claude Code then asks for your Huly settings (e-mail + password or token, and fo
 | Part | What it does |
 |------|--------------|
 | MCP server | `huly-mcp-selfhost` via `npx`, configured from the plugin settings (toolsets, on-demand loading, pinned workspace and writable projects included) |
-| Skill `huly-workflow` | When and how to use Huly while coding: find the project for the repo, duplicate check before new issues, component + milestone, status flow, PR → issue links, epics for plans |
+| Skill `huly-workflow` | When and how to use Huly while coding: find the project for the repo, duplicate check before new issues, component + milestone, status flow, PR → issue links, epics for plans; follows the repo's `## Huly` rules; onboarding guide for bringing a project into Huly |
 | Skill `huly-efficient` | Cheapest call for each question and change, with measured output sizes: one-call overviews, filters instead of full lists, one write instead of create-then-update, no pre-checks the tools already do |
-| Hook on session start | Reports the GitHub repo and branch; a branch like `proj-12-login` points Claude to issue `PROJ-12` (no network, no credentials) |
+| Hook on session start | Reports the GitHub repo and branch; a branch like `proj-12-login` points Claude to issue `PROJ-12`; points to the repo's `## Huly` rules or offers `/huly:setup` (no network, no credentials) |
 | Hook after `gh pr create` / `gh pr merge` | Reminds Claude to link the new PR to its issue (`finish_work`) or to check the status after a merge |
+| `/huly:setup [workspace]` | Set up Huly for this repo: asks how Huly is used here (role, where new issues go, initiative, how token-saving), writes the answers as a `## Huly` section to `CLAUDE.md`, then optionally imports the project (status set, components, milestones, TODO/FIXME proposals, architecture document). The session-start hook offers it once while a repo has no such section |
 | `/huly:start [PROJ-12]` | Pick up an issue (from the argument or the branch), load the context, plan |
 | `/huly:finish [PROJ-12] [PR]` | Honest summary, PR link, status to review |
 | `/huly:plan <goal>` | Plan → epic + sub-issues (dry run first) |
@@ -855,6 +856,10 @@ Secrets:
 ---
 
 ## Changelog
+
+### Unreleased
+
+- **Claude Code plugin: `/huly:setup`** — the agent asks once per repo how Huly is used there (role, where new issues go, initiative, how token-saving) and writes the answers as a `## Huly` section to `CLAUDE.md`; every later session follows it. Optional import: status set, components, milestones, TODO/FIXME proposals, architecture document. The `huly-workflow` skill gets an onboarding guide for this and treats the repo's rules as overriding its defaults; the session-start hook offers `/huly:setup` while a repo has no Huly section.
 
 ### 3.2.0 — 2026-11-11
 
