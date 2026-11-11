@@ -6,12 +6,13 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import { createServer, parseToolsets } from '../src/server'
 import { TOOLS, TOOLSETS, DEFAULT_TOOLSETS } from '../src/registry'
+import { isMutation } from '../src/guard'
 
 /** Characters of the tools/list payload; ~3.5 characters per token. */
 const DEFAULT_BUDGET_CHARS = 40_000
 
-async function listTools (toolsets: string): Promise<any[]> {
-  const server = createServer({ toolsets })
+async function listTools (toolsets: string, annotations = false): Promise<any[]> {
+  const server = createServer({ toolsets, annotations })
   const [clientSide, serverSide] = InMemoryTransport.createLinkedPair()
   await server.connect(serverSide)
   const client = new Client({ name: 'budget', version: '0' })
@@ -60,4 +61,24 @@ test('every tool belongs to a known toolset and names are unique', () => {
     assert.ok(!names.has(t.name), `duplicate tool ${t.name}`)
     names.add(t.name)
   }
+})
+
+test('HULY_ANNOTATIONS: off by default; on, reads are read-only and deletes destructive', async () => {
+  for (const t of await listTools('all')) assert.equal(t.annotations, undefined, `${t.name} has annotations while off`)
+  const byName = new Map((await listTools('all', true)).map((t) => [t.name, t.annotations]))
+  for (const def of TOOLS) {
+    const a = byName.get(def.name)
+    assert.ok(a?.title != null && a.title !== '', `${def.name} has a title`)
+    if (isMutation(def)) {
+      assert.notEqual(a.readOnlyHint, true, `${def.name} changes data but is marked read-only`)
+      assert.equal(typeof a.destructiveHint, 'boolean', `${def.name} says whether it is destructive`)
+    } else {
+      assert.equal(a.readOnlyHint, true, `${def.name} is a read`)
+    }
+  }
+  assert.deepEqual(byName.get('list_issues'), { title: 'List issues', readOnlyHint: true })
+  assert.equal(byName.get('delete_issue').destructiveHint, true)
+  assert.equal(byName.get('bulk_update_issues').destructiveHint, true)
+  assert.equal(byName.get('remove_label').destructiveHint, true)
+  assert.equal(byName.get('create_issue').destructiveHint, false)
 })

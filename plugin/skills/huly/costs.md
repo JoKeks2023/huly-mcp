@@ -1,9 +1,4 @@
----
-name: huly-efficient
-description: Pick the cheapest Huly MCP call for a question or change — one-call overviews instead of many list calls, filters instead of full lists, one write instead of create-then-update. Use whenever you are about to read from or write to Huly with the huly MCP tools (issues, projects, documents, inbox, changes), especially before chaining several Huly calls.
----
-
-# Using Huly efficiently
+# Huly calls by cost
 
 Every Huly call costs a round trip and its output stays in context. Aim for **one call per question** and **one call per change**. Sizes below are measured on a real project (≈50 issues); 1k chars ≈ 300 tokens.
 

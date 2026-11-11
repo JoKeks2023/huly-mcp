@@ -66,6 +66,13 @@
           "format": "string"
         },
         {
+          "name": "HULY_ANNOTATIONS",
+          "description": "Optional: 1 = tool annotations (title, readOnlyHint, destructiveHint); ~16% larger tool list",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string"
+        },
+        {
           "name": "HULY_DYNAMIC_TOOLSETS",
           "description": "Optional: 1 = start with HULY_TOOLSETS and load more toolsets on demand via enable_toolsets",
           "isRequired": false,

@@ -109,9 +109,9 @@ Tools, resources and prompts for AI agents working on Huly issues (toolset `agen
 | `find_project_for_repo` | Workspace + project linked to a GitHub repo (`owner/name`, URL or git remote) via Huly's GitHub integration |
 | `claim_issue` / `release_issue` | Lease an issue to an agent (label `agent:working` + comment marker) so parallel agents skip it; expires after `minutes` |
 
-**Resources** — `huly://<workspace>/issue/<PROJ-12>` and `huly://<workspace>/document/<id>`. Your open assigned issues are listed, so in Claude Code you can `@`-mention them.
+**Resources** — `huly://<workspace>/issue/<PROJ-12>` and `huly://<workspace>/document/<id>`. Your open assigned issues are listed, so in Claude Code you can `@`-mention them. Guides for agents in any client: `huly://guide/workflow` (how to work with Huly), `huly://guide/costs` (cheapest call per question) and `huly://guide/onboarding` (bringing a project into Huly) — the same text as the plugin skill.
 
-**Prompts** — `start`, `finish`, `plan`, `triage`, `standup` (in Claude Code: `/mcp__huly__start` …).
+**Prompts** — `setup` (ask how Huly is used for a project and write the rules for your project instructions), `start`, `finish`, `plan`, `triage`, `standup` (in Claude Code: `/mcp__huly__start` …).
 
 **Guard rails** (environment):
 
@@ -382,11 +382,12 @@ A single Huly account can belong to several workspaces — e.g. a personal one a
 | Variable | Required | Purpose |
 |----------|----------|---------|
 | `HULY_EMAIL` + `HULY_PASSWORD` | one auth option | Account login (needs a password set on your Huly account) |
-| `HULY_TOKEN` | one auth option | Account token for SSO accounts (Google/GitHub) — get it with `npm run setup` |
+| `HULY_TOKEN` | one auth option | Account token for SSO accounts (Google/GitHub) — get it with `npx huly-mcp-selfhost setup` |
 | `HULY_ACCOUNTS_URL` | self-hosted only | Account service — login and workspace discovery. Default `https://account.huly.app`. Self-hosted: your instance's accounts URL, e.g. `https://huly.example.com/_accounts` |
 | `HULY_FRONT_URL` | self-hosted (optional on Cloud) | Front service — document/description content and file uploads. Not involved in login or workspace discovery. Self-hosted: e.g. `https://huly.example.com` |
 | `HULY_TRANSACTOR_URL` | no | Self-hosted, server next to Huly: connect to the transactor directly instead of the public address the account service returns, e.g. `ws://huly/_transactor` (via nginx) or `ws://transactor:3333`. Saves the detour through your uplink/tunnel. `HULY_ACCOUNTS_URL` can be internal too (`http://huly/_accounts`); an internal `HULY_FRONT_URL` also works but then invite links show the internal address |
 | `HULY_WORKSPACE` | no | Pin the server to one workspace; tools then take no `workspace` argument (fewer tokens) |
+| `HULY_ANNOTATIONS` | no | `1`: every tool carries MCP annotations — a title, `readOnlyHint` for reads, `destructiveHint` for deletes/removals/bulk changes. Clients can use them to allow reads without asking. Costs ~16% more tool-list tokens, so it is off by default; the Claude Code plugin turns it on |
 | `HULY_DYNAMIC_TOOLSETS` | no | `1`: start with `HULY_TOOLSETS` and load more on demand via `enable_toolsets` (see [Toolsets](#toolsets)) |
 | `HULY_TOOLSETS` | no | Comma-separated toolsets to enable, or `all` (see [Toolsets](#toolsets)). Default: `agent,tracker,documents,chat,contacts,inbox,activity,planner,generic` |
 | `HULY_WRITE_PROJECTS` | no | Only allow changes in these projects, e.g. `TSK,WEB` (see [Agent workflow](#agent-workflow)) |
@@ -407,18 +408,17 @@ The repo is also a Claude Code plugin marketplace. The plugin bundles the MCP se
 /plugin install huly@huly-mcp
 ```
 
-> **Note:** the plugin starts `huly-mcp-selfhost@^3.0.0` from npm. To try a local checkout instead: `npm run build`, then point `plugin/.mcp.json` at `dist/index.js` and start `claude --plugin-dir ./plugin`.
+> **Note:** the plugin starts the npm package at exactly its own version (e.g. `huly-mcp-selfhost@3.2.0`; the plugin directory does not accept version ranges), so a plugin update brings the matching server. To try a local checkout instead: `npm run build`, then point `plugin/.mcp.json` at `dist/index.js` and start `claude --plugin-dir ./plugin`.
 
 Claude Code then asks for your Huly settings (e-mail + password or token, and for self-hosted Huly the accounts and front URL; passwords and tokens go to the OS keychain).
 
 | Part | What it does |
 |------|--------------|
-| MCP server | `huly-mcp-selfhost` via `npx`, configured from the plugin settings (toolsets, on-demand loading, pinned workspace and writable projects included) |
-| Skill `huly-workflow` | When and how to use Huly while coding: find the project for the repo, duplicate check before new issues, component + milestone, status flow, PR → issue links, epics for plans; follows the repo's `## Huly` rules; onboarding guide for bringing a project into Huly |
-| Skill `huly-efficient` | Cheapest call for each question and change, with measured output sizes: one-call overviews, filters instead of full lists, one write instead of create-then-update, no pre-checks the tools already do |
+| MCP server | `huly-mcp-selfhost` via `npx`, configured from the plugin settings (toolsets, on-demand loading, pinned workspace and writable projects included); tool annotations on (`HULY_ANNOTATIONS=1`) |
+| Skill `huly` | How to use Huly while coding at the lowest token cost: the repo's `## Huly` rules first, find the project for the repo, pick up/hand back issues, status flow, duplicate check, component + milestone, epics for plans, cheapest call per question. Two reference files are read only when needed: `costs.md` (measured output size per call) and `onboarding.md` (bringing a project into Huly) |
 | Hook on session start | Reports the GitHub repo and branch; a branch like `proj-12-login` points Claude to issue `PROJ-12`; points to the repo's `## Huly` rules or offers `/huly:setup` (no network, no credentials) |
 | Hook after `gh pr create` / `gh pr merge` | Reminds Claude to link the new PR to its issue (`finish_work`) or to check the status after a merge |
-| `/huly:setup [workspace]` | Set up Huly for this repo: asks how Huly is used here (role, where new issues go, initiative, how token-saving), writes the answers as a `## Huly` section to `CLAUDE.md`, then optionally imports the project (status set, components, milestones, TODO/FIXME proposals, architecture document). The session-start hook offers it once while a repo has no such section |
+| `/huly:setup [workspace]` | Set up Huly for this repo: asks how Huly is used here (role, where new issues go, initiative, how token-saving), writes the answers as a `## Huly` section to `CLAUDE.md`, `CLAUDE.local.md` (only you) or split between both, then optionally imports the project (status set, components, milestones, TODO/FIXME proposals, architecture document). The session-start hook offers it once while a repo has no such section |
 | `/huly:start [PROJ-12]` | Pick up an issue (from the argument or the branch), load the context, plan |
 | `/huly:finish [PROJ-12] [PR]` | Honest summary, PR link, status to review |
 | `/huly:plan <goal>` | Plan → epic + sub-issues (dry run first) |
@@ -770,18 +770,19 @@ HULY_PASSWORD=yourpassword
 **Option B — Token (SSO accounts: Google/GitHub):**
 
 ```bash
-npm run setup
+npx huly-mcp-selfhost setup                                  # Huly Cloud
+npx huly-mcp-selfhost setup --url https://huly.example.com   # self-hosted
 ```
 
-The wizard sends a one-time code to your email, saves the resulting account token as `HULY_TOKEN` in `.env`, and lists the workspaces the account can access (a discovery test).
+The wizard asks for your Huly address (unless `--url` or `HULY_ACCOUNTS_URL` is set), sends a one-time code to your email and lists the workspaces the account can access (a discovery test). It then prints the token and the URLs to paste into your client — for the Claude Code plugin: `/plugin` → huly → configure. In a checkout of this repo, `npm run setup` does the same and saves the token as `HULY_TOKEN` in `.env`.
 
 ```bash
 HULY_TOKEN=your-token-here
 ```
 
-A token copied from the browser (DevTools → Application → Local Storage → `token`) also works, but may be scoped to the single workspace open in that tab. If the account service refuses to list workspaces for such a token, the server falls back to that one workspace. Use `npm run setup` for full multi-workspace discovery.
+A token copied from the browser (DevTools → Application → Local Storage → `token`) also works, but may be scoped to the single workspace open in that tab. If the account service refuses to list workspaces for such a token, the server falls back to that one workspace. Use `npx huly-mcp-selfhost setup` for full multi-workspace discovery.
 
-> Tokens expire after some time. If you get an auth error, run `npm run setup` again or switch to email + password.
+> Tokens expire after some time. If you get an auth error, run `npx huly-mcp-selfhost setup` again or switch to email + password.
 
 **Self-hosted Huly:**
 
@@ -859,7 +860,12 @@ Secrets:
 
 ### Unreleased
 
-- **Claude Code plugin: `/huly:setup`** — the agent asks once per repo how Huly is used there (role, where new issues go, initiative, how token-saving) and writes the answers as a `## Huly` section to `CLAUDE.md`; every later session follows it. Optional import: status set, components, milestones, TODO/FIXME proposals, architecture document. The `huly-workflow` skill gets an onboarding guide for this and treats the repo's rules as overriding its defaults; the session-start hook offers `/huly:setup` while a repo has no Huly section.
+- **Claude Code plugin: `/huly:setup`** — the agent asks once per repo how Huly is used there (role, where new issues go, initiative, how token-saving) and writes the answers as a `## Huly` section; every later session follows it. You choose where: `CLAUDE.md` (shared), `CLAUDE.local.md` (only you; added to `.gitignore` if needed) or split — shared rules in `CLAUDE.md`, initiative and efficiency in `CLAUDE.local.md`. The project and its GitHub sync are detected first, so only the questions that matter are asked; "Not now" writes nothing. Optional import: status set, components, milestones, TODO/FIXME proposals, architecture document. The session-start hook reads the rules from all three files and offers `/huly:setup` while a repo has none.
+- **One skill instead of two:** `huly-workflow` and `huly-efficient` are now the skill `huly` — a short core plus `costs.md` and `onboarding.md`, read only when needed. Fewer tokens, no duplicated rules.
+- **Guides and setup for every MCP client:** resources `huly://guide/workflow`, `huly://guide/costs`, `huly://guide/onboarding` (the same files as the plugin skill) and the prompt `setup` — Claude Desktop, Cursor and others get the onboarding flow too; it gives you the rules to paste into your project instructions.
+- **New: `HULY_ANNOTATIONS=1`** — MCP tool annotations: a title per tool, `readOnlyHint` for reads, `destructiveHint` for deletes, removals and bulk changes. Off by default because it adds ~16% to the tool list (default set: 36.5k → 42.6k chars); the Claude Code plugin turns it on.
+- **Fixed: SSO token setup outside the repo.** `npx huly-mcp-selfhost setup` now runs the token wizard (before, it started the server — the plugin settings pointed to a command that did not exist). It asks for your Huly address (or `--url`), and outside a repo checkout prints the token and URLs to paste instead of writing a `.env` into the npm cache. One line reader for the whole run (piped input no longer loses lines); an unreachable address gets a clear error.
+- **Plugin:** starts the npm package at exactly its own version (`@3.2.0`, was `^3.2.0`) — the Claude plugin directory does not accept ranges; `plugin/README.md` describes what the plugin runs and where data goes.
 
 ### 3.2.0 — 2026-11-11
 

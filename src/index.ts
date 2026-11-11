@@ -12,6 +12,12 @@ async function main (): Promise<void> {
     await runWatch(process.argv.slice(3))
     return
   }
+  if (process.argv[2] === 'setup') {
+    // `npx huly-mcp-selfhost setup`: the token wizard for SSO accounts (scripts/setup.js ships in the package).
+    process.env.HULY_SETUP_RUN = '1'
+    require('../scripts/setup.js')
+    return
+  }
   if (process.argv[2] === 'junit') {
     await runJUnit(process.argv.slice(3))
     process.exit()

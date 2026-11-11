@@ -68,10 +68,10 @@ test('plugin files: marketplace points to the plugin, MCP env covers every setti
   for (const key of Object.keys(manifest.userConfig)) {
     assert.ok(Object.values(env).includes(`\${user_config.${key}}`), `${key} is not passed to the server`)
   }
-  assert.match(mcp.mcpServers.huly.args.join(' '), new RegExp(`huly-mcp-selfhost@\\^${pkg.version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`))
+  assert.match(mcp.mcpServers.huly.args.join(' '), new RegExp(`huly-mcp-selfhost@${pkg.version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`), 'exact version: the plugin directory blocks ranges')
 })
 
-test('hulyRules: a "## Huly" section in CLAUDE.md, .claude/CLAUDE.md or AGENTS.md counts as set', () => {
+test('hulyRules: a "## Huly" section in CLAUDE.md, .claude/CLAUDE.md, CLAUDE.local.md or AGENTS.md counts as set', () => {
   const dir = (): string => mkdtempSync(join(tmpdir(), 'huly-rules-'))
   assert.equal(hulyRules(dir()), undefined)
   const plain = dir(); writeFileSync(join(plain, 'CLAUDE.md'), '# Repo\n\n## Build\nnpm test\n')
@@ -80,4 +80,26 @@ test('hulyRules: a "## Huly" section in CLAUDE.md, .claude/CLAUDE.md or AGENTS.m
   assert.equal(hulyRules(nested), 'set')
   const agents = dir(); writeFileSync(join(agents, 'CLAUDE.md'), '# x\n'); writeFileSync(join(agents, 'AGENTS.md'), '## Huly\n- Workspace `w`\n')
   assert.equal(hulyRules(agents), 'set')
+  const local = dir(); writeFileSync(join(local, 'CLAUDE.md'), '# x\n'); writeFileSync(join(local, 'CLAUDE.local.md'), '## Huly\n- Efficiency: Minimal.\n')
+  assert.equal(hulyRules(local), 'set')
+})
+
+test('setup wizard: Huly address → accounts/front URL; --url argument', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { resolveUrls, urlArg } = require('../scripts/setup.js')
+  assert.deepEqual(resolveUrls(''), { accounts: 'https://account.huly.app', front: undefined })
+  assert.deepEqual(resolveUrls('https://huly.app'), { accounts: 'https://account.huly.app', front: undefined })
+  assert.deepEqual(resolveUrls('https://huly.example.com/'), { accounts: 'https://huly.example.com/_accounts', front: 'https://huly.example.com' })
+  assert.deepEqual(resolveUrls('https://huly.example.com/_accounts'), { accounts: 'https://huly.example.com/_accounts', front: 'https://huly.example.com' })
+  assert.throws(() => resolveUrls('huly.example.com'), /Not a URL/)
+  assert.equal(urlArg(['setup', '--url', 'https://a.example']), 'https://a.example')
+  assert.equal(urlArg(['--url=https://b.example']), 'https://b.example')
+  assert.equal(urlArg(['setup']), undefined)
+})
+
+test('skill: one huly skill whose links point to existing files', () => {
+  for (const f of ['SKILL.md', 'costs.md', 'onboarding.md']) assert.ok(readFileSync(join('plugin/skills/huly', f), 'utf8').length > 200, f)
+  const skill = readFileSync('plugin/skills/huly/SKILL.md', 'utf8')
+  for (const [, link] of skill.matchAll(/\]\(([\w-]+\.md)\)/g)) assert.ok(readFileSync(join('plugin/skills/huly', link), 'utf8'), `${link} exists`)
+  assert.match(readFileSync('plugin/commands/setup.md', 'utf8'), /CLAUDE\.local\.md/)
 })
