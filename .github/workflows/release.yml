@@ -96,6 +96,7 @@ jobs:
           else gh release create "$TAG" --title "$title" --notes-file notes.md --verify-tag --latest; fi
 
       - name: Publish to the MCP registry
+        id: registry
         # The registry verifies the npm package, so only after npm worked.
         if: steps.npm.outcome == 'success'
         continue-on-error: true   # the registry is optional; a hiccup there must not fail the release
@@ -103,6 +104,10 @@ jobs:
           curl -sL "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_linux_amd64.tar.gz" | tar xz mcp-publisher
           ./mcp-publisher login github-oidc
           ./mcp-publisher publish
+
+      - name: Warn if the MCP registry refused the entry
+        if: steps.registry.outcome == 'failure'
+        run: echo "::warning::The MCP registry did not take $TAG (see 'Publish to the MCP registry'). npm and the GitHub release are fine."
 
       - name: Fail the run if npm publishing failed
         if: steps.npm.outcome == 'failure'

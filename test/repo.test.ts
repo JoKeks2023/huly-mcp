@@ -52,6 +52,7 @@ test('version is the same in package.json, server.json, the plugin and the MCP s
   const version = json('package.json').version
   const server = json('server.json')
   assert.equal(server.version, version, 'server.json version')
+  assert.ok(server.description.length <= 100, `server.json description is ${server.description.length} chars; the MCP registry rejects more than 100`)
   for (const p of server.packages ?? []) assert.equal(p.version, version, `server.json package ${String(p.identifier)} version`)
   assert.equal(json('plugin/.claude-plugin/plugin.json').version, version, 'plugin.json version')
   assert.match(read('src/server.ts'), new RegExp(`name: 'huly-mcp-selfhost', version: '${escapeRe(version)}'`), 'McpServer version in src/server.ts')
