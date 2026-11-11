@@ -4,6 +4,7 @@ All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mc
 
 ### Unreleased
 
+- **New: `undo_changes`** — undo your last changes made through this server, newest first: created objects are removed, changed fields get their old values, deleted objects come back with the same id and data (verified live: an issue deleted and restored with its description). Dry run by default; an object someone else changed since is skipped and named (`force` overrides). Works for every write tool without per-tool code — writes are recorded as their reverse while a tool runs; issue counters are never wound back. History per process (stdio) or per session (HTTP), last 50 changes.
 - **New: command line for every tool** — `huly-mcp <tool> --param value` (or `npx huly-mcp-selfhost …`): `tools` to search, `help <tool>` with types, allowed values and defaults generated from the same schemas the MCP server uses; values read by type, lists by repeating a flag, JSON for nested values, `--input`/`--json`, `--<param>-file`; a positional value for tools with one required parameter; the same write scope, audit log and confirmation (hard-to-undo tools ask in a terminal, scripts need `--yes`); `--format json`; exit codes 0/1/2 with "did you mean" hints; bash/zsh completion for tools, options and values. Verified live (read, JSON output, create with a description from a file, guarded delete).
 
 ### 3.4.0 — 2026-11-11

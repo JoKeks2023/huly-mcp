@@ -57,6 +57,7 @@ Narrow lists with filters (`status`, `assignee`, `milestoneLabel`, `componentLab
 ## 5. Be careful with
 
 - Bulk changes, `move_issue`, deletes: show what will change first.
+- A change went wrong: `undo_changes` (dry run first) reverses your last changes through this server — don't repair by hand.
 - GitHub-synced projects: every change appears on GitHub too; don't cross-post.
 - `HULY_WRITE_PROJECTS` refusals: tell the user, don't work around them.
 - Huly calls fail with login/connection errors: run `check_setup` and show the user what it says.

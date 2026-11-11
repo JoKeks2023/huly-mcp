@@ -4,6 +4,8 @@
 // - HULY_CONFIRM: destructive tools ask the user first (MCP elicitation) when the client can ask
 import { appendFileSync } from 'node:fs'
 import type { ToolDef } from './registry'
+import { recordChanges, addEntry, type UndoStep } from './utils/undo'
+import { getConnectionManager, getConnection } from './connection'
 
 const TASK_ID = /^([A-Z][A-Z0-9]*)-\d+$/
 const PROJECT_KEYS = new Set(['projectIdentifier', 'targetProjectIdentifier', 'projectIdentifiers'])
@@ -62,7 +64,7 @@ export function audit (path: string | undefined, tool: ToolDef, args: unknown, o
 
 // ── Confirmation for destructive tools ───────────────────────────────────────
 
-const RISKY = new Set(['bulk_update_issues', 'move_issue', 'generic_update', 'generic_delete', 'revoke_public_link', 'restore_file_version', 'send_invite', 'set_member_role', 'cancel_execution'])
+const RISKY = new Set(['undo_changes', 'bulk_update_issues', 'move_issue', 'generic_update', 'generic_delete', 'revoke_public_link', 'restore_file_version', 'send_invite', 'set_member_role', 'cancel_execution'])
 
 /** Deletes and bulk/structural changes that are hard to undo. */
 export function isRisky (name: string): boolean {
@@ -121,6 +123,20 @@ export function elicitationAsker (server: any): Asker {
   }
 }
 
+/** Keeps the undo entry of one write call, with each touched document's state right after it. */
+async function remember (owner: object, tool: ToolDef, args: any, steps: UndoStep[], error: unknown): Promise<void> {
+  const after: Record<string, { _class: string, modifiedOn: number | null }> = {}
+  try {
+    const client: any = await getConnection(args?.workspace)
+    for (const s of steps) {
+      if (after[s.target._id] != null) continue
+      const doc = s.kind === 'deleted' ? undefined : await client.findOne(s.target._class, { _id: s.target._id }).catch(() => undefined)
+      after[s.target._id] = { _class: s.target._class, modifiedOn: doc?.modifiedOn ?? null }
+    }
+  } catch { /* without the after-state undo still works, it just cannot warn about later edits */ }
+  addEntry(owner, { tool: tool.name, workspace: args?.workspace, at: Date.now(), steps, after, failed: error != null ? (error as Error).message : undefined })
+}
+
 /** Wraps a handler with the write scope check, the confirmation for risky tools and the audit log. */
 export function guard (tool: ToolDef, env: NodeJS.ProcessEnv = process.env, asker?: Asker): ToolDef['handler'] {
   const allowed = parseWriteProjects(env.HULY_WRITE_PROJECTS)
@@ -145,6 +161,18 @@ export function guard (tool: ToolDef, env: NodeJS.ProcessEnv = process.env, aske
           return { content: [{ type: 'text', text: `Cancelled: the user declined ${tool.name}. Nothing was changed — do not retry unless they ask.` }] }
         }
       }
+    }
+    // Writes are recorded so undo_changes can reverse them (undo itself is not recorded).
+    if (isMutation(tool) && tool.name !== 'undo_changes') {
+      const owner = getConnectionManager()
+      const { result, error, steps } = await recordChanges(async () => await tool.handler(args))
+      if (steps.length > 0) await remember(owner, tool, args, steps, error)
+      if (error != null) {
+        audit(auditPath, tool, args, { ok: false, text: (error as Error).message })
+        throw error
+      }
+      audit(auditPath, tool, args, { ok: true, text: result!.content[0]?.text ?? '' })
+      return result!
     }
     try {
       const result = await tool.handler(args)

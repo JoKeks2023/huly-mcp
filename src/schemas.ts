@@ -11,6 +11,13 @@ const PriorityEnum = z.enum(['NoPriority', 'Urgent', 'High', 'Medium', 'Low'])
 
 export const ListWorkspacesSchema = z.object({})
 
+export const UndoChangesSchema = z.object({
+  workspace: WorkspaceArg,
+  count: z.number().int().min(1).max(20).default(1).describe('How many of your last changes'),
+  dryRun: z.boolean().default(true).describe('Only show what would be undone'),
+  force: z.boolean().optional().describe('Undo even if someone changed the object since')
+})
+
 export const CheckSetupSchema = z.object({
   workspace: ReadWorkspaceArg,
   skipVersionCheck: z.boolean().optional().describe('Skip asking npm for the latest version')
