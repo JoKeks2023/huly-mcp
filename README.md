@@ -133,6 +133,30 @@ Without the plugin, the same server works in Claude Code as a plain MCP server (
 
 ---
 
+## Command line
+
+Every tool also works from the terminal — for scripts, CI and quick looks without a chat. Same login (`HULY_*` environment or `--env-file`), same safety rules (write scope, audit log, confirmation for hard-to-undo changes).
+
+```bash
+npm install -g huly-mcp-selfhost          # or: npx huly-mcp-selfhost <command>
+
+huly-mcp tools issue                      # find tools
+huly-mcp help list_issues                 # parameters, types, allowed values, defaults
+huly-mcp get_issue PROJ-12                # one required parameter can be given directly
+huly-mcp list_issues --project PROJ --due overdue --assignee null
+huly-mcp create_issue -w acme --project PROJ --title "Fix login" --description-file notes.md
+huly-mcp bulk_update_issues --identifiers PROJ-1 --identifiers PROJ-2 --status-name Done --yes
+huly-mcp my_day --format json | jq -r .text
+```
+
+- **Parameters** come from the same schemas the MCP server sends to Claude, so `help` is always current. Names work as `--project-identifier` or `--projectIdentifier`; common short forms (`--project`, `--status`, `--milestone`, …) too. Values are read by type: numbers, `true`/`false`, `null` to clear, repeat a flag for lists, JSON for nested values. `--json '{…}'` or `--input file.json` (`-` = stdin) pass everything at once; `--<text-param>-file` reads a text value from a file.
+- **Hard-to-undo tools** (deletes, bulk changes, moves) ask in a terminal; in scripts they run only with `--yes`.
+- **Exit codes:** 0 ok · 1 the tool failed or was cancelled · 2 wrong usage (unknown tool or option — with a "did you mean …").
+- **Output:** the tool's Markdown; `--format json` gives `{"ok", "tool", "text"}` (errors too). The Huly SDK's own logging is silenced; `HULY_DEBUG=1` shows it on stderr.
+- **Shell completion** for tools, options and allowed values: `eval "$(huly-mcp completion zsh)"` (or `bash`) in your shell profile.
+
+---
+
 ## Tools (226 total, grouped in toolsets)
 
 All tools except `list_workspaces` take a `workspace` argument — required for every change, optional for reads when only one workspace is available.

@@ -2,6 +2,10 @@
 
 All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mcp-selfhost). Versions follow [semver](https://semver.org).
 
+### Unreleased
+
+- **New: command line for every tool** — `huly-mcp <tool> --param value` (or `npx huly-mcp-selfhost …`): `tools` to search, `help <tool>` with types, allowed values and defaults generated from the same schemas the MCP server uses; values read by type, lists by repeating a flag, JSON for nested values, `--input`/`--json`, `--<param>-file`; a positional value for tools with one required parameter; the same write scope, audit log and confirmation (hard-to-undo tools ask in a terminal, scripts need `--yes`); `--format json`; exit codes 0/1/2 with "did you mean" hints; bash/zsh completion for tools, options and values. Verified live (read, JSON output, create with a description from a file, guarded delete).
+
 ### 3.4.0 — 2026-11-11
 
 - **New: team server over HTTP** — `huly-mcp-selfhost http` (Docker: `MCP_TRANSPORT=http`) serves MCP at `/mcp` with persistent sessions instead of a proxy. Every client can bring its own Huly login (`X-Huly-Token` or `X-Huly-Email`/`X-Huly-Password`, optional `X-Huly-Workspace`), so one server works for a whole team and each person acts as themselves. The server's own login is only used behind `MCP_AUTH_TOKEN`. Measured: first call of a session ~0.2 s.
