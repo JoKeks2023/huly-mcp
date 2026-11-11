@@ -1,26 +1,31 @@
 {
   "name": "huly-mcp-selfhost",
   "version": "3.2.0",
-  "description": "MCP server for Huly (self-hosted + cloud) — connect Claude Desktop to your Huly workspace via the native WebSocket SDK. Fork of huly-mcp-sdk with self-hosted document/description support, chat, attachments, custom issue statuses, and organizations.",
+  "description": "MCP server for Huly (self-hosted and Huly Cloud): 224 tools for Claude and other AI agents — issues, epics, documents, chat, planner, test management — with toolsets for low token use, an agent workflow and a Claude Code plugin.",
   "keywords": [
     "huly",
+    "huly-selfhost",
     "mcp",
+    "mcp-server",
     "model-context-protocol",
     "claude",
+    "claude-code",
+    "claude-desktop",
+    "ai-agents",
     "project-management",
     "issue-tracker",
-    "anthropic"
+    "self-hosted"
   ],
-  "homepage": "https://github.com/JoKeks2023/huly-mcp#readme",
+  "homepage": "https://jokeks2023.github.io/huly-mcp/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/JoKeks2023/huly-mcp.git"
   },
   "mcpName": "io.github.jokeks2023/huly-mcp-selfhost",
   "license": "EPL-2.0",
-  "author": "SaiVaraprasad Medapati",
+  "author": "Joris Conrad (https://github.com/JoKeks2023)",
   "contributors": [
-    "Joris Conrad (self-hosted fork: https://github.com/JoKeks2023/huly-mcp)"
+    "SaiVaraprasad Medapati (original huly-mcp-sdk: https://github.com/varaprasadreddy9676/huly-mcp)"
   ],
   "bin": {
     "huly-mcp": "dist/index.js",
@@ -31,13 +36,14 @@
     "dist/",
     "scripts/",
     ".env.example",
-    "README.md"
+    "README.md",
+    "CHANGELOG.md"
   ],
   "engines": {
     "node": ">=20"
   },
   "scripts": {
-    "build": "node --max-old-space-size=4096 node_modules/typescript/bin/tsc && node scripts/copy-guides.js",
+    "build": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\" && node --max-old-space-size=4096 node_modules/typescript/bin/tsc && node scripts/copy-guides.js",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
     "setup": "node scripts/setup.js",
@@ -70,5 +76,8 @@
   "overrides": {
     "dompurify": "^3.4.17",
     "uuid": "^11.1.1"
+  },
+  "bugs": {
+    "url": "https://github.com/JoKeks2023/huly-mcp/issues"
   }
 }
