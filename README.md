@@ -415,6 +415,7 @@ Claude Code then asks for your Huly settings (e-mail + password or token, and fo
 |------|--------------|
 | MCP server | `huly-mcp-selfhost` via `npx`, configured from the plugin settings (toolsets, on-demand loading, pinned workspace and writable projects included) |
 | Skill `huly-workflow` | When and how to use Huly while coding: find the project for the repo, duplicate check before new issues, component + milestone, status flow, PR → issue links, epics for plans |
+| Skill `huly-efficient` | Cheapest call for each question and change, with measured output sizes: one-call overviews, filters instead of full lists, one write instead of create-then-update, no pre-checks the tools already do |
 | Hook on session start | Reports the GitHub repo and branch; a branch like `proj-12-login` points Claude to issue `PROJ-12` (no network, no credentials) |
 | Hook after `gh pr create` / `gh pr merge` | Reminds Claude to link the new PR to its issue (`finish_work`) or to check the status after a merge |
 | `/huly:start [PROJ-12]` | Pick up an issue (from the argument or the branch), load the context, plan |
@@ -857,6 +858,7 @@ Secrets:
 
 ### Unreleased
 
+- **Claude Code plugin: new skill `huly-efficient`** — which Huly call answers which question with the least output (sizes measured on a real project), which writes need only one call, and which checks the tools already do. The `huly-workflow` skill points to it.
 - Unknown-parameter error of tools without own parameters (e.g. `list_issue_statuses`) said "Valid: ."; it now says the tool takes no parameters besides `workspace`.
 - **Fixed: `create_issue_tree` (and `issues_from_document`) left reused issues outside the epic.** A same-title issue that is reused now moves under the epic when it has no parent; one under another parent stays there, and the plan and result say so.
 - **Fixed: blob requests without a timeout.** Reading document/description content and uploads could hang a tool call when the front service stalled. Reads now stop after 30 s, uploads after 2 min, with a clear error naming `HULY_FRONT_URL`.
