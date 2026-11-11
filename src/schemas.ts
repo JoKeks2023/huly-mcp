@@ -490,6 +490,12 @@ export const MarkNotificationsReadSchema = z.object({
   archive: z.boolean().default(false).describe('Also archive')
 })
 
+export const ManageNotificationsSchema = z.object({
+  workspace: WorkspaceArg,
+  object: z.string().describe('Issue id or object id'),
+  action: z.enum(['pin', 'unpin', 'hide', 'unhide', 'unread', 'unarchive', 'follow', 'unfollow'])
+})
+
 export const GetActivitySchema = z.object({
   workspace: ReadWorkspaceArg,
   object: z.string().describe('Issue id (PROJ-1) or object id'),

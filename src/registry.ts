@@ -15,7 +15,7 @@ import { listComponents, createComponent, updateComponent, deleteComponent } fro
 import { listTeamspaces, createTeamspace, listDocuments, getDocument, createDocument, deleteDocument, updateDocument, linkDocument, listDocumentComments, addDocumentComment } from './tools/documents'
 import { searchIssues, searchAll } from './tools/search'
 import { listChannels, createChannel, startDirectMessage, sendMessage, listMessages, listThread, replyToMessage, updateMessage, deleteMessage, addReaction, removeReaction, pinMessage } from './tools/channels'
-import { listNotifications, markNotificationsRead } from './tools/inbox'
+import { listNotifications, markNotificationsRead, manageNotifications } from './tools/inbox'
 import { getActivity } from './tools/activity'
 import { listTodos, createTodo, updateTodo, deleteTodo, scheduleTodo } from './tools/planner'
 import { listEvents, createEvent, updateEvent, deleteEvent } from './tools/calendar'
@@ -140,6 +140,7 @@ export const TOOLS: ToolDef[] = [
   { name: 'list_notifications', toolset: 'inbox', description: 'Your inbox notifications, grouped by issue/PR/document', schema: S.ListNotificationsSchema, handler: listNotifications },
   { name: 'triage_inbox', toolset: 'inbox', description: 'Unread items with what changed since last read: new comments, fields, status', schema: S.TriageInboxSchema, handler: triageInbox },
   { name: 'mark_notifications_read', toolset: 'inbox', description: 'Mark notifications read (by object, ids or all); optionally archive', schema: S.MarkNotificationsReadSchema, handler: markNotificationsRead },
+  { name: 'manage_notifications', toolset: 'inbox', description: 'Inbox for one object: pin, hide, mark unread, unarchive, follow/unfollow (and the undo of each)', schema: S.ManageNotificationsSchema, handler: manageNotifications },
   // Activity
   { name: 'get_activity', toolset: 'activity', description: 'Change history and comments of an issue or object', schema: S.GetActivitySchema, handler: getActivity },
   // Planner

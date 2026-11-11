@@ -6,7 +6,7 @@ import contact from '@hcengineering/contact'
 import chunter from '@hcengineering/chunter'
 import core from '@hcengineering/core'
 import { setConnectionManager, getConnection } from '../src/connection'
-import { listNotifications, markNotificationsRead } from '../src/tools/inbox'
+import { listNotifications, markNotificationsRead, manageNotifications } from '../src/tools/inbox'
 import { getActivity } from '../src/tools/activity'
 import { listTodos, createTodo, updateTodo, deleteTodo, scheduleTodo } from '../src/tools/planner'
 import { listEvents, createEvent, updateEvent } from '../src/tools/calendar'
@@ -309,4 +309,19 @@ test('generic_delete needs dryRun=false AND confirm=true', async () => {
   assert.equal(muts().length, 0)
   await genericDelete({ workspace: W, className: 'recruit:class:Opinion', id: 'op-1', dryRun: false, confirm: true })
   assert.equal(muts()[0].op, 'removeCollection')
+})
+
+test('manage_notifications: pin/hide the context, unread rolls back last-viewed, follow adds my collaborator row once', async () => {
+  const run = async (action: string, object = 'PROJ-1'): Promise<string> => text(await manageNotifications({ workspace: W, object, action } as any))
+  const conn: any = await getConnection(W)
+  assert.match(await run('pin'), /Pinned PROJ-1/)
+  assert.match(await run('hide'), /Hidden PROJ-1: Login bug — it comes back with new activity/)
+  assert.match(await run('unread'), /PROJ-1: Login bug is unread again \(2 notification\(s\)\)/)
+  const ctxUpdates = conn.mutations.filter((m: any) => m._class === C.DocNotifyContext).map((m: any) => m.data)
+  assert.deepEqual(ctxUpdates, [{ isPinned: true }, { hidden: true }, { lastViewedTimestamp: T0 + 1 - 1 }])
+  assert.match(await run('follow'), /You now follow PROJ-1: Login bug/)
+  const adds = conn.mutations.filter((m: any) => m.op === 'addCollection' && m._class === C.Collaborator)
+  assert.equal(adds.length, 1)
+  assert.deepEqual(adds[0].data, { collaborator: 'acc-1' })
+  await assert.rejects(manageNotifications({ workspace: W, object: 'pr-x', action: 'pin' } as any), /Object 'pr-x' not found/)
 })
