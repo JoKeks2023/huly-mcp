@@ -98,8 +98,32 @@ test('setup wizard: Huly address → accounts/front URL; --url argument', () => 
 })
 
 test('skill: one huly skill whose links point to existing files', () => {
-  for (const f of ['SKILL.md', 'costs.md', 'onboarding.md']) assert.ok(readFileSync(join('plugin/skills/huly', f), 'utf8').length > 200, f)
+  for (const f of ['SKILL.md', 'costs.md', 'onboarding.md', 'features.md']) assert.ok(readFileSync(join('plugin/skills/huly', f), 'utf8').length > 200, f)
   const skill = readFileSync('plugin/skills/huly/SKILL.md', 'utf8')
   for (const [, link] of skill.matchAll(/\]\(([\w-]+\.md)\)/g)) assert.ok(readFileSync(join('plugin/skills/huly', link), 'utf8'), `${link} exists`)
   assert.match(readFileSync('plugin/commands/setup.md', 'utf8'), /CLAUDE\.local\.md/)
+})
+
+test('skill guides name only tools and toolsets that exist', async () => {
+  const { TOOLS, TOOLSETS } = await import('../src/registry')
+  const names = new Set([...TOOLS.map((t) => t.name), 'enable_toolsets'])
+  const toolsetOf = new Map(TOOLS.map((t) => [t.name, t.toolset as string]))
+  for (const f of ['SKILL.md', 'costs.md', 'onboarding.md', 'features.md']) {
+    const text = readFileSync(join('plugin/skills/huly', f), 'utf8')
+    for (const [, word] of text.matchAll(/`([a-z]+(?:_[a-z]+)+)`/g)) {
+      if (/^(generic|huly|user|claude)_/.test(word) && !names.has(word)) continue // generic_* pattern, env-like words
+      assert.ok(names.has(word), `${f}: unknown tool ${word}`)
+    }
+  }
+  // Table rows in features.md: every "tool (toolset)" pairing is right.
+  const features = readFileSync('plugin/skills/huly/features.md', 'utf8')
+  for (const row of features.split('\n').filter((l) => l.startsWith('| ') && l.includes('`'))) {
+    const cell = row.split('|')[3] ?? ''
+    const sets = [...cell.matchAll(/\(([a-z-]+(?:, [a-z-]+)*)\)/g)].flatMap((m) => m[1].split(', '))
+    for (const s of sets) assert.ok((TOOLSETS as readonly string[]).includes(s), `features.md: unknown toolset ${s}`)
+    for (const [, tool] of cell.matchAll(/`([a-z]+(?:_[a-z]+)+)`/g)) {
+      if (!toolsetOf.has(tool)) continue
+      assert.ok(sets.includes(toolsetOf.get(tool)!), `features.md: ${tool} is in toolset ${toolsetOf.get(tool)}, row says ${sets.join(', ')}`)
+    }
+  }
 })

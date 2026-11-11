@@ -8,7 +8,7 @@ const path = require('path')
 const root = path.join(__dirname, '..')
 const src = path.join(root, 'plugin', 'skills', 'huly')
 const out = path.join(root, 'dist', 'guides')
-const GUIDES = { workflow: 'SKILL.md', costs: 'costs.md', onboarding: 'onboarding.md' }
+const GUIDES = { workflow: 'SKILL.md', costs: 'costs.md', onboarding: 'onboarding.md', features: 'features.md' }
 
 fs.mkdirSync(out, { recursive: true })
 for (const [name, file] of Object.entries(GUIDES)) {

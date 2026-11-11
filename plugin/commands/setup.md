@@ -40,7 +40,13 @@ Use what step 1 found to pick the recommendation: put it first and mark it "(Rec
    - Status set aligned to: Backlog, Todo, In Progress, Done, Canceled, Review in progress, Merged
    - TODO/FIXME comments as a **proposal list** (issues only after the user picks)
    - Architecture/status document as a Huly document
+   - Labels for kinds of work (bug, feature, tech debt, …), with categories
+   - Issue templates for repeating checklists (release, bug report)
+   - Test management: test project with suites mirroring the test folders; CI JUnit import step
+   - Document structure: teamspace with Architecture / Decisions / Runbooks
    - Open GitHub issues — **only point them out**, never import on your own
+
+   More than 4 options don't fit one question: put the basics (components, milestones, status set, TODO/FIXME) in one multiSelect and the extras (architecture document, labels, templates, tests, document structure) in a second. For what each extra needs see the skill's `features.md`.
 
 ## 4. Write the rules
 
@@ -69,6 +75,6 @@ When writing `CLAUDE.local.md`:
 
 ## 5. Import
 
-Do the selected imports in this order: status set → components → milestones → architecture document → TODO/FIXME proposals → open GitHub issues (report only). Use dry runs where tools have them and show what will be created before writing.
+Do the selected imports in this order: status set → components → labels → milestones → documents (architecture first) → templates → test management → TODO/FIXME proposals → open GitHub issues (report only). If a needed tool is missing, its toolset is disabled: `enable_toolsets`, or tell the user which toolsets to add (`/plugin` → huly → configure → Toolsets) and continue with the rest. Use dry runs where tools have them and show what will be created before writing.
 
-End with a short report: where the rules were written, what was created (ids), what was skipped and why, which proposals (dates, keys) to confirm, and what the user still has to do in Huly.
+End with a short report: which toolsets to keep enabled for this project, where the rules were written, what was created (ids), what was skipped and why, which proposals (dates, keys) to confirm, and what the user still has to do in Huly.

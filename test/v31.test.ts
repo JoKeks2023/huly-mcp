@@ -187,7 +187,7 @@ test('guides: every client can read the workflow, cost and onboarding guide; set
   const mcp = new Client({ name: 't', version: '0' })
   await mcp.connect(c)
   const uris = (await mcp.listResources()).resources.map((r) => r.uri).filter((u) => u.startsWith('huly://guide/')).sort()
-  assert.deepEqual(uris, ['huly://guide/costs', 'huly://guide/onboarding', 'huly://guide/workflow'])
+  assert.deepEqual(uris, ['huly://guide/costs', 'huly://guide/features', 'huly://guide/onboarding', 'huly://guide/workflow'])
   const workflow = (await mcp.readResource({ uri: 'huly://guide/workflow' })).contents[0] as any
   assert.match(workflow.text, /^# Working with Huly/)
   assert.doesNotMatch(workflow.text, /^---/, 'skill frontmatter is stripped')

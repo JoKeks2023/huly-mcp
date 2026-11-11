@@ -46,7 +46,7 @@ export function createServer (options: { toolsets?: string, workspace?: string, 
   const annotate = options.annotations ?? ['1', 'true', 'yes'].includes(String(process.env.HULY_ANNOTATIONS ?? '').toLowerCase())
   const dynamic = options.dynamic ?? ['1', 'true', 'yes'].includes(String(process.env.HULY_DYNAMIC_TOOLSETS ?? '').toLowerCase())
   let instructions = pinned != null ? pinnedInstructions(pinned) : SERVER_INSTRUCTIONS
-  if (enabled.has('agent')) instructions += '\n- Guides: resources huly://guide/workflow, huly://guide/costs, huly://guide/onboarding; prompt "setup" writes a project\'s Huly rules.'
+  if (enabled.has('agent')) instructions += '\n- Guides: resources huly://guide/workflow, huly://guide/costs, huly://guide/onboarding, huly://guide/features; prompt "setup" writes a project\'s Huly rules.'
   if (dynamic) instructions = instructions.replace('- Missing tools may be in a disabled toolset (HULY_TOOLSETS).', '- More tools (calendar, cards, drive, testing, recruiting, …) load on demand: enable_toolsets.')
   const server = new McpServer({ name: 'huly-mcp-selfhost', version: '3.2.0' }, { instructions })
   const asker = elicitationAsker(server)
