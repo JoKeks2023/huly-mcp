@@ -69,7 +69,7 @@ async function writes (): Promise<void> {
 }
 
 async function main (): Promise<void> {
-  if (W == null || W === '') { console.log('HULY_SMOKE_WORKSPACE is not set — skipping the live smoke test.'); process.exit(0) }
+  if (W == null || W === '') { console.log('::warning::Live smoke test skipped: the sandbox secrets (HULY_SMOKE_WORKSPACE, …) are not set — nothing was tested against a real Huly.'); process.exit(0) }
   normalizeEnv()
   await reads()
   await writes()
