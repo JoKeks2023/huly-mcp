@@ -59,4 +59,5 @@ Narrow lists with filters (`status`, `assignee`, `milestoneLabel`, `componentLab
 - Bulk changes, `move_issue`, deletes: show what will change first.
 - GitHub-synced projects: every change appears on GitHub too; don't cross-post.
 - `HULY_WRITE_PROJECTS` refusals: tell the user, don't work around them.
+- Huly calls fail with login/connection errors: run `check_setup` and show the user what it says.
 - A tool you need is missing: it is in a disabled toolset — `enable_toolsets` if available, otherwise tell the user which toolset to enable ([features.md](features.md)).

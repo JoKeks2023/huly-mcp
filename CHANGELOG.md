@@ -4,6 +4,10 @@ All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mc
 
 ### Unreleased
 
+- **New: team server over HTTP** — `huly-mcp-selfhost http` (Docker: `MCP_TRANSPORT=http`) serves MCP at `/mcp` with persistent sessions instead of a proxy. Every client can bring its own Huly login (`X-Huly-Token` or `X-Huly-Email`/`X-Huly-Password`, optional `X-Huly-Workspace`), so one server works for a whole team and each person acts as themselves. The server's own login is only used behind `MCP_AUTH_TOKEN`. Measured: first call of a session ~0.2 s.
+- **New: `check_setup`** — one call that diagnoses the setup: version and newer releases, login (incl. API-token expiry), workspaces, front URL, active settings; never prints secrets.
+- **New: `manage_notifications`** — for one object: pin/unpin, hide/unhide, mark unread, unarchive, follow/unfollow. Verified live.
+- **Huly API tokens** (Settings → API tokens) work as `HULY_TOKEN`: the server stays in the token's workspace, checks the expiry before connecting and explains expired or revoked tokens. Built from Huly's source; not yet tested against a live server that issues such tokens.
 - **`list_issues`: two new filters** — `title` (title contains text, case-insensitive) and `due` (`overdue`, `set`, `none`). Both run as one query on the server and combine with all other filters. Verified live on a self-hosted instance.
 - **Faster first call:** the server logs in and opens the workspace (when there is only one, e.g. pinned with `HULY_WORKSPACE`) in the background right after start-up. Measured on a self-hosted instance: first `list_issues` 4.4 s → 0.17 s; start-up itself unchanged. `HULY_PREWARM=0` turns it off; a failed login is reported by the first real call as before.
 - **Fixed: MCP registry entry.** The `server.json` description was longer than the registry's 100 characters, so 3.3.0 was refused there; a test now checks the length and the release workflow warns when the registry refuses an entry.

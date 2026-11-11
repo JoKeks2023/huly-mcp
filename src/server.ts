@@ -13,7 +13,7 @@ Huly workspaces (tracker, docs, chat, planner, …), self-hosted or cloud.
 - Start with one-call overviews: my_day, standup, triage_inbox, project_report, get_issue_context.
 - Agent work: start_work → work → finish_work; plans → create_issue_tree (dry run first); with parallel agents claim_issue first.
 - Read before replacing: get_issue before update_issue description, get_document before update_document.
-- Risky tools may ask the user; if declined, do not retry.
+- Risky tools may ask the user; if declined, do not retry. Login or setup problems: check_setup.
 - Missing tools may be in a disabled toolset (HULY_TOOLSETS).
 `.trim()
 

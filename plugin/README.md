@@ -25,7 +25,7 @@ This is a community plugin. It is not made or endorsed by Huly Labs.
 ## Where data goes
 
 - The MCP server talks **only to the Huly instance you configure** (its accounts service, transactor and front service; Huly Cloud by default). It sends your login there and reads/writes the workspace data you ask Claude to work with.
-- Nothing is sent anywhere else. The plugin has no telemetry and no server of its own.
+- Nothing is sent anywhere else, with one exception you trigger yourself: the `check_setup` tool asks the npm registry for the latest version number (a plain GET, nothing about you is sent). The plugin has no telemetry and no server of its own.
 - Credentials stay in Claude Code's plugin settings (password and token are stored as sensitive values). The server keeps a session token in memory only.
 - Optional, off by default: `HULY_AUDIT_LOG` writes changes as JSON lines to a local file you choose; `HULY_FILE_ROOT` allows file uploads/downloads inside one local folder.
 
