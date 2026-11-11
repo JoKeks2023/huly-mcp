@@ -2,6 +2,10 @@
 
 All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mcp-selfhost). Versions follow [semver](https://semver.org).
 
+### Unreleased
+
+- **Faster first call:** the server logs in and opens the workspace (when there is only one, e.g. pinned with `HULY_WORKSPACE`) in the background right after start-up. Measured on a self-hosted instance: first `list_issues` 4.4 s → 0.17 s; start-up itself unchanged. `HULY_PREWARM=0` turns it off; a failed login is reported by the first real call as before.
+
 ### 3.3.0 — 2026-11-11
 
 - **Claude Code plugin: `/huly:setup`** — the agent asks once per repo how Huly is used there (role, where new issues go, initiative, how token-saving) and writes the answers as a `## Huly` section; every later session follows it. You choose where: `CLAUDE.md` (shared), `CLAUDE.local.md` (only you; added to `.gitignore` if needed) or split — shared rules in `CLAUDE.md`, initiative and efficiency in `CLAUDE.local.md`. The project and its GitHub sync are detected first, so only the questions that matter are asked; "Not now" writes nothing. Optional import: status set, components, milestones, TODO/FIXME proposals, architecture document. The session-start hook reads the rules from all three files and offers `/huly:setup` while a repo has none.
