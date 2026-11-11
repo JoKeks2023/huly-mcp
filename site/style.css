@@ -367,3 +367,7 @@ footer nav a:hover { color: var(--fg); }
 footer .sig { margin-left: auto; }
 footer .sig em { font-style: normal; color: var(--accent); }
 @media (max-width: 40rem) { footer .sig { margin-left: 0; width: 100%; } }
+
+/* 3.5: default-toolset tag, benchmark chart */
+.row h3 .def { margin-left: 0.4rem; font: 500 0.6875rem var(--mono); color: var(--accent); text-transform: uppercase; letter-spacing: 0.04em; vertical-align: 0.1em; }
+.chart { display: block; width: 100%; height: auto; margin: 2rem 0 0.75rem; border-radius: var(--radius); }
