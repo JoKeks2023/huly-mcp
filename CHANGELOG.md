@@ -2,7 +2,7 @@
 
 All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mcp-selfhost). Versions follow [semver](https://semver.org).
 
-### Unreleased
+### 3.5.0 — 2026-11-11
 
 - **New: log in with Huly (OAuth)** — with `MCP_OAUTH_SECRET` and `MCP_PUBLIC_URL`, the HTTP server is an OAuth 2.1 server: people add `…/mcp` in Claude Code, Claude's custom connectors or another OAuth-capable client and log in in the browser with their own Huly account (password, or a one-time e-mail code for Google/GitHub accounts). Stateless (AES-256-GCM sealed registrations, codes and tokens — no database, survives restarts); the password is never stored; 1-hour access tokens, rotating 30-day refresh tokens, login throttling, PKCE and client registration from the MCP SDK. Verified live against a self-hosted Huly (login, token, `list_issues` as that person); not yet tried from Claude's own connector UI.
 - **New: `undo_changes`** — undo your last changes made through this server, newest first: created objects are removed, changed fields get their old values, deleted objects come back with the same id and data (verified live: an issue deleted and restored with its description). Dry run by default; an object someone else changed since is skipped and named (`force` overrides). Works for every write tool without per-tool code — writes are recorded as their reverse while a tool runs; issue counters are never wound back. History per process (stdio) or per session (HTTP), last 50 changes.

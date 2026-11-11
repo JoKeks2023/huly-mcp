@@ -1,6 +1,6 @@
 {
   "name": "huly-mcp-selfhost",
-  "version": "3.4.0",
+  "version": "3.5.0",
   "description": "MCP server for Huly (self-hosted and Huly Cloud): 224 tools for Claude and other AI agents — issues, epics, documents, chat, planner, test management — with toolsets for low token use, an agent workflow and a Claude Code plugin.",
   "keywords": [
     "huly",

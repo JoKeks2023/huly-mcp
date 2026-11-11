@@ -112,7 +112,7 @@ The repo is also a Claude Code plugin marketplace. The plugin bundles the MCP se
 /plugin install huly@huly-mcp
 ```
 
-> **Note:** the plugin starts the npm package at exactly its own version (e.g. `huly-mcp-selfhost@3.4.0`; the plugin directory does not accept version ranges), so a plugin update brings the matching server. To try a local checkout instead: `npm run build`, then point `plugin/.mcp.json` at `dist/index.js` and start `claude --plugin-dir ./plugin`.
+> **Note:** the plugin starts the npm package at exactly its own version (e.g. `huly-mcp-selfhost@3.5.0`; the plugin directory does not accept version ranges), so a plugin update brings the matching server. To try a local checkout instead: `npm run build`, then point `plugin/.mcp.json` at `dist/index.js` and start `claude --plugin-dir ./plugin`.
 
 Claude Code then asks for your Huly settings (e-mail + password or token, and for self-hosted Huly the accounts and front URL; passwords and tokens go to the OS keychain).
 
@@ -705,7 +705,7 @@ For network access (HTTP/SSE) use the [Docker image](#docker).
 
 ### npx (recommended)
 
-Every client example uses `"command": "npx", "args": ["-y", "huly-mcp-selfhost"]`. Pin a version (`huly-mcp-selfhost@3.4.0`) if you want updates only when you choose.
+Every client example uses `"command": "npx", "args": ["-y", "huly-mcp-selfhost"]`. Pin a version (`huly-mcp-selfhost@3.5.0`) if you want updates only when you choose.
 
 ### From source
 
