@@ -47,6 +47,10 @@ One Huly document as the entry point (`create_document` + `update_document` with
 
 Keep it factual and short; it is read by people and agents alike.
 
+## Beyond the basics
+
+Labels, issue templates, test management (incl. CI JUnit import), document structure, channel, drive, custom fields, cards: see [features.md](features.md) — what each is for, the tools, and which toolsets must be enabled.
+
 ## Report
 
 End with: what was created (ids/names), what was skipped and why, which proposals (dates, keys) the user should confirm, and what they still have to do in Huly (e.g. create the project, link GitHub).

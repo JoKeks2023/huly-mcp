@@ -11,7 +11,7 @@ Keep Huly current as you work, in the same turn as the action. Every call costs 
 
 - `CLAUDE.md`, `CLAUDE.local.md` or `AGENTS.md` may have a `## Huly` section (workspace, project, where new issues go, initiative, how token-saving). **It overrides everything below.** "Not used in this repository" = no Huly calls unless asked.
 - No section and the user works with Huly here: offer `/huly:setup` once.
-- Setting up or importing a project: [onboarding.md](onboarding.md).
+- Setting up or importing a project: [onboarding.md](onboarding.md). Using all of Huly (labels, templates, test management, documents, drive, custom fields, …) and which toolsets that needs: [features.md](features.md).
 
 ## 1. Know where you are — one call each
 
@@ -59,3 +59,4 @@ Narrow lists with filters (`status`, `assignee`, `milestoneLabel`, `componentLab
 - Bulk changes, `move_issue`, deletes: show what will change first.
 - GitHub-synced projects: every change appears on GitHub too; don't cross-post.
 - `HULY_WRITE_PROJECTS` refusals: tell the user, don't work around them.
+- A tool you need is missing: it is in a disabled toolset — `enable_toolsets` if available, otherwise tell the user which toolset to enable ([features.md](features.md)).

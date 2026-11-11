@@ -81,7 +81,8 @@ const projectArg = (): any => completable(z.string(), async (v, ctx) => await co
 export const GUIDES: Record<string, { file: string, title: string, description: string }> = {
   workflow: { file: 'SKILL.md', title: 'Huly workflow for agents', description: 'Repo rules first, pick up/hand back issues, status flow, creating without duplicates' },
   costs: { file: 'costs.md', title: 'Cheapest Huly call per question', description: 'Which call answers which question with the least output (measured sizes)' },
-  onboarding: { file: 'onboarding.md', title: 'Bringing a project into Huly', description: 'Status set, components, milestones, TODO scan, architecture document' }
+  onboarding: { file: 'onboarding.md', title: 'Bringing a project into Huly', description: 'Status set, components, milestones, TODO scan, architecture document' },
+  features: { file: 'features.md', title: 'All of Huly for a software project', description: 'Labels, templates, test management, documents, drive, custom fields, cards — tools and toolsets' }
 }
 
 /** Guide text: dist/guides (build output) or, when running from source, the plugin skill itself. */
@@ -93,7 +94,7 @@ export function readGuide (name: string): string {
     text = readFileSync(join(__dirname, '..', 'plugin', 'skills', 'huly', g.file), 'utf8').replace(/\r\n/g, '\n').replace(/^---\n[\s\S]*?\n---\n+/, '')
   }
   // Links between the skill files become links between the resources.
-  return text.replace(/\]\((SKILL|costs|onboarding)\.md\)/g, (_m, f: string) => `](huly://guide/${f === 'SKILL' ? 'workflow' : f})`)
+  return text.replace(/\]\((SKILL|costs|onboarding|features)\.md\)/g, (_m, f: string) => `](huly://guide/${f === 'SKILL' ? 'workflow' : f})`)
 }
 
 export function registerResources (server: McpServer): void {
