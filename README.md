@@ -856,23 +856,23 @@ Secrets:
 
 ## Changelog
 
-### Unreleased
+### 3.2.0 — 2026-11-11
 
-- **Claude Code plugin: new skill `huly-efficient`** — which Huly call answers which question with the least output (sizes measured on a real project), which writes need only one call, and which checks the tools already do. The `huly-workflow` skill points to it.
-- Unknown-parameter error of tools without own parameters (e.g. `list_issue_statuses`) said "Valid: ."; it now says the tool takes no parameters besides `workspace`.
-- **Fixed: `create_issue_tree` (and `issues_from_document`) left reused issues outside the epic.** A same-title issue that is reused now moves under the epic when it has no parent; one under another parent stays there, and the plan and result say so.
-- **Fixed: blob requests without a timeout.** Reading document/description content and uploads could hang a tool call when the front service stalled. Reads now stop after 30 s, uploads after 2 min, with a clear error naming `HULY_FRONT_URL`.
-- **Unknown tool parameters are rejected instead of silently dropped.** Before, `update_issue {status: "Done"}` answered "No changes made". Now the call fails with the list of valid parameters and nothing is done. Common mix-ups are mapped automatically: `status`→`statusName`, `project`/`projectId`→`projectIdentifier`, `issue`/`issueId`/`id`→`identifier`, `component`→`componentLabel`, `milestone`→`milestoneLabel`.
+- **New: `issues_from_document`** — spec → issues in one call: open checklist items of a Huly document (or, without a checklist, its sections) become sub-issues of an epic; checked items are skipped; the document is linked to the epic. Dry run by default.
+- **New: `issues_from_meeting`** — meeting notes → issues in one call: action items (open checkboxes, `TODO:`/`Action:` lines, lists under "Action items"/"Next steps") with `@assignee` and due date taken from the line; dry run first, each new issue linked to the document.
 - **`create_issue` takes `assignee`, `componentLabel` and `milestoneLabel`**, so a new issue no longer needs a second `update_issue` call. An unknown `statusName` is now an error (it used to fall back to the first status). Everything is checked before anything is written.
+- **Unknown tool parameters are rejected instead of silently dropped.** Before, `update_issue {status: "Done"}` answered "No changes made". Now the call fails with the list of valid parameters and nothing is done. Common mix-ups are mapped automatically: `status`→`statusName`, `project`/`projectId`→`projectIdentifier`, `issue`/`issueId`/`id`→`identifier`, `component`→`componentLabel`, `milestone`→`milestoneLabel`.
 - **`get_issue` is shorter:** empty fields (no milestone, 0 comments, …) are left out and the fields share one line.
 - **Smaller tool list:** the `workspace` parameter no longer repeats its description in every tool (the server instructions explain it once). Default set 38.7k → 35.2k characters, all toolsets 88.8k → 80.3k.
 - **New `HULY_TRANSACTOR_URL`:** a server running next to Huly (same Docker network) can reach the transactor internally, e.g. `ws://huly/_transactor`, instead of the public address — no detour through the uplink or a tunnel.
+- **Claude Code plugin: new skill `huly-efficient`** — which Huly call answers which question with the least output (sizes measured on a real project), which writes need only one call, and which checks the tools already do. The `huly-workflow` skill points to it.
+- **Claude Code plugin:** `/huly:standup` and `/huly:triage` (and the MCP prompts) now use the one-call tools `standup` and `triage_inbox`; new commands `/huly:day` (`my_day`) and `/huly:report` (`project_report`); new settings for a pinned workspace (`HULY_WORKSPACE`) and on-demand toolsets (`HULY_DYNAMIC_TOOLSETS`). The skill points to the overview tools and to `create_issue` with component/milestone.
 - **Fixed: Huly client log lines on stdout.** `Client: onConnect 1` landed in the JSON-RPC stream; mcp-proxy logged "Failed to parse JSONRPC message". Such logs now go to stderr.
 - **Fixed: session tokens in logs.** Huly's client logs its websocket URL including the workspace token (`client websocket error: … /_transactor/<token>`), which ended up in `docker compose logs`. Tokens in log output are now masked as `***`.
-- **New: `issues_from_document`** — spec → issues in one call: open checklist items of a Huly document (or, without a checklist, its sections) become sub-issues of an epic; checked items are skipped; the document is linked to the epic. Dry run by default.
-- **New: `issues_from_meeting`** — meeting notes → issues in one call: action items (open checkboxes, `TODO:`/`Action:` lines, lists under "Action items"/"Next steps") with `@assignee` and due date taken from the line; dry run first, each new issue linked to the document.
+- **Fixed: `create_issue_tree` (and `issues_from_document`) left reused issues outside the epic.** A same-title issue that is reused now moves under the epic when it has no parent; one under another parent stays there, and the plan and result say so.
+- **Fixed: blob requests without a timeout.** Reading document/description content and uploads could hang a tool call when the front service stalled. Reads now stop after 30 s, uploads after 2 min, with a clear error naming `HULY_FRONT_URL`.
 - `create_issue_tree` passes component, milestone and assignee straight to `create_issue`, so a wrong name fails before the issue exists (before: the issue was created, then the update failed).
-- **Claude Code plugin:** `/huly:standup` and `/huly:triage` (and the MCP prompts) now use the one-call tools `standup` and `triage_inbox`; new commands `/huly:day` (`my_day`) and `/huly:report` (`project_report`); new settings for a pinned workspace (`HULY_WORKSPACE`) and on-demand toolsets (`HULY_DYNAMIC_TOOLSETS`). The skill points to the overview tools and to `create_issue` with component/milestone.
+- Unknown-parameter error of tools without own parameters (e.g. `list_issue_statuses`) said "Valid: ."; it now says the tool takes no parameters besides `workspace`.
 - README: context-cost table re-measured (the pinned saving is now ~10%, not 20%, since the `workspace` description was already shortened).
 - CI: CodeQL Action v4; runs on `main` are no longer cancelled by the next push.
 
