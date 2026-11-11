@@ -6,7 +6,7 @@
 [![MCP Registry](https://img.shields.io/badge/MCP_Registry-io.github.jokeks2023%2Fhuly--mcp--selfhost-blue)](https://registry.modelcontextprotocol.io)
 [![License: EPL-2.0](https://img.shields.io/badge/license-EPL--2.0-blue)](https://github.com/JoKeks2023/huly-mcp/blob/main/LICENSE)
 
-**The MCP server for [Huly](https://huly.io) — self-hosted or Huly Cloud.** Let Claude and other AI agents work in your Huly workspaces: issues, epics, milestones, documents, chat, inbox, planner, test management and more — 224 tools, built to spend as few tokens as possible.
+**Huly for AI agents.** An MCP server for [Huly](https://huly.io) — self-hosted or Huly Cloud — that lets Claude and other agents work in your workspaces: issues, epics, milestones, documents, chat, inbox, planner, test management and more. 224 tools, built for agent workflows and to spend as few tokens as possible.
 
 [Website](https://jokeks2023.github.io/huly-mcp/) · [Quick start](#quick-start) · [Tools](#tools-224-total-grouped-in-toolsets) · [Claude Code plugin](#claude-code-plugin) · [Changelog](https://github.com/JoKeks2023/huly-mcp/blob/main/CHANGELOG.md)
 
@@ -18,6 +18,21 @@
 - **Safe by default:** every change names its workspace, risky tools ask first, writes can be limited to projects, optional audit log.
 - **Claude Code plugin:** `/huly:setup` asks once per repo how Huly is used there and writes the rules; skill, hooks and `/huly:*` commands. Guides and a `setup` prompt for every other MCP client too.
 - **Self-hosted first:** document and description content, file uploads and internal URLs work on `huly-selfhost`; one account, all its workspaces.
+
+## Tokens, measured
+
+What the model reads — measured on a real self-hosted project (≈60 issues):
+
+| | Characters | ≈ Tokens |
+|---|--:|--:|
+| Tool list, default toolsets (96 tools, each callable directly) | 36,527 | 10.4k |
+| Tool list, pinned workspace | 32,962 | 9.4k |
+| Open issues of a project (23) | 1,965 | 0.6k |
+| One issue with description | 318 | 0.1k |
+| Project report (done, in progress, blocked, milestones, PRs, time) | ~2,700 | 0.8k |
+| My day (calendar, to-dos, my issues, PRs, inbox) | ~1,200 | 0.3k |
+
+Lists default to open items, empty fields are left out, and one call answers what would otherwise take four or five. Per call and question: [`costs.md`](https://github.com/JoKeks2023/huly-mcp/blob/main/plugin/skills/huly/costs.md).
 
 ## Quick start
 
