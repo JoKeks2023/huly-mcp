@@ -17,7 +17,7 @@ Every Huly call costs a round trip and its output stays in context. Aim for **on
 | Find issues about X | `search_issues` | ~2k | `list_issues status=all` and scanning |
 | Find anything (docs, chat, issues) | `search` | ~2.5k | several list calls |
 
-**Narrow lists with filters, not by reading them:** `list_issues` takes `status` (`open` default, `all`, or a name), `assignee` (`null` = unassigned), `milestoneLabel`, `componentLabel`, `labelName`, `parentIdentifier` (`null` = top level) and `limit`.
+**Narrow lists with filters, not by reading them:** `list_issues` takes `status` (`open` default, `all`, or a name), `assignee` (`null` = unassigned), `milestoneLabel`, `componentLabel`, `labelName`, `parentIdentifier` (`null` = top level), `title` (contains text), `due` (`overdue`, `set`, `none`) and `limit`.
 
 **Avoid** `query_documents` / generic tools when a specific tool exists: one issue there is ~1.8k raw fields vs ~0.4k from `get_issue`. Use them only for classes without a tool.
 

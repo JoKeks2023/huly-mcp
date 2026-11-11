@@ -24,7 +24,7 @@ Keep Huly current as you work, in the same turn as the action. Every call costs 
 | Everything about PROJ-12 | `get_issue_context` (just status/assignee: `get_issue`) |
 | Find something | `search_issues`, `search` — not `list_issues status=all` |
 
-Narrow lists with filters (`status`, `assignee`, `milestoneLabel`, `componentLabel`, `parentIdentifier`, `limit`). More questions with measured sizes: [costs.md](costs.md).
+Narrow lists with filters (`status`, `assignee`, `milestoneLabel`, `componentLabel`, `parentIdentifier`, `title`, `due: overdue`, `limit`). More questions with measured sizes: [costs.md](costs.md).
 
 ## 2. Pick up and hand back
 

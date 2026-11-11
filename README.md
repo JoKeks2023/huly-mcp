@@ -242,7 +242,7 @@ Options: `--run <name>`, `--parent-suite <suite>`, `--no-create` (only existing 
 | | `get_project` | Get project details + available statuses |
 | | `create_project` | Create a new tracker project with a unique identifier *(tracker-admin)* |
 | | `update_project` | Change name, description, default assignee or default status *(tracker-admin)* |
-| **Issues** | `list_issues` | List issues — open ones by default (`status: "all"` or a status name for others), filterable by priority, milestone, component, label, assignee, parent; `offset` pages through long lists ("51–100 of 118") |
+| **Issues** | `list_issues` | List issues — open ones by default (`status: "all"` or a status name for others), filterable by priority, milestone, component, label, assignee, parent (`null` = none for each), text in the title and due date (`overdue`, `set`, `none`); `offset` pages through long lists ("51–100 of 118") |
 | | `get_issue` | Full details of an issue (e.g. `PROJ-42`): assignee, milestone, component, labels, parent, links |
 | | `create_issue` | Create a new issue (with optional Markdown description) |
 | | `update_issue` | Update title, description, status, priority, assignee, due date, component, milestone |
