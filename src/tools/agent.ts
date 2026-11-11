@@ -196,7 +196,13 @@ export const createIssueTree = wrapToolHandler<z.infer<typeof CreateIssueTreeSch
 
   const existing: any[] = await client.findAll(tracker.class.Issue, { space: project._id })
   const byTitle = new Map(existing.map((i) => [norm(i.title), i.identifier as string]))
+  const byIdentifier = new Map(existing.map((i) => [i.identifier as string, i]))
   const epicExisting = args.epicIdentifier != null ? (await findIssue(client, args.epicIdentifier)).identifier : undefined
+  /** A reused issue under another parent stays there; one without a parent moves under the epic. */
+  const otherParent = (id: string, epic: string | undefined): string | undefined => {
+    const direct = byIdentifier.get(id)?.parents?.at(-1)?.identifier as string | undefined
+    return direct != null && direct !== epic ? direct : undefined
+  }
   const epicDup = args.epic != null ? byTitle.get(norm(args.epic.title)) : undefined
 
   // Children may reference each other as "#1" (1-based position) in blockedBy.
@@ -215,7 +221,9 @@ export const createIssueTree = wrapToolHandler<z.infer<typeof CreateIssueTreeSch
     const dup = byTitle.get(norm(c.title))
     const extras = [c.componentLabel ?? args.componentLabel, c.milestoneLabel ?? args.milestoneLabel, c.assignee, ...(c.labels ?? [])].filter((x) => x != null)
     const blockers = (c.blockedBy ?? []).length > 0 ? ` · blocked by ${(c.blockedBy ?? []).join(', ')}` : ''
-    plan.push(`#${i + 1} ${dup != null && args.skipDuplicates ? `"${c.title}" → reuse existing **${dup}**` : `create "${c.title}"`}${extras.length > 0 ? ` · ${extras.join(', ')}` : ''}${blockers}`)
+    const kept = dup != null ? otherParent(dup, epicExisting ?? epicDup) : undefined
+    const reuse = `"${c.title}" → reuse existing **${dup ?? ''}**${kept != null ? ` (stays under ${kept})` : ''}`
+    plan.push(`#${i + 1} ${dup != null && args.skipDuplicates ? reuse : `create "${c.title}"`}${extras.length > 0 ? ` · ${extras.join(', ')}` : ''}${blockers}`)
   })
   if (args.dryRun) return `🔍 Dry run in ${args.projectIdentifier}:\n${plan.map((p) => `- ${p}`).join('\n')}\nRun again with dryRun=false to create.`
 
@@ -242,9 +250,16 @@ export const createIssueTree = wrapToolHandler<z.infer<typeof CreateIssueTreeSch
   }
 
   const ids: string[] = []
+  const notes: string[] = []
   for (const c of args.children) {
     const dup = byTitle.get(norm(c.title))
-    if (dup != null && args.skipDuplicates) { ids.push(dup); continue }
+    if (dup != null && args.skipDuplicates) {
+      ids.push(dup)
+      const kept = otherParent(dup, epicId)
+      if (kept != null) notes.push(`${dup} stays under ${kept}`)
+      else if (byIdentifier.get(dup)?.parents?.at(-1)?.identifier !== epicId) await setParent({ workspace: ws, identifier: dup, parentIdentifier: epicId } as any)
+      continue
+    }
     const id = await create(c.title, c.description, c.priority, { componentLabel: c.componentLabel ?? args.componentLabel, milestoneLabel: c.milestoneLabel ?? args.milestoneLabel, assignee: c.assignee })
     await decorate(id, c)
     await setParent({ workspace: ws, identifier: id, parentIdentifier: epicId } as any)
@@ -258,7 +273,7 @@ export const createIssueTree = wrapToolHandler<z.infer<typeof CreateIssueTreeSch
     }
   }
   const reused = args.children.length - (created.length - (created[0]?.endsWith('(epic)') === true ? 1 : 0))
-  return `✅ Issue tree under **${epicId}**: created ${created.length > 0 ? created.join(', ') : 'nothing'}${reused > 0 ? `; ${reused} existing reused` : ''}.\n${args.children.map((c, i) => `- ${ids[i]}: ${c.title}`).join('\n')}`
+  return `✅ Issue tree under **${epicId}**: created ${created.length > 0 ? created.join(', ') : 'nothing'}${reused > 0 ? `; ${reused} existing reused` : ''}${notes.length > 0 ? ` (${notes.join('; ')})` : ''}.\n${args.children.map((c, i) => `- ${ids[i]}: ${c.title}`).join('\n')}`
 })
 
 /**

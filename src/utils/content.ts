@@ -4,6 +4,17 @@ import { getWorkspaceInfo } from '../connection'
 import { extractText, markdownToProseMirror } from './markdown'
 import { uploadMarkupBlob } from './storage'
 
+/** Blob requests go to the front service; without a limit a stalled connection hangs the tool call. */
+export const BLOB_TIMEOUT_MS = 30_000
+export function fetchBlob (url: string, wsToken: string): Promise<Response> {
+  return fetch(url, { headers: { Authorization: `Bearer ${wsToken}` }, signal: AbortSignal.timeout(BLOB_TIMEOUT_MS) })
+    .catch((e: unknown) => {
+      const err = e as Error & { cause?: { code?: string } }
+      if (err.name === 'TimeoutError') throw new Error(`Huly front service did not answer within ${BLOB_TIMEOUT_MS / 1000}s (HULY_FRONT_URL).`)
+      throw new Error(`Huly front service not reachable (HULY_FRONT_URL): ${err.cause?.code ?? err.message}`)
+    })
+}
+
 /** Plain text of a markup blob, or a short note why it could not be read. */
 export async function readMarkup (workspace: string | undefined, blobRef: string | null | undefined): Promise<string> {
   if (blobRef == null || blobRef === '') return ''
@@ -13,7 +24,7 @@ export async function readMarkup (workspace: string | undefined, blobRef: string
   // Token goes in the Authorization header only — never in the URL.
   const url = `${frontUrl.replace(/\/$/, '')}/files?file=${encodeURIComponent(blobRef)}&workspace=${workspaceUuid}`
   try {
-    const res = await fetch(url, { headers: { Authorization: `Bearer ${wsToken}` } })
+    const res = await fetchBlob(url, wsToken)
     if (!res.ok) return `_(content fetch failed: HTTP ${res.status})_`
     const text = await res.text()
     try { return extractText(JSON.parse(text)) } catch { return text.slice(0, 4000) }
@@ -28,7 +39,7 @@ export async function readMarkupJson (workspace: string | undefined, blobRef: st
   if (frontUrl == null || frontUrl === '') throw new Error('Reading document content needs HULY_FRONT_URL.')
   const { wsToken, workspaceUuid } = await getWorkspaceInfo(workspace)
   const url = `${frontUrl.replace(/\/$/, '')}/files?file=${encodeURIComponent(blobRef)}&workspace=${workspaceUuid}`
-  const res = await fetch(url, { headers: { Authorization: `Bearer ${wsToken}` } })
+  const res = await fetchBlob(url, wsToken)
   if (!res.ok) throw new Error(`Content fetch failed: HTTP ${res.status}`)
   const text = await res.text()
   try { return JSON.parse(text) } catch { throw new Error('Document content is not Huly markup JSON.') }
@@ -46,7 +57,7 @@ export async function downloadBlob (workspace: string | undefined, blobRef: stri
   if (frontUrl == null || frontUrl === '') throw new Error('Downloading files needs HULY_FRONT_URL.')
   const { wsToken, workspaceUuid } = await getWorkspaceInfo(workspace)
   const url = `${frontUrl.replace(/\/$/, '')}/files?file=${encodeURIComponent(blobRef)}&workspace=${workspaceUuid}`
-  const res = await fetch(url, { headers: { Authorization: `Bearer ${wsToken}` } })
+  const res = await fetchBlob(url, wsToken)
   if (!res.ok) throw new Error(`File download failed: HTTP ${res.status}`)
   return Buffer.from(await res.arrayBuffer())
 }

@@ -857,6 +857,9 @@ Secrets:
 
 ### Unreleased
 
+- Unknown-parameter error of tools without own parameters (e.g. `list_issue_statuses`) said "Valid: ."; it now says the tool takes no parameters besides `workspace`.
+- **Fixed: `create_issue_tree` (and `issues_from_document`) left reused issues outside the epic.** A same-title issue that is reused now moves under the epic when it has no parent; one under another parent stays there, and the plan and result say so.
+- **Fixed: blob requests without a timeout.** Reading document/description content and uploads could hang a tool call when the front service stalled. Reads now stop after 30 s, uploads after 2 min, with a clear error naming `HULY_FRONT_URL`.
 - **Unknown tool parameters are rejected instead of silently dropped.** Before, `update_issue {status: "Done"}` answered "No changes made". Now the call fails with the list of valid parameters and nothing is done. Common mix-ups are mapped automatically: `status`→`statusName`, `project`/`projectId`→`projectIdentifier`, `issue`/`issueId`/`id`→`identifier`, `component`→`componentLabel`, `milestone`→`milestoneLabel`.
 - **`create_issue` takes `assignee`, `componentLabel` and `milestoneLabel`**, so a new issue no longer needs a second `update_issue` call. An unknown `statusName` is now an error (it used to fall back to the first status). Everything is checked before anything is written.
 - **`get_issue` is shorter:** empty fields (no milestone, 0 comments, …) are left out and the fields share one line.

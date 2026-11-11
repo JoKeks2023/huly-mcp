@@ -12,6 +12,7 @@ import { uploadMarkupBlob } from '../utils/storage'
 import tracker from '@hcengineering/tracker'
 import type { z } from 'zod'
 import type { ListTeamspacesSchema, ListDocumentsSchema, GetDocumentSchema, CreateDocumentSchema, UpdateDocumentSchema, LinkDocumentSchema, CreateTeamspaceSchema, DeleteDocumentSchema, ListDocumentCommentsSchema, AddDocumentCommentSchema } from '../schemas'
+import { fetchBlob } from '../utils/content'
 import type { Teamspace, Document } from '@hcengineering/document'
 
 export const listTeamspaces = wrapToolHandler<z.infer<typeof ListTeamspacesSchema>>(async (args) => {
@@ -111,7 +112,7 @@ export const getDocument = wrapToolHandler<z.infer<typeof GetDocumentSchema>>(as
       lines.push(`**Content URL:** ${contentUrl} _(requires a workspace token as Bearer header)_`)
       // Try to fetch content
       try {
-        const res = await fetch(contentUrl, { headers: { Authorization: `Bearer ${wsToken}` } })
+        const res = await fetchBlob(contentUrl, wsToken)
         if (res.ok) {
           const text = await res.text()
           // Huly stores content as JSON markup — extract plain text if possible
