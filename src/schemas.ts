@@ -11,6 +11,11 @@ const PriorityEnum = z.enum(['NoPriority', 'Urgent', 'High', 'Medium', 'Low'])
 
 export const ListWorkspacesSchema = z.object({})
 
+export const CheckSetupSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  skipVersionCheck: z.boolean().optional().describe('Skip asking npm for the latest version')
+})
+
 export const ListProjectsSchema = z.object({
   workspace: ReadWorkspaceArg
 })

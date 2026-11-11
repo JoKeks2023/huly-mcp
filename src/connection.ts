@@ -39,7 +39,21 @@ interface AccountSession {
   socialId: PersonId
   /** Set when HULY_TOKEN is already workspace-scoped: that workspace needs no selectWorkspace(). */
   preselected?: { workspace: WorkspaceRef, endpoint: string, token: string }
+  /** A managed API token (Huly → Settings → API tokens): stays in its own workspace. */
+  apiToken?: boolean
 }
+
+/** Claims of a Huly JWT, read without verifying it (the account service verifies). */
+export function tokenClaims (token: string | undefined): { workspace?: string, exp?: number, apiTokenId?: string } | undefined {
+  const part = token?.split('.')[1]
+  if (part == null) return undefined
+  try {
+    const claims = JSON.parse(Buffer.from(part, 'base64url').toString('utf8'))
+    return { workspace: claims.workspace, exp: typeof claims.exp === 'number' ? claims.exp : undefined, apiTokenId: claims.extra?.apiTokenId }
+  } catch { return undefined }
+}
+
+const TOKEN_HELP = 'API token: create a new one in Huly → Settings → API tokens. Account token: npx huly-mcp-selfhost setup.'
 
 interface OpenConnection {
   client: TxOperations
@@ -186,16 +200,22 @@ export class WorkspaceConnectionManager {
     const { accountsUrl, email, password, token } = this.opts
 
     if (token != null && token !== '') {
-      // Token auth — for SSO accounts (Google/GitHub login on huly.app).
+      // Token auth — SSO accounts (Google/GitHub) and managed API tokens.
+      const claims = tokenClaims(token)
+      if (claims?.exp != null && claims.exp * 1000 <= Date.now()) {
+        throw new Error(`HULY_TOKEN expired on ${new Date(claims.exp * 1000).toISOString().slice(0, 10)}. ${TOKEN_HELP}`)
+      }
       const accountClient = this.createAccountClient(accountsUrl, token)
-      const info = await accountClient.getLoginInfoByToken()
+      const info = await accountClient.getLoginInfoByToken().catch((e: unknown) => {
+        throw new Error(`HULY_TOKEN was refused (${(e as Error).message}) — invalid, expired or revoked. ${TOKEN_HELP}`)
+      })
       if (info == null) {
-        throw new Error('HULY_TOKEN is invalid or expired. Please get a fresh token (npm run setup).')
+        throw new Error(`HULY_TOKEN is invalid, expired or revoked. ${TOKEN_HELP}`)
       }
       if (!('socialId' in info) || info.socialId == null) {
         throw new Error('Token auth: no socialId returned for HULY_TOKEN.')
       }
-      const session: AccountSession = { accountClient, socialId: info.socialId }
+      const session: AccountSession = { accountClient, socialId: info.socialId, apiToken: claims?.apiTokenId != null }
       if ('endpoint' in info && info.endpoint != null && info.token != null) {
         // Workspace-scoped token: its own workspace is usable directly.
         session.preselected = {
@@ -220,7 +240,10 @@ export class WorkspaceConnectionManager {
     const session = await this.getSession()
     let all: WorkspaceRef[]
     try {
-      all = (await session.accountClient.getUserWorkspaces()).map(toRef)
+      // A managed API token is created for one workspace. The account service would hand out
+      // tokens for the account's other workspaces too; this server keeps the promise instead.
+      if (session.apiToken === true && session.preselected !== undefined) all = [session.preselected.workspace]
+      else all = (await session.accountClient.getUserWorkspaces()).map(toRef)
     } catch (err) {
       // A workspace-scoped HULY_TOKEN may not be allowed to enumerate — fall back to its own workspace.
       if (session.preselected === undefined) throw err

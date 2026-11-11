@@ -2,6 +2,7 @@
 // Keep descriptions short — every word is sent to the model in every session (see test/budget.test.ts).
 import type { z } from 'zod'
 import { listWorkspaces } from './tools/workspaces'
+import { checkSetup } from './tools/diagnostics'
 import { listProjects, getProject, createProject, updateProject } from './tools/projects'
 import { listIssues, getIssue, createIssue, updateIssue, deleteIssue, bulkUpdateIssues, moveIssue, listSubIssues } from './tools/issues'
 import { addComment, listComments, deleteComment, updateComment } from './tools/comments'
@@ -62,6 +63,7 @@ export interface ToolDef {
 
 export const TOOLS: ToolDef[] = [
   { name: 'list_workspaces', toolset: 'core', description: 'List accessible workspaces (name, slug, id)', schema: S.ListWorkspacesSchema, handler: listWorkspaces },
+  { name: 'check_setup', toolset: 'core', description: 'Diagnose the setup: version and updates, login, workspaces, front URL, settings (no secrets)', schema: S.CheckSetupSchema, handler: checkSetup },
   { name: 'list_projects', toolset: 'tracker', description: 'List all projects in a Huly workspace', schema: S.ListProjectsSchema, handler: listProjects },
   { name: 'get_project', toolset: 'tracker', description: 'Get a project by its identifier (e.g. "PROJ")', schema: S.GetProjectSchema, handler: getProject },
   { name: 'create_project', toolset: 'tracker-admin', description: 'Create a tracker project', schema: S.CreateProjectSchema, handler: createProject },
