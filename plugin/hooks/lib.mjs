@@ -1,5 +1,7 @@
 // Shared helpers for the Huly plugin hooks. No dependencies, no network: hooks must stay fast.
 import { execFileSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 
 const NOT_KEYS = new Set(['FEAT', 'FEATURE', 'FIX', 'BUGFIX', 'HOTFIX', 'CHORE', 'RELEASE', 'V', 'DOCS', 'TEST', 'REFACTOR', 'DEPENDABOT', 'RENOVATE'])
 
@@ -35,4 +37,16 @@ export async function readStdin () {
 
 export function emit (event, context) {
   process.stdout.write(JSON.stringify({ hookSpecificOutput: { hookEventName: event, additionalContext: context } }))
+}
+
+/** Where the repo's Huly rules live: 'set' (a "## Huly" section in CLAUDE.md/AGENTS.md), 'none', or undefined without such files. */
+export function hulyRules (cwd) {
+  let seen = false
+  for (const f of ['CLAUDE.md', '.claude/CLAUDE.md', 'AGENTS.md']) {
+    let text
+    try { text = readFileSync(join(cwd, f), 'utf8') } catch { continue }
+    seen = true
+    if (/^##\s+Huly\b/m.test(text)) return 'set'
+  }
+  return seen ? 'none' : undefined
 }

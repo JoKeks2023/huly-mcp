@@ -7,6 +7,12 @@ description: How to work with Huly issues while coding — find the Huly project
 
 Huly is the source of truth for what is being worked on. Keep it current as you work, in the same turn as the action — not on request.
 
+## 0. Follow this repo's rules
+
+- The repo's `CLAUDE.md` (or `AGENTS.md`) may have a `## Huly` section: workspace, project, where new issues go, how much initiative, how token-saving to be. **It overrides the defaults below.**
+- No such section and the user works with Huly here: offer `/huly:setup` once — it asks the user and writes the section. "Not used in this repository" means: no Huly calls unless asked.
+- Setting up or importing a project (components, milestones, status set, TODO scan, architecture doc): follow [onboarding.md](onboarding.md).
+
 ## 1. Know where you are
 
 - **Project for this repo:** call `find_project_for_repo` with the git remote (`git remote get-url origin`). It returns the workspace and project key. If nothing is linked, ask the user which workspace/project to use — never guess a workspace.

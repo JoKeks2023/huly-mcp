@@ -1,14 +1,16 @@
 // 3.2: Claude Code plugin — hook helpers, repo → project lookup, env normalisation, plugin files.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { readFileSync, mkdtempSync, writeFileSync, mkdirSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import tracker from '@hcengineering/tracker'
 import { setConnectionManager } from '../src/connection'
 import { findProjectForRepo, repoSlug } from '../src/tools/agent'
 import { normalizeEnv } from '../src/env'
 import { createFakeEnv, PERSONAL } from './helpers'
 // @ts-expect-error plain ESM helper of the plugin hooks, no type declarations
-import { issueFromBranch, githubSlug } from '../plugin/hooks/lib.mjs'
+import { issueFromBranch, githubSlug, hulyRules } from '../plugin/hooks/lib.mjs'
 
 test('issueFromBranch finds issue ids, not branch-type words', () => {
   assert.equal(issueFromBranch('proj-12-login-bug'), 'PROJ-12')
@@ -67,4 +69,15 @@ test('plugin files: marketplace points to the plugin, MCP env covers every setti
     assert.ok(Object.values(env).includes(`\${user_config.${key}}`), `${key} is not passed to the server`)
   }
   assert.match(mcp.mcpServers.huly.args.join(' '), new RegExp(`huly-mcp-selfhost@\\^${pkg.version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`))
+})
+
+test('hulyRules: a "## Huly" section in CLAUDE.md, .claude/CLAUDE.md or AGENTS.md counts as set', () => {
+  const dir = (): string => mkdtempSync(join(tmpdir(), 'huly-rules-'))
+  assert.equal(hulyRules(dir()), undefined)
+  const plain = dir(); writeFileSync(join(plain, 'CLAUDE.md'), '# Repo\n\n## Build\nnpm test\n')
+  assert.equal(hulyRules(plain), 'none')
+  const nested = dir(); mkdirSync(join(nested, '.claude')); writeFileSync(join(nested, '.claude', 'CLAUDE.md'), '## Huly\nNot used in this repository.\n')
+  assert.equal(hulyRules(nested), 'set')
+  const agents = dir(); writeFileSync(join(agents, 'CLAUDE.md'), '# x\n'); writeFileSync(join(agents, 'AGENTS.md'), '## Huly\n- Workspace `w`\n')
+  assert.equal(hulyRules(agents), 'set')
 })
