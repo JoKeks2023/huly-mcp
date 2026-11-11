@@ -15,7 +15,8 @@
 - **Everything in Huly:** tracker, documents, chat, inbox, activity, planner, calendar, GitHub PRs, contacts, drive, cards, templates, test management, recruiting, CRM, HR and more — plus read access to *any* Huly class.
 - **Made for agents:** one-call overviews (`my_day`, `standup`, `project_report`, `get_issue_context`), `start_work` → `finish_work`, plans → epics with sub-issues, specs and meeting notes → issues, claims for parallel agents, and `huly-mcp watch` to hand issues to Claude from Huly.
 - **Few tokens:** tools come in toolsets (default ≈11k tokens, everything ≈24k), optionally loaded on demand; pin a workspace for −10 %; compact outputs; wrong parameters are rejected with the valid list instead of silently ignored.
-- **Safe by default:** every change names its workspace, risky tools ask first, writes can be limited to projects, optional audit log.
+- **Safe by default:** every change names its workspace, risky tools ask first, writes can be limited to projects, optional audit log — and `undo_changes` reverses your last changes.
+- **No telemetry.** The server talks to your Huly server and nothing else: no analytics, no usage tracking, nothing to opt out of. (The only other request, the npm version check, runs when you call `check_setup`.)
 - **Claude Code plugin:** `/huly:setup` asks once per repo how Huly is used there and writes the rules; skill, hooks and `/huly:*` commands. Guides and a `setup` prompt for every other MCP client too.
 - **Self-hosted first:** document and description content, file uploads and internal URLs work on `huly-selfhost`; one account, all its workspaces.
 

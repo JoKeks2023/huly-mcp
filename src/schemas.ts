@@ -649,7 +649,7 @@ export const CreatePersonSchema = z.object({
   firstName: z.string().min(1),
   lastName: z.string().default(''),
   city: z.string().optional(),
-  channels: z.array(z.object({ provider: ProviderEnum, value: z.string().min(1) })).optional()
+  channels: z.array(z.strictObject({ provider: ProviderEnum, value: z.string().min(1) })).optional()
 })
 
 export const UpdatePersonSchema = z.object({
@@ -691,7 +691,7 @@ export const GenericCreateSchema = z.object({
   className: z.string(),
   space: z.string().describe('Space id the document belongs to'),
   attributes: z.record(z.string(), z.any()),
-  attachTo: z.object({ id: z.string(), className: z.string(), collection: z.string() }).optional().describe('For attached docs'),
+  attachTo: z.strictObject({ id: z.string(), className: z.string(), collection: z.string() }).optional().describe('For attached docs'),
   dryRun: z.boolean().default(true)
 })
 
@@ -734,7 +734,7 @@ export const FinishWorkSchema = z.object({
   statusName: z.string().nullable().default('Review in progress').describe('null keeps status')
 })
 
-const PlannedIssue = z.object({
+const PlannedIssue = z.strictObject({
   title: z.string().min(1),
   description: z.string().optional().describe('Markdown'),
   priority: PriorityEnum.optional(),
@@ -742,17 +742,18 @@ const PlannedIssue = z.object({
   milestoneLabel: z.string().optional(),
   assignee: z.string().optional().describe('Person name'),
   labels: z.array(z.string()).optional(),
+  statusName: z.string().optional(),
   blockedBy: z.array(z.string()).optional().describe('"#2" (2nd child) or issue id')
 })
 
 export const CreateIssueTreeSchema = z.object({
   workspace: WorkspaceArg,
   projectIdentifier: z.string().describe('Project key'),
-  epic: PlannedIssue.pick({ title: true, description: true, priority: true, labels: true }).optional().describe('New epic'),
+  epic: PlannedIssue.omit({ blockedBy: true }).optional().describe('New epic'),
   epicIdentifier: z.string().optional().describe('Or an existing epic'),
   children: z.array(PlannedIssue).min(1).max(50),
-  componentLabel: z.string().optional().describe('Default for children'),
-  milestoneLabel: z.string().optional().describe('Default for children'),
+  componentLabel: z.string().optional().describe('Default for epic and children'),
+  milestoneLabel: z.string().optional().describe('Default for epic and children'),
   skipDuplicates: z.boolean().default(true).describe('Reuse same-title issues'),
   dryRun: z.boolean().default(true)
 })
@@ -984,7 +985,7 @@ const TemplateFields = {
   estimation: z.number().min(0).optional(),
   labels: z.array(z.string()).optional()
 }
-const TemplateChild = z.object({ title: z.string().min(1), ...TemplateFields })
+const TemplateChild = z.strictObject({ title: z.string().min(1), ...TemplateFields })
 const TemplateRef = z.string().describe('Template id or title')
 
 export const ListIssueTemplatesSchema = z.object({ workspace: ReadWorkspaceArg, projectIdentifier: z.string().optional() })
@@ -1129,7 +1130,7 @@ export const CreateTestCasesSchema = z.object({
   suite: z.string().describe('Suite name or id'),
   createSuite: z.boolean().optional().describe('Create the suite if missing'),
   parentSuite: z.string().optional().describe('Parent for a new suite'),
-  cases: z.array(z.object({ name: z.string().min(1), description: z.string().optional().describe('Steps/expected, Markdown'), type: CaseType.optional(), priority: CasePriority.optional(), assignee: z.string().optional() })).min(1).max(100)
+  cases: z.array(z.strictObject({ name: z.string().min(1), description: z.string().optional().describe('Steps/expected, Markdown'), type: CaseType.optional(), priority: CasePriority.optional(), assignee: z.string().optional() })).min(1).max(100)
 })
 
 // ── Products (read-only) and label categories ───────────────────────────────
@@ -1258,7 +1259,7 @@ export const CreateInventoryProductSchema = z.object({
   workspace: WorkspaceArg,
   name: z.string(),
   category: z.string(),
-  variants: z.array(z.object({ name: z.string(), sku: z.string() })).optional()
+  variants: z.array(z.strictObject({ name: z.string(), sku: z.string() })).optional()
 })
 export const UpdateInventoryItemSchema = z.object({ workspace: WorkspaceArg, id: z.string(), name: z.string().optional(), sku: z.string().optional().describe('Variants'), category: z.string().optional().describe('Move a product') })
 export const DeleteInventoryItemSchema = z.object({ workspace: WorkspaceArg, id: z.string(), recursive: z.boolean().optional() })

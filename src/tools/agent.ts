@@ -214,12 +214,14 @@ export const createIssueTree = wrapToolHandler<z.infer<typeof CreateIssueTreeSch
   }
 
   const plan: string[] = []
+  const ep = args.epic
+  const epicExtras = ep == null ? [] : [ep.componentLabel ?? args.componentLabel, ep.milestoneLabel ?? args.milestoneLabel, ep.assignee, ep.statusName, ...(ep.labels ?? [])].filter((x) => x != null)
   plan.push(epicExisting != null
     ? `Epic: existing **${epicExisting}**`
-    : epicDup != null && args.skipDuplicates ? `Epic: "${args.epic!.title}" → reuse existing **${epicDup}** (same title)` : `Epic: create "${args.epic!.title}"`)
+    : epicDup != null && args.skipDuplicates ? `Epic: "${args.epic!.title}" → reuse existing **${epicDup}** (same title)` : `Epic: create "${args.epic!.title}"${epicExtras.length > 0 ? ` · ${epicExtras.join(', ')}` : ''}`)
   args.children.forEach((c, i) => {
     const dup = byTitle.get(norm(c.title))
-    const extras = [c.componentLabel ?? args.componentLabel, c.milestoneLabel ?? args.milestoneLabel, c.assignee, ...(c.labels ?? [])].filter((x) => x != null)
+    const extras = [c.componentLabel ?? args.componentLabel, c.milestoneLabel ?? args.milestoneLabel, c.assignee, c.statusName, ...(c.labels ?? [])].filter((x) => x != null)
     const blockers = (c.blockedBy ?? []).length > 0 ? ` · blocked by ${(c.blockedBy ?? []).join(', ')}` : ''
     const kept = dup != null ? otherParent(dup, epicExisting ?? epicDup) : undefined
     const reuse = `"${c.title}" → reuse existing **${dup ?? ''}**${kept != null ? ` (stays under ${kept})` : ''}`
@@ -228,8 +230,8 @@ export const createIssueTree = wrapToolHandler<z.infer<typeof CreateIssueTreeSch
   if (args.dryRun) return `🔍 Dry run in ${args.projectIdentifier}:\n${plan.map((p) => `- ${p}`).join('\n')}\nRun again with dryRun=false to create.`
 
   const ws = args.workspace
-  const create = async (title: string, description: string | undefined, priority: string | undefined, f: { componentLabel?: string, milestoneLabel?: string, assignee?: string } = {}): Promise<string> => {
-    const out = text(await createIssue({ workspace: ws, projectIdentifier: args.projectIdentifier, title, description, priority: priority ?? 'NoPriority', componentLabel: f.componentLabel, milestoneLabel: f.milestoneLabel, assignee: f.assignee } as any))
+  const create = async (title: string, description: string | undefined, priority: string | undefined, f: { componentLabel?: string, milestoneLabel?: string, assignee?: string, statusName?: string } = {}): Promise<string> => {
+    const out = text(await createIssue({ workspace: ws, projectIdentifier: args.projectIdentifier, title, description, priority: priority ?? 'NoPriority', componentLabel: f.componentLabel, milestoneLabel: f.milestoneLabel, assignee: f.assignee, statusName: f.statusName } as any))
     const id = /\*\*([A-Z][A-Z0-9]*-\d+)\*\*/.exec(out)?.[1]
     if (id == null) throw new Error(`Could not read new issue id from: ${out}`)
     return id
@@ -243,7 +245,8 @@ export const createIssueTree = wrapToolHandler<z.infer<typeof CreateIssueTreeSch
   if (epicId == null) {
     if (epicDup != null && args.skipDuplicates) epicId = epicDup
     else {
-      epicId = await create(args.epic!.title, args.epic!.description, args.epic!.priority)
+      const e = args.epic!
+      epicId = await create(e.title, e.description, e.priority, { componentLabel: e.componentLabel ?? args.componentLabel, milestoneLabel: e.milestoneLabel ?? args.milestoneLabel, assignee: e.assignee, statusName: e.statusName })
       await decorate(epicId, { labels: args.epic!.labels })
       created.push(`${epicId} (epic)`)
     }
@@ -260,7 +263,7 @@ export const createIssueTree = wrapToolHandler<z.infer<typeof CreateIssueTreeSch
       else if (byIdentifier.get(dup)?.parents?.at(-1)?.identifier !== epicId) await setParent({ workspace: ws, identifier: dup, parentIdentifier: epicId } as any)
       continue
     }
-    const id = await create(c.title, c.description, c.priority, { componentLabel: c.componentLabel ?? args.componentLabel, milestoneLabel: c.milestoneLabel ?? args.milestoneLabel, assignee: c.assignee })
+    const id = await create(c.title, c.description, c.priority, { componentLabel: c.componentLabel ?? args.componentLabel, milestoneLabel: c.milestoneLabel ?? args.milestoneLabel, assignee: c.assignee, statusName: c.statusName })
     await decorate(id, c)
     await setParent({ workspace: ws, identifier: id, parentIdentifier: epicId } as any)
     created.push(id)
