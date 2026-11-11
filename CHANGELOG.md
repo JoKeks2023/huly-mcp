@@ -2,6 +2,12 @@
 
 All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mcp-selfhost). Versions follow [semver](https://semver.org).
 
+### 3.5.1 — 2026-11-11
+
+- **Fixed: `resources/list` failed without a usable login** — it tried to list your open issues and errored when the login was missing or wrong (e.g. in an inspector or a client not set up yet). Now the guides are listed and issues are simply left out. Found through Glama's inspection.
+- **Release workflow** waits until npm shows the new version before registering it with the MCP registry (3.5.0 was refused once because npm was a few seconds behind).
+- npm and registry descriptions: 227 tools.
+
 ### 3.5.0 — 2026-11-11
 
 - **Fixed: MCP registry name** — the registry namespace is case-sensitive and must match the GitHub owner: `io.github.JoKeks2023/huly-mcp-selfhost` (was lowercase, refused with 403). A test checks it.

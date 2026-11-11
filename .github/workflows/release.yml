@@ -101,6 +101,11 @@ jobs:
         if: steps.npm.outcome == 'success'
         continue-on-error: true   # the registry is optional; a hiccup there must not fail the release
         run: |
+          # The registry checks the npm package; a fresh release can take a minute to appear there.
+          for i in $(seq 1 30); do
+            curl -sf "https://registry.npmjs.org/huly-mcp-selfhost/$VERSION" >/dev/null && break
+            echo "waiting for npm to show $VERSION ($i/30)"; sleep 10
+          done
           curl -sL "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_linux_amd64.tar.gz" | tar xz mcp-publisher
           ./mcp-publisher login github-oidc
           ./mcp-publisher publish
