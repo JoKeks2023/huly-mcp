@@ -13,7 +13,7 @@ Huly workspaces (tracker, docs, chat, planner, …), self-hosted or cloud.
 - Start with one-call overviews: my_day, standup, triage_inbox, project_report, get_issue_context.
 - Agent work: start_work → work → finish_work; plans → create_issue_tree (dry run first); with parallel agents claim_issue first.
 - Read before replacing: get_issue before update_issue description, get_document before update_document.
-- Risky tools may ask the user; if declined, do not retry. Login or setup problems: check_setup.
+- Risky tools may ask the user; if declined, do not retry. Login or setup problems: check_setup. A change was wrong: undo_changes (dry run first).
 - Missing tools may be in a disabled toolset (HULY_TOOLSETS).
 `.trim()
 
@@ -48,7 +48,7 @@ export function createServer (options: { toolsets?: string, workspace?: string, 
   let instructions = pinned != null ? pinnedInstructions(pinned) : SERVER_INSTRUCTIONS
   if (enabled.has('agent')) instructions += '\n- Guides: resources huly://guide/workflow, huly://guide/costs, huly://guide/onboarding, huly://guide/features; prompt "setup" writes a project\'s Huly rules.'
   if (dynamic) instructions = instructions.replace('- Missing tools may be in a disabled toolset (HULY_TOOLSETS).', '- More tools (calendar, cards, drive, testing, recruiting, …) load on demand: enable_toolsets.')
-  const server = new McpServer({ name: 'huly-mcp-selfhost', version: '3.4.0' }, { instructions })
+  const server = new McpServer({ name: 'huly-mcp-selfhost', version: '3.5.0' }, { instructions })
   const asker = elicitationAsker(server)
   // Load on demand (HULY_DYNAMIC_TOOLSETS=1): every tool is registered, those outside HULY_TOOLSETS
   // start disabled; enable_toolsets switches them on and the client is told the tool list changed.

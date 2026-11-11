@@ -1,4 +1,5 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
+import { recordingClient } from './utils/undo'
 import { getClient as getRawAccountClient, type AccountClient } from '@hcengineering/account-client'
 import { type Client, TxOperations, type PersonId, type WorkspaceInfoWithStatus } from '@hcengineering/core'
 import { createClient } from '@hcengineering/server-client'
@@ -106,6 +107,13 @@ export class WorkspaceConnectionManager {
   constructor (private readonly opts: ConnectionManagerOptions) {
     this.createAccountClient = opts.createAccountClient ?? ((url, token) => getRawAccountClient(url, token))
     this.openConnection = opts.openConnection ?? defaultOpenConnection
+  }
+
+  /** How this manager logs in (never the secrets themselves, except the token for reading its claims). */
+  describeAuth (): { kind?: 'token' | 'e-mail + password', token?: string, accountsUrl: string, pinned?: string } {
+    const set = (v: string | undefined): boolean => (v ?? '').trim() !== ''
+    const kind = set(this.opts.token) ? 'token' : (set(this.opts.email) && set(this.opts.password)) ? 'e-mail + password' : undefined
+    return { kind, token: set(this.opts.token) ? this.opts.token : undefined, accountsUrl: this.opts.accountsUrl, pinned: this.opts.restrictTo || undefined }
   }
 
   /** All workspaces this account can use (after the optional legacy HULY_WORKSPACE restriction). */
@@ -358,7 +366,8 @@ export async function getWorkspace (workspace?: string): Promise<WorkspaceConnec
 }
 
 export async function getConnection (workspace?: string): Promise<TxOperations> {
-  return (await getWorkspace(workspace)).client
+  // Inside a write tool the client notes how to reverse each write (undo_changes).
+  return recordingClient((await getWorkspace(workspace)).client)
 }
 
 export async function getAccountClient (workspace?: string): Promise<AccountClient> {

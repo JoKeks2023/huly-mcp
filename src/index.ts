@@ -6,12 +6,21 @@ import { normalizeEnv } from './env'
 import { runWatch } from './watch'
 import { runJUnit } from './junit-cli'
 import { runHttp } from './http'
+import { main as runCliMain } from './cli'
 import { routeConsoleToStderr } from './utils/redact'
 
 async function main (): Promise<void> {
   if (process.argv[2] === 'watch') {
     await runWatch(process.argv.slice(3))
     return
+  }
+  const sub = process.argv[2]
+  if (sub != null && !['watch', 'junit', 'setup', 'http'].includes(sub)) {
+    // Anything else is the command line: huly-mcp tools | help | <tool> --param value …
+    // The Huly SDK logs model details to the console; in a terminal that is noise. HULY_DEBUG=1 keeps it (on stderr).
+    if (['1', 'true', 'yes'].includes(String(process.env.HULY_DEBUG ?? '').toLowerCase())) routeConsoleToStderr()
+    else console.log = console.info = console.debug = console.warn = console.error = () => {}
+    process.exit(await runCliMain(process.argv.slice(2)))
   }
   if (process.argv[2] === 'http') {
     normalizeEnv()
