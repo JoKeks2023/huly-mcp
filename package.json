@@ -21,7 +21,7 @@
     "type": "git",
     "url": "git+https://github.com/JoKeks2023/huly-mcp.git"
   },
-  "mcpName": "io.github.jokeks2023/huly-mcp-selfhost",
+  "mcpName": "io.github.JoKeks2023/huly-mcp-selfhost",
   "license": "EPL-2.0",
   "author": "Joris Conrad (https://github.com/JoKeks2023)",
   "contributors": [
