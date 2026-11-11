@@ -5,7 +5,7 @@ All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mc
 ### 3.3.1 — 2026-11-11
 
 - **Fixed: MCP registry entry.** The `server.json` description was longer than the registry's 100 characters, so 3.3.0 was refused there; a test now checks the length and the release workflow warns when the registry refuses an entry.
-- **Docs:** clearer positioning ("Huly for AI agents") and a table of measured token costs in the README.
+- **Docs:** clearer positioning ("Huly for AI agents"), a table of measured token costs and a measured comparison with another popular Huly MCP server (2.9× less text per answer, 14× smaller tool definitions) in the README.
 
 ### 3.3.0 — 2026-11-11
 

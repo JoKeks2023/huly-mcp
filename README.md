@@ -27,12 +27,39 @@ What the model reads — measured on a real self-hosted project (≈60 issues):
 |---|--:|--:|
 | Tool list, default toolsets (96 tools, each callable directly) | 36,527 | 10.4k |
 | Tool list, pinned workspace | 32,962 | 9.4k |
-| Open issues of a project (23) | 1,965 | 0.6k |
+| Open issues of a project (one call, ≈30 issues) | 2,768 | 0.8k |
 | One issue with description | 318 | 0.1k |
 | Project report (done, in progress, blocked, milestones, PRs, time) | ~2,700 | 0.8k |
 | My day (calendar, to-dos, my issues, PRs, inbox) | ~1,200 | 0.3k |
 
 Lists default to open items, empty fields are left out, and one call answers what would otherwise take four or five. Per call and question: [`costs.md`](https://github.com/JoKeks2023/huly-mcp/blob/main/plugin/skills/huly/costs.md).
+
+### Compared with another popular Huly MCP server
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/JoKeks2023/huly-mcp/main/docs/assets/benchmark-dark.svg">
+  <img alt="Characters per answer: huly-mcp-selfhost needs 2.9× less text per answer (median), 14× smaller tool definitions, one call instead of up to four" src="https://raw.githubusercontent.com/JoKeks2023/huly-mcp/main/docs/assets/benchmark-light.svg" width="900">
+</picture>
+
+Same self-hosted Huly, same questions, the best parameters on both sides, measured 2026-11-11. For the other server only the text content is counted, not the duplicate JSON copy it also returns. Where we return more (components), it is because we include each component's description and code paths.
+
+<details>
+<summary>All numbers (characters)</summary>
+
+| Question | huly-mcp-selfhost | Other server | Ratio |
+|---|--:|--:|--:|
+| Open issues of a project | 2,768 (1 call) | 11,601 (3 calls) | 4.2× less |
+| Issues in progress | 211 (1 call) | 790 (1 call) | 3.7× less |
+| One issue | 318 (1 call) | 585 (1 call) | 1.8× less |
+| Everything about an issue (fields, sub-issues, comments, relations) | 1,246 (1 call) | 3,585 (4 calls) | 2.9× less |
+| Search | 406 (1 call) | 1,405 (1 call) | 3.5× less |
+| Projects | 550 (1 call) | 1,041 (1 call) | 1.9× less |
+| Milestones | 208 (1 call) | 503 (1 call) | 2.4× less |
+| Components | 1,302 (1 call) | 692 (1 call) | 2.0× more |
+| Documents of a teamspace | 106 (1 call) | 305 (1 call) | 2.9× less |
+| Tool definitions (49 tools with the same name) | 15,728 | 216,890 | 13.8× less |
+
+</details>
 
 ## Quick start
 
