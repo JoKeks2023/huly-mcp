@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { createServer } from './server'
-import { closeConnection } from './connection'
+import { closeConnection, prewarm } from './connection'
 import { normalizeEnv } from './env'
 import { runWatch } from './watch'
 import { runJUnit } from './junit-cli'
@@ -40,6 +40,8 @@ async function main (): Promise<void> {
   })
 
   await server.connect(transport)
+  // Log in and open the (single) workspace now, not on the first tool call.
+  void prewarm()
   // Process stays alive — connection maintained until shutdown
 }
 

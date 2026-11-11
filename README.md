@@ -414,6 +414,7 @@ A single Huly account can belong to several workspaces — e.g. a personal one a
 | `HULY_AGENT_NAME` | no | Default agent name for `claim_issue` (default `claude`) |
 | `HULY_CONFIRM` | no | `auto` (default), `strict` or `off` — ask before deletes and other risky tools (see [Agent workflow](#agent-workflow)) |
 | `HULY_FILE_ROOT` | no | Directory for local files: `upload_file` (`localPath`) and `download_file` (`savePath`) only work inside it. Off when unset — the server may run remotely |
+| `HULY_PREWARM` | no | `0` turns off connecting at start-up. By default the server logs in (and opens the workspace when there is only one) right after it starts, so the first tool call answers in well under a second instead of 4–12 s |
 | `HULY_SUBSCRIBE_POLL_MS` | no | How often subscribed `huly://` resources are checked for changes (default 30000, minimum 5000) |
 
 ---
