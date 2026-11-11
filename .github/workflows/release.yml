@@ -1,6 +1,6 @@
 name: Release
 
-# Push a tag vX.Y.Z on main → checks, npm (with provenance), GitHub release from the README changelog,
+# Push a tag vX.Y.Z on main → checks, npm (with provenance), GitHub release from CHANGELOG.md,
 # MCP registry entry. Docker images are built by docker-publish.yml on the same tag.
 #
 # npm: uses Trusted Publishing (OIDC, no token in the repo). One-time setup on npmjs.com:
