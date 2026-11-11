@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from 'node:async_hooks'
 import { getClient as getRawAccountClient, type AccountClient } from '@hcengineering/account-client'
 import { type Client, TxOperations, type PersonId, type WorkspaceInfoWithStatus } from '@hcengineering/core'
 import { createClient } from '@hcengineering/server-client'
@@ -307,8 +308,29 @@ export function transactorEndpoint (endpoint: string, override: string | undefin
 // ── Process-wide manager (configured from env) ──────────────────────────────
 
 let manager: WorkspaceConnectionManager | null = null
+// HTTP mode: every session can bring its own Huly login; its tool calls run inside this scope.
+const scoped = new AsyncLocalStorage<WorkspaceConnectionManager>()
+
+/** Runs fn (and everything it starts) with this manager instead of the process-wide one. */
+export function withConnectionManager<T> (m: WorkspaceConnectionManager, fn: () => T): T {
+  return scoped.run(m, fn)
+}
+
+/** A manager for one set of credentials; URLs and the transactor override come from the environment. */
+export function createConnectionManager (creds: { email?: string, password?: string, token?: string, workspace?: string }, env: NodeJS.ProcessEnv = process.env): WorkspaceConnectionManager {
+  return new WorkspaceConnectionManager({
+    accountsUrl: env.HULY_ACCOUNTS_URL ?? 'https://account.huly.app',
+    email: creds.email,
+    password: creds.password,
+    token: creds.token,
+    restrictTo: creds.workspace,
+    transactorUrl: env.HULY_TRANSACTOR_URL
+  })
+}
 
 export function getConnectionManager (): WorkspaceConnectionManager {
+  const own = scoped.getStore()
+  if (own != null) return own
   if (manager === null) {
     manager = new WorkspaceConnectionManager({
       accountsUrl: process.env.HULY_ACCOUNTS_URL ?? 'https://account.huly.app',

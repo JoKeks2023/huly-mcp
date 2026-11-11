@@ -6,6 +6,12 @@
 # comma-separated, e.g. MCP_ALLOWED_HOSTS=huly-mcp.example.com,huly-mcp.example.com:443
 set -eu
 
+# MCP_TRANSPORT=http: the server's own Streamable HTTP endpoint at /mcp (persistent sessions,
+# per-user Huly logins via X-Huly-* headers, MCP_AUTH_TOKEN). Default: mcp-proxy as before (/sse, /mcp).
+if [ "${MCP_TRANSPORT:-proxy}" = "http" ]; then
+  exec node dist/index.js http --host 0.0.0.0 --port "${MCP_PORT:-8000}"
+fi
+
 set -- --host=0.0.0.0 --port="${MCP_PORT:-8000}" --stateless --pass-environment
 for host in $(printf '%s' "${MCP_ALLOWED_HOSTS:-}" | tr ',' ' '); do
   set -- "$@" --allowed-host "$host"

@@ -5,11 +5,18 @@ import { closeConnection, prewarm } from './connection'
 import { normalizeEnv } from './env'
 import { runWatch } from './watch'
 import { runJUnit } from './junit-cli'
+import { runHttp } from './http'
 import { routeConsoleToStderr } from './utils/redact'
 
 async function main (): Promise<void> {
   if (process.argv[2] === 'watch') {
     await runWatch(process.argv.slice(3))
+    return
+  }
+  if (process.argv[2] === 'http') {
+    normalizeEnv()
+    routeConsoleToStderr()
+    await runHttp(process.argv.slice(3))
     return
   }
   if (process.argv[2] === 'setup') {
