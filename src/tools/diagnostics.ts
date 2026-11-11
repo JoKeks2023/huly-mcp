@@ -9,8 +9,17 @@ import type { CheckSetupSchema } from '../schemas'
 
 const TIMEOUT_MS = 5_000
 
+/** Version from the nearest package.json of this package (src/tools in a checkout, dist/ in the bundle). */
 export function packageVersion (): string {
-  try { return JSON.parse(readFileSync(join(__dirname, '..', '..', 'package.json'), 'utf8')).version } catch { return 'unknown' }
+  let dir = __dirname
+  for (let i = 0; i < 4; i++) {
+    try {
+      const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8'))
+      if (pkg.name === 'huly-mcp-selfhost') return pkg.version
+    } catch { /* keep looking */ }
+    dir = join(dir, '..')
+  }
+  return 'unknown'
 }
 
 /** Host of a URL, never its path, query or credentials. */

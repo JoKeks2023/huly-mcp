@@ -16,6 +16,7 @@
 - **Made for agents:** one-call overviews (`my_day`, `standup`, `project_report`, `get_issue_context`), `start_work` → `finish_work`, plans → epics with sub-issues, specs and meeting notes → issues, claims for parallel agents, and `huly-mcp watch` to hand issues to Claude from Huly.
 - **Few tokens:** tools come in toolsets (default ≈11k tokens, everything ≈24k), optionally loaded on demand; pin a workspace for −10 %; compact outputs; wrong parameters are rejected with the valid list instead of silently ignored.
 - **Safe by default:** every change names its workspace, risky tools ask first, writes can be limited to projects, optional audit log — and `undo_changes` reverses your last changes.
+- **Small and quick to install:** one self-contained package of ~4 MB (900 kB download) — no 180 dependencies to fetch on the first `npx`.
 - **No telemetry.** The server talks to your Huly server and nothing else: no analytics, no usage tracking, nothing to opt out of. (The only other request, the npm version check, runs when you call `check_setup`.)
 - **Claude Code plugin:** `/huly:setup` asks once per repo how Huly is used there and writes the rules; skill, hooks and `/huly:*` commands. Guides and a `setup` prompt for every other MCP client too.
 - **Self-hosted first:** document and description content, file uploads and internal URLs work on `huly-selfhost`; one account, all its workspaces.
@@ -26,8 +27,8 @@ What the model reads — measured on a real self-hosted project (≈60 issues):
 
 | | Characters | ≈ Tokens |
 |---|--:|--:|
-| Tool list, default toolsets (99 tools, each callable directly) | 37,965 | 10.8k |
-| Tool list, pinned workspace | 34,273 | 9.8k |
+| Tool list, default toolsets (99 tools, each callable directly) | 38,259 | 10.9k |
+| Tool list, pinned workspace | 34,567 | 9.9k |
 | Open issues of a project (one call, ≈30 issues) | 2,768 | 0.8k |
 | One issue with description | 318 | 0.1k |
 | Project report (done, in progress, blocked, milestones, PRs, time) | ~2,700 | 0.8k |
@@ -209,8 +210,8 @@ Context cost of `tools/list` (≈3.5 chars/token):
 
 | | default (99 tools) | `all` (227 tools) |
 |---|--:|--:|
-| several workspaces | ~38.0k chars ≈ **10.8k tokens** | ~83.1k chars ≈ **23.7k tokens** |
-| pinned with `HULY_WORKSPACE` | ~34.3k chars ≈ **9.8k tokens** | ~74.6k chars ≈ **21.3k tokens** |
+| several workspaces | ~38.3k chars ≈ **10.9k tokens** | ~83.5k chars ≈ **23.9k tokens** |
+| pinned with `HULY_WORKSPACE` | ~34.6k chars ≈ **9.9k tokens** | ~75.0k chars ≈ **21.4k tokens** |
 
 For comparison, 2.2.0 needed ≈12.8k tokens for 64 tools. **Using one workspace? Set `HULY_WORKSPACE`** — the `workspace` argument then disappears from every tool (−10%). **Claude Code** loads MCP tools on demand, so there even `HULY_TOOLSETS=all` costs little up front.
 
@@ -944,6 +945,8 @@ See [`src/connection.ts`](https://github.com/JoKeks2023/huly-mcp/blob/main/src/c
 ```bash
 npm ci && npm run build && npm test
 ```
+
+`npm run build` type-checks (`tsc --noEmit`) and bundles `src/` with all dependencies into one readable file, `dist/index.js` (esbuild, not minified), plus `dist/guides/`. The published package therefore has no runtime dependencies; everything in `package.json` is a dev dependency. Tests run on the TypeScript sources (`tsx`).
 
 GitHub Actions check every pull request:
 

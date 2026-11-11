@@ -30,11 +30,10 @@
   "bin": {
     "huly-mcp": "dist/index.js",
     "huly-mcp-selfhost": "dist/index.js",
-    "huly-mcp-setup": "scripts/setup.js"
+    "huly-mcp-setup": "dist/setup.js"
   },
   "files": [
     "dist/",
-    "scripts/",
     ".env.example",
     "README.md",
     "CHANGELOG.md"
@@ -43,14 +42,15 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\" && node --max-old-space-size=4096 node_modules/typescript/bin/tsc && node scripts/copy-guides.js",
+    "build": "node --max-old-space-size=4096 node_modules/typescript/bin/tsc --noEmit && node scripts/build.js",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
     "setup": "node scripts/setup.js",
     "prepublishOnly": "npm run build",
     "test": "node --import tsx --test test/*.test.ts"
   },
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "@hcengineering/account-client": "^0.7.0",
     "@hcengineering/attachment": "0.7.0",
     "@hcengineering/chunter": "^0.7.0",
@@ -64,16 +64,15 @@
     "@hcengineering/task": "^0.7.0",
     "@hcengineering/tracker": "^0.7.0",
     "@modelcontextprotocol/sdk": "^1.32.2",
-    "express": "^5.3.0",
-    "ws": "^8.22.1",
-    "zod": "^4.6.7"
-  },
-  "devDependencies": {
     "@types/express": "^5.0.6",
     "@types/node": "^22.0.0",
     "@types/ws": "^8.5.0",
+    "esbuild": "^0.28.2",
+    "express": "^5.3.0",
     "tsx": "^4.19.0",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "ws": "^8.22.1",
+    "zod": "^4.6.7"
   },
   "overrides": {
     "dompurify": "^3.4.17",
