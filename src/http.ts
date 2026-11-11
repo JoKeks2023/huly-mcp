@@ -10,6 +10,10 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js'
 import { createServer } from './server'
 import { createConnectionManager, getConnectionManager, withConnectionManager, prewarm, type WorkspaceConnectionManager } from './connection'
+import express from 'express'
+import { mcpAuthRouter, getOAuthProtectedResourceMetadataUrl } from '@modelcontextprotocol/sdk/server/auth/router.js'
+import { requireBearerAuth } from '@modelcontextprotocol/sdk/server/auth/middleware/bearerAuth.js'
+import { HulyOAuthProvider, Sealer, accountServiceLogin } from './oauth'
 
 export interface HttpOptions {
   port: number
@@ -19,6 +23,8 @@ export interface HttpOptions {
   createManager?: (creds: Credentials) => WorkspaceConnectionManager
   idleMs?: number
   log?: (line: string) => void
+  /** OAuth ("log in with Huly"); default: from MCP_OAUTH_SECRET + MCP_PUBLIC_URL. */
+  oauth?: OAuthConfig
 }
 
 export interface Credentials { email?: string, password?: string, token?: string, workspace?: string }
@@ -28,6 +34,8 @@ interface Session {
   manager: WorkspaceConnectionManager
   own: boolean
   lastSeen: number
+  /** OAuth: the Huly login that opened the session. */
+  account?: string
 }
 
 const MAX_BODY = 4 * 1024 * 1024
@@ -114,55 +122,67 @@ export function startHttpServer (opts: HttpOptions): http.Server {
   }, Math.min(idleMs, 60_000))
   sweeper.unref()
 
-  const server = http.createServer((req, res) => {
-    void (async () => {
-      const url = new URL(req.url ?? '/', 'http://local')
-      if (url.pathname === '/healthz') { res.writeHead(204).end(); return }
-      if (url.pathname !== '/mcp') { sendError(res, 404, 'Not found. The MCP endpoint is /mcp.'); return }
-      if (authToken !== '' && !bearerOk(req, authToken)) {
-        res.setHeader('www-authenticate', 'Bearer')
-        sendError(res, 401, 'Missing or wrong bearer token (MCP_AUTH_TOKEN).'); return
-      }
+  /** One /mcp request. With OAuth, `oauth` is the verified login of the bearer token. */
+  const handleMcp = async (req: http.IncomingMessage, res: http.ServerResponse, oauth?: { hulyToken: string }): Promise<void> => {
+    const sessionId = header(req, 'mcp-session-id')
+    const body = req.method === 'POST' ? await readJson(req) : undefined
+    const existing = sessionId != null ? sessions.get(sessionId) : undefined
+    if (existing != null) {
+      // A session belongs to the login that opened it.
+      if (oauth != null && existing.account !== oauth.hulyToken) { sendError(res, 403, 'This session belongs to another login.'); return }
+      existing.lastSeen = Date.now()
+      await withConnectionManager(existing.manager, async () => { await existing.transport.handleRequest(req, res, body) })
+      return
+    }
+    if (sessionId != null) { sendError(res, 404, 'Unknown or expired session — start a new one.'); return }
+    if (req.method !== 'POST' || !isInitializeRequest(body)) { sendError(res, 400, 'No session: send an initialize request first.'); return }
 
-      const sessionId = header(req, 'mcp-session-id')
-      const body = req.method === 'POST' ? await readJson(req) : undefined
-      const existing = sessionId != null ? sessions.get(sessionId) : undefined
-      if (existing != null) {
-        existing.lastSeen = Date.now()
-        await withConnectionManager(existing.manager, async () => { await existing.transport.handleRequest(req, res, body) })
-        return
+    const creds = oauth != null ? { token: oauth.hulyToken, workspace: header(req, 'x-huly-workspace') } : headerCredentials(req)
+    if (creds == null && !sharedAllowed) {
+      sendError(res, 401, serverCreds
+        ? 'Send your Huly login: X-Huly-Token, or X-Huly-Email and X-Huly-Password. (The server credentials need MCP_AUTH_TOKEN.)'
+        : 'Send your Huly login: X-Huly-Token, or X-Huly-Email and X-Huly-Password.')
+      return
+    }
+    const own = creds != null
+    const manager = own ? make(creds) : getConnectionManager()
+    const pinned = creds?.workspace ?? (own ? undefined : env.HULY_WORKSPACE)
+    const transport: StreamableHTTPServerTransport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: () => randomUUID(),
+      allowedHosts: hosts,
+      enableDnsRebindingProtection: hosts != null,
+      onsessioninitialized: (id) => {
+        sessions.set(id, { transport, manager, own, lastSeen: Date.now(), account: oauth?.hulyToken })
+        if (own) void withConnectionManager(manager, async () => await prewarm({ HULY_EMAIL: creds.email, HULY_PASSWORD: creds.password, HULY_TOKEN: creds.token }))
       }
-      if (sessionId != null) { sendError(res, 404, 'Unknown or expired session — start a new one.'); return }
-      if (req.method !== 'POST' || !isInitializeRequest(body)) { sendError(res, 400, 'No session: send an initialize request first.'); return }
-
-      const creds = headerCredentials(req)
-      if (creds == null && !sharedAllowed) {
-        sendError(res, 401, serverCreds
-          ? 'Send your Huly login: X-Huly-Token, or X-Huly-Email and X-Huly-Password. (The server credentials need MCP_AUTH_TOKEN.)'
-          : 'Send your Huly login: X-Huly-Token, or X-Huly-Email and X-Huly-Password.')
-        return
-      }
-      const own = creds != null
-      const manager = own ? make(creds) : getConnectionManager()
-      const pinned = creds?.workspace ?? (own ? undefined : env.HULY_WORKSPACE)
-      const transport: StreamableHTTPServerTransport = new StreamableHTTPServerTransport({
-        sessionIdGenerator: () => randomUUID(),
-        allowedHosts: hosts,
-        enableDnsRebindingProtection: hosts != null,
-        onsessioninitialized: (id) => {
-          sessions.set(id, { transport, manager, own, lastSeen: Date.now() })
-          if (own) void withConnectionManager(manager, async () => await prewarm({ ...creds, HULY_EMAIL: creds.email, HULY_PASSWORD: creds.password, HULY_TOKEN: creds.token }))
-        }
-      })
-      transport.onclose = () => { if (transport.sessionId != null) void closeSession(transport.sessionId) }
-      const mcp = withConnectionManager(manager, () => createServer({ workspace: pinned }))
-      await mcp.connect(transport)
-      await withConnectionManager(manager, async () => { await transport.handleRequest(req, res, body) })
-    })().catch((e: unknown) => {
-      if (e instanceof HttpError) sendError(res, e.status, e.message)
-      else { log(`request failed: ${(e as Error).message}`); sendError(res, 500, 'Internal error.') }
     })
-  })
+    transport.onclose = () => { if (transport.sessionId != null) void closeSession(transport.sessionId) }
+    const mcp = withConnectionManager(manager, () => createServer({ workspace: pinned }))
+    await mcp.connect(transport)
+    await withConnectionManager(manager, async () => { await transport.handleRequest(req, res, body) })
+  }
+
+  const fail = (res: http.ServerResponse, e: unknown): void => {
+    if (e instanceof HttpError) sendError(res, e.status, e.message)
+    else { log(`request failed: ${(e as Error).message}`); sendError(res, 500, 'Internal error.') }
+  }
+
+  const oauth = opts.oauth ?? oauthFromEnv(env, opts.port)
+  const server = oauth != null
+    ? http.createServer(oauthApp(oauth, handleMcp, fail))
+    : http.createServer((req, res) => {
+      void (async () => {
+        const url = new URL(req.url ?? '/', 'http://local')
+        if (url.pathname === '/healthz') { res.writeHead(204).end(); return }
+        if (url.pathname !== '/mcp') { sendError(res, 404, 'Not found. The MCP endpoint is /mcp.'); return }
+        if (authToken !== '' && !bearerOk(req, authToken)) {
+          res.setHeader('www-authenticate', 'Bearer')
+          sendError(res, 401, 'Missing or wrong bearer token (MCP_AUTH_TOKEN).'); return
+        }
+        await handleMcp(req, res)
+      })().catch((e: unknown) => { fail(res, e) })
+    })
+  if (oauth != null) log(`"Log in with Huly" (OAuth) at ${oauth.publicUrl.href} — clients connect to ${new URL('/mcp', oauth.publicUrl).href}`)
 
   server.on('close', () => {
     clearInterval(sweeper)
@@ -183,7 +203,11 @@ export async function runHttp (argv: string[]): Promise<void> {
 MCP over Streamable HTTP at /mcp (health check: /healthz).
   MCP_AUTH_TOKEN     bearer token clients must send (needed to use the server's own HULY_* login)
   MCP_ALLOWED_HOSTS  host names clients use (DNS-rebinding protection), e.g. huly-mcp.example.com
-Clients can send their own Huly login: X-Huly-Token, or X-Huly-Email + X-Huly-Password; X-Huly-Workspace pins one.`)
+Clients can send their own Huly login: X-Huly-Token, or X-Huly-Email + X-Huly-Password; X-Huly-Workspace pins one.
+
+Log in with Huly (OAuth) instead — people add the URL in their AI app and log in in the browser:
+  MCP_OAUTH_SECRET   at least 32 characters (openssl rand -hex 32); seals all logins and tokens
+  MCP_PUBLIC_URL     the https address clients reach, e.g. https://huly-mcp.example.com`)
     return
   }
   const port = Number(arg('port') ?? process.env.MCP_PORT ?? 8000)
@@ -194,4 +218,51 @@ Clients can send their own Huly login: X-Huly-Token, or X-Huly-Email + X-Huly-Pa
   const stop = (): void => { server.close(() => process.exit(0)); setTimeout(() => process.exit(0), 3000).unref() }
   process.on('SIGINT', stop)
   process.on('SIGTERM', stop)
+}
+
+// ── OAuth ("log in with Huly") ────────────────────────────────────────────────
+
+export interface OAuthConfig { publicUrl: URL, provider: HulyOAuthProvider }
+
+/** OAuth is on when MCP_OAUTH_SECRET is set; MCP_PUBLIC_URL is the address clients reach the server at. */
+export function oauthFromEnv (env: NodeJS.ProcessEnv, port: number): OAuthConfig | undefined {
+  const secret = (env.MCP_OAUTH_SECRET ?? '').trim()
+  if (secret === '') return undefined
+  if (secret.length < 32) throw new Error('MCP_OAUTH_SECRET must be at least 32 characters (e.g. openssl rand -hex 32).')
+  const raw = (env.MCP_PUBLIC_URL ?? '').trim() || `http://localhost:${port}`
+  let publicUrl: URL
+  try { publicUrl = new URL(raw) } catch { throw new Error(`MCP_PUBLIC_URL is not a URL: ${raw}`) }
+  if (publicUrl.protocol !== 'https:' && !['localhost', '127.0.0.1'].includes(publicUrl.hostname)) {
+    throw new Error('MCP_PUBLIC_URL must use https (logins travel over it); http only for localhost.')
+  }
+  const accounts = env.HULY_ACCOUNTS_URL ?? 'https://account.huly.app'
+  return { publicUrl, provider: new HulyOAuthProvider(new Sealer(secret), accountServiceLogin(accounts)) }
+}
+
+function oauthApp (
+  cfg: OAuthConfig,
+  handleMcp: (req: http.IncomingMessage, res: http.ServerResponse, oauth?: { hulyToken: string }) => Promise<void>,
+  fail: (res: http.ServerResponse, e: unknown) => void
+): express.Express {
+  const app = express()
+  app.disable('x-powered-by')
+  // Behind a reverse proxy on the same host or network: use its client address for the login throttle.
+  app.set('trust proxy', 'loopback, linklocal, uniquelocal')
+  const mcpUrl = new URL('/mcp', cfg.publicUrl)
+  app.get('/healthz', (_req, res) => { res.status(204).end() })
+  app.use(mcpAuthRouter({
+    provider: cfg.provider,
+    issuerUrl: cfg.publicUrl,
+    resourceServerUrl: mcpUrl,
+    resourceName: 'Huly',
+    scopesSupported: ['huly'],
+    clientRegistrationOptions: { clientIdGeneration: false }
+  }))
+  app.post('/oauth/login', express.urlencoded({ extended: false, limit: '16kb' }), (req, res) => { void cfg.provider.handleLogin(req, res) })
+  app.all('/mcp', requireBearerAuth({ verifier: cfg.provider, resourceMetadataUrl: getOAuthProtectedResourceMetadataUrl(mcpUrl) }), (req, res) => {
+    const hulyToken = String((req as any).auth?.extra?.hulyToken ?? '')
+    handleMcp(req, res, { hulyToken }).catch((e: unknown) => { fail(res, e) })
+  })
+  app.use((_req, res) => { res.status(404).json({ error: 'Not found. The MCP endpoint is /mcp.' }) })
+  return app
 }

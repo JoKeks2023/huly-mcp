@@ -97,7 +97,7 @@ Then run `/huly:setup` in a repository. Details: [Claude Code plugin](#claude-co
 
 Config file locations and examples for each client: [Compatible clients](#compatible-clients).
 
-**Server for a team or remote clients** — `huly-mcp-selfhost http` or the Docker image, with one Huly login per person: see [Team server over HTTP](#team-server-over-http).
+**Server for a team or remote clients** — `huly-mcp-selfhost http` or the Docker image; everyone logs in with their own Huly account in the browser (OAuth): see [Team server over HTTP](#team-server-over-http).
 
 Then ask: *"What's on my plate today?"*, *"Plan the login redesign as an epic in WEB"*, *"Write release notes for v1.2"*. More in [Example prompts](#example-prompts).
 
@@ -469,6 +469,8 @@ A single Huly account can belong to several workspaces — e.g. a personal one a
 | `HULY_CONFIRM` | no | `auto` (default), `strict` or `off` — ask before deletes and other risky tools (see [Agent workflow](#agent-workflow)) |
 | `HULY_FILE_ROOT` | no | Directory for local files: `upload_file` (`localPath`) and `download_file` (`savePath`) only work inside it. Off when unset — the server may run remotely |
 | `MCP_TRANSPORT` | no | Docker only: `http` = the server's own HTTP endpoint (`/mcp`, per-user logins) instead of mcp-proxy (see [Team server over HTTP](#team-server-over-http)) |
+| `MCP_OAUTH_SECRET` | no | HTTP mode: turns on "log in with Huly" (OAuth); at least 32 characters, e.g. `openssl rand -hex 32` (see [Team server over HTTP](#team-server-over-http)) |
+| `MCP_PUBLIC_URL` | with OAuth | The HTTPS address clients reach the server at (issuer and login page), e.g. `https://huly-mcp.example.com` |
 | `MCP_AUTH_TOKEN` | no | HTTP mode: bearer token every client must send; required before the server's own `HULY_*` login is used over HTTP |
 | `HULY_PREWARM` | no | `0` turns off connecting at start-up. By default the server logs in (and opens the workspace when there is only one) right after it starts, so the first tool call answers in well under a second instead of 4–12 s |
 | `HULY_SUBSCRIBE_POLL_MS` | no | How often subscribed `huly://` resources are checked for changes (default 30000, minimum 5000) |
@@ -748,6 +750,13 @@ claude mcp add --transport http huly https://huly-mcp.example.com/mcp \
   --header "X-Huly-Token: <your token>"            # or X-Huly-Email + X-Huly-Password
   # optional: --header "X-Huly-Workspace: acme"    # pin one workspace (fewer tokens)
 ```
+
+**Log in with Huly (OAuth).** Set `MCP_OAUTH_SECRET` (`openssl rand -hex 32`) and `MCP_PUBLIC_URL` (the HTTPS address clients reach, e.g. `https://huly-mcp.example.com`). Then people simply add `https://huly-mcp.example.com/mcp` in their AI app — Claude Code (`claude mcp add --transport http huly …`), Claude's custom connectors and other OAuth-capable MCP clients — and log in in the browser with their own Huly account: e-mail + password, or a one-time code by e-mail for Google/GitHub accounts. One server, as many people as you like, nobody handles tokens.
+
+- Stateless: registrations, codes and tokens are sealed with AES-256-GCM under `MCP_OAUTH_SECRET` — no database, logins survive restarts. Changing the secret logs everyone out.
+- The Huly password goes only to your Huly server; the server keeps just the resulting Huly token, inside the sealed tokens. Access tokens last 1 hour, refresh tokens 30 days and work once (rotation). Login attempts are throttled per address.
+- The protocol parts (client registration, PKCE, token endpoint, metadata) are the MCP SDK's own; this server adds the login page and the tokens.
+- `X-Huly-Workspace` still pins a workspace. In OAuth mode `/mcp` needs the OAuth token; `MCP_AUTH_TOKEN` and the `X-Huly-*` login headers are for the other mode.
 
 **One shared account.** The server's own `HULY_*` login is only used behind a bearer token — set `MCP_AUTH_TOKEN` and give clients `Authorization: Bearer <token>`. Without it an open port would act as that account, so the server refuses and asks for per-user headers instead. With `MCP_AUTH_TOKEN` set, every request needs the bearer token, also when it brings its own login.
 
