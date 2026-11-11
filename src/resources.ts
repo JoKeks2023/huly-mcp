@@ -90,7 +90,7 @@ export function readGuide (name: string): string {
   if (g == null) throw new Error(`Unknown guide: ${name}. Available: ${Object.keys(GUIDES).join(', ')}`)
   let text: string
   try { text = readFileSync(join(__dirname, 'guides', `${name}.md`), 'utf8') } catch {
-    text = readFileSync(join(__dirname, '..', 'plugin', 'skills', 'huly', g.file), 'utf8').replace(/^---\n[\s\S]*?\n---\n+/, '')
+    text = readFileSync(join(__dirname, '..', 'plugin', 'skills', 'huly', g.file), 'utf8').replace(/\r\n/g, '\n').replace(/^---\n[\s\S]*?\n---\n+/, '')
   }
   // Links between the skill files become links between the resources.
   return text.replace(/\]\((SKILL|costs|onboarding)\.md\)/g, (_m, f: string) => `](huly://guide/${f === 'SKILL' ? 'workflow' : f})`)

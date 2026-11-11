@@ -12,7 +12,7 @@ const GUIDES = { workflow: 'SKILL.md', costs: 'costs.md', onboarding: 'onboardin
 
 fs.mkdirSync(out, { recursive: true })
 for (const [name, file] of Object.entries(GUIDES)) {
-  const text = fs.readFileSync(path.join(src, file), 'utf8').replace(/^---\n[\s\S]*?\n---\n+/, '')
+  const text = fs.readFileSync(path.join(src, file), 'utf8').replace(/\r\n/g, '\n').replace(/^---\n[\s\S]*?\n---\n+/, '')
   fs.writeFileSync(path.join(out, `${name}.md`), text)
 }
 console.log(`guides: ${Object.keys(GUIDES).length} copied to dist/guides`)
