@@ -36,6 +36,8 @@
 - **Claude Code plugin:** `/huly:setup` asks once per repo how Huly is used there and writes the rules; skill, hooks and `/huly:*` commands. Guides and a `setup` prompt for every other MCP client too.
 - **Self-hosted first:** document and description content, file uploads and internal URLs work on `huly-selfhost`; one account, all its workspaces.
 
+<div align="right"><a href="#huly-mcp-selfhost">↑ Back to top</a></div>
+
 ## Tokens, measured
 
 What the model reads — measured on a real self-hosted project (≈60 issues):
@@ -77,6 +79,8 @@ Same self-hosted Huly, same questions, the best parameters on both sides, measur
 | Tool definitions (49 tools with the same name) | 15,728 | 216,890 | 13.8× less |
 
 </details>
+
+<div align="right"><a href="#huly-mcp-selfhost">↑ Back to top</a></div>
 
 ## Quick start
 
@@ -120,6 +124,8 @@ Then ask: *"What's on my plate today?"*, *"Plan the login redesign as an epic in
 
 ---
 
+<div align="right"><a href="#huly-mcp-selfhost">↑ Back to top</a></div>
+
 ## Claude Code plugin
 
 The repo is also a Claude Code plugin marketplace. The plugin bundles the MCP server with a workflow skill, hooks and commands:
@@ -150,6 +156,8 @@ Without the plugin, the same server works in Claude Code as a plain MCP server (
 
 ---
 
+<div align="right"><a href="#huly-mcp-selfhost">↑ Back to top</a></div>
+
 ## Command line
 
 Every tool also works from the terminal — for scripts, CI and quick looks without a chat. Same login (`HULY_*` environment or `--env-file`), same safety rules (write scope, audit log, confirmation for hard-to-undo changes).
@@ -173,6 +181,8 @@ huly-mcp my_day --format json | jq -r .text
 - **Shell completion** for tools, options and allowed values: `eval "$(huly-mcp completion zsh)"` (or `bash`) in your shell profile.
 
 ---
+
+<div align="right"><a href="#huly-mcp-selfhost">↑ Back to top</a></div>
 
 ## Tools (227 total, grouped in toolsets)
 
@@ -449,6 +459,8 @@ Options: `--run <name>`, `--parent-suite <suite>`, `--no-create` (only existing 
 
 ---
 
+<div align="right"><a href="#huly-mcp-selfhost">↑ Back to top</a></div>
+
 ## Workspaces (one account, several workspaces)
 
 A single Huly account can belong to several workspaces — e.g. a personal one and a team one. This server logs in **once** with your account credentials and discovers every workspace that account can access via the account service (`getUserWorkspaces()`). You **don't configure a workspace** in the environment.
@@ -466,6 +478,8 @@ A single Huly account can belong to several workspaces — e.g. a personal one a
 **`HULY_WORKSPACE`:** pins the server to that one workspace. Tools then have no `workspace` argument at all, which saves ~10% of the tool-list tokens. Leave it unset to use all workspaces of the account.
 
 ---
+
+<div align="right"><a href="#huly-mcp-selfhost">↑ Back to top</a></div>
 
 ## Configuration
 
@@ -493,6 +507,8 @@ A single Huly account can belong to several workspaces — e.g. a personal one a
 | `HULY_SUBSCRIBE_POLL_MS` | no | How often subscribed `huly://` resources are checked for changes (default 30000, minimum 5000) |
 
 ---
+
+<div align="right"><a href="#huly-mcp-selfhost">↑ Back to top</a></div>
 
 ## Authentication
 
@@ -536,6 +552,8 @@ HULY_FRONT_URL=https://your-huly-instance.com                # document content 
 ```
 
 ---
+
+<div align="right"><a href="#huly-mcp-selfhost">↑ Back to top</a></div>
 
 ## Compatible clients
 
@@ -718,6 +736,8 @@ For network access (HTTP/SSE) use the [Docker image](#docker).
 
 ---
 
+<div align="right"><a href="#huly-mcp-selfhost">↑ Back to top</a></div>
+
 ## Running the server
 
 ### npx (recommended)
@@ -781,6 +801,8 @@ Set `MCP_ALLOWED_HOSTS` to the host names clients use (DNS-rebinding protection)
 
 ---
 
+<div align="right"><a href="#huly-mcp-selfhost">↑ Back to top</a></div>
+
 ## Example prompts
 
 **Workspaces:**
@@ -838,6 +860,8 @@ Set `MCP_ALLOWED_HOSTS` to the host names clients use (DNS-rebinding protection)
 - *"Delete the second comment on PROJ-15"*
 
 ---
+
+<div align="right"><a href="#huly-mcp-selfhost">↑ Back to top</a></div>
 
 ## Document content
 
@@ -905,6 +929,8 @@ The Mermaid block renders as a live interactive diagram in Huly's document edito
 
 ---
 
+<div align="right"><a href="#huly-mcp-selfhost">↑ Back to top</a></div>
+
 ## Bulk CSV Import
 
 Import many issues at once from a CSV file — useful for migrating from other tools:
@@ -928,6 +954,8 @@ Improve performance,Urgent,,2025-05-01
 Required column: `title`. Optional: `priority` (Urgent/High/Medium/Low), `status` (must match a status name in the project), `dueDate` (YYYY-MM-DD).
 
 ---
+
+<div align="right"><a href="#huly-mcp-selfhost">↑ Back to top</a></div>
 
 ## Architecture
 
@@ -954,6 +982,8 @@ HULY_EMAIL + HULY_PASSWORD  (or HULY_TOKEN)
 See [`src/connection.ts`](https://github.com/JoKeks2023/huly-mcp/blob/main/src/connection.ts).
 
 ---
+
+<div align="right"><a href="#huly-mcp-selfhost">↑ Back to top</a></div>
 
 ## Development and CI
 
@@ -994,15 +1024,21 @@ Secrets:
 
 ---
 
+<div align="right"><a href="#huly-mcp-selfhost">↑ Back to top</a></div>
+
 ## Changelog
 
 See [CHANGELOG.md](https://github.com/JoKeks2023/huly-mcp/blob/main/CHANGELOG.md).
 
 ---
 
+<div align="right"><a href="#huly-mcp-selfhost">↑ Back to top</a></div>
+
 ## Credits
 
 Started as a fork of [varaprasadreddy9676/huly-mcp](https://github.com/varaprasadreddy9676/huly-mcp) (npm `huly-mcp-sdk`) by SaiVaraprasad Medapati and grown from its 33 tools to 227, with self-hosted support, toolsets, agent workflow and the Claude Code plugin. Published separately as `huly-mcp-selfhost`. Not affiliated with Huly Labs.
+
+<div align="right"><a href="#huly-mcp-selfhost">↑ Back to top</a></div>
 
 ## Links
 
@@ -1011,6 +1047,10 @@ Started as a fork of [varaprasadreddy9676/huly-mcp](https://github.com/varaprasa
 - npm: https://www.npmjs.com/package/huly-mcp-selfhost · Docker: https://hub.docker.com/r/jokeks2023/huly-mcp · MCP Registry: `io.github.JoKeks2023/huly-mcp-selfhost`
 - Security: [SECURITY.md](https://github.com/JoKeks2023/huly-mcp/blob/main/SECURITY.md)
 
+<div align="right"><a href="#huly-mcp-selfhost">↑ Back to top</a></div>
+
 ## License
 
 [Eclipse Public License 2.0](https://github.com/JoKeks2023/huly-mcp/blob/main/LICENSE)
+
+<div align="right"><a href="#huly-mcp-selfhost">↑ Back to top</a></div>
