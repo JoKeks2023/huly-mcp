@@ -124,7 +124,9 @@ test('create_issue_tree dry run: reuses same-title issues, validates #refs, writ
 
 test('changes_since lists changed fields and new comments', async () => {
   const out = text(await changesSince({ workspace: W, since: new Date(T0).toISOString(), limit: 50 }))
-  assert.match(out, /\*\*PROJ-1\*\* \[Todo\] .* changed status · \+2 comment\(s\) \(by Jo Keks\)/)
+  assert.match(out, /^## Changes since .*\(1\), all by Jo Keks\n/)
+  assert.match(out, /\*\*PROJ-1\*\* \[Todo\] .* changed status · \+2 comment\(s\) · /)
+  assert.doesNotMatch(out, /\(by /)
   assert.doesNotMatch(out, /PROJ-2/)
 })
 

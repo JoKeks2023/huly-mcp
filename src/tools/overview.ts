@@ -300,6 +300,8 @@ export const triageInbox = wrapToolHandler<z.infer<typeof S.TriageInboxSchema>>(
   const statuses = new Map(((await client.findAll('core:class:Status', {})) as any[]).map((s) => [s._id, s.name]))
   const names = await peopleNames(client)
 
+  // The same comment on several items (bots posting per PR/issue) is shown once in full.
+  const seen = new Map<string, { line: number, where: string, count: number }>()
   const out: string[] = [`# Inbox triage — ${unread.length}${unread.length === 500 ? '+' : ''} unread on ${groups.size} item(s)${groups.size > limit ? `, newest ${limit} shown` : ''}`]
   for (const ctxId of ctxIds) {
     const notes = groups.get(ctxId)!
@@ -322,10 +324,19 @@ export const triageInbox = wrapToolHandler<z.infer<typeof S.TriageInboxSchema>>(
     const comments = msgs.filter((m) => typeof m.message === 'string' && (m._class === 'chunter:class:ChatMessage' || h.isDerived(m._class, 'chunter:class:ChatMessage')))
     const fields = [...new Set(msgs.filter((m) => m._class === C.DocUpdateMessage).map((m) => m.action === 'create' ? 'created' : m.attributeUpdates?.attrKey === 'attachedTo' ? 'parent' : m.attributeUpdates?.attrKey).filter((k) => k != null && !['rank', 'subIssues', 'comments', 'modifiedOn'].includes(k)))]
     if (fields.length > 0) out.push(`- changed: ${fields.join(', ')}`)
-    for (const m of comments.slice(0, 3).reverse()) out.push(`- 💬 **${who.get(m.createdBy) ?? '?'}**: ${clip(plain(m.message), 200, 'list_comments')}`)
+    for (const m of comments.slice(0, 3).reverse()) {
+      const text = plain(m.message)
+      const author = who.get(m.createdBy) ?? '?'
+      const key = `${author}\u0000${text.slice(0, 160)}`
+      const first = seen.get(key)
+      if (first != null) { first.count++; out.push(`- 💬 **${author}**: _same comment as on ${first.where}_`); continue }
+      seen.set(key, { line: out.length, where: label.split(/[:\s]/)[0], count: 1 })
+      out.push(`- 💬 **${author}**: ${clip(text, 200, 'list_comments')}`)
+    }
     if (comments.length > 3) out.push(`- _${comments.length - 3} older new comment(s)_`)
     if (fields.length === 0 && comments.length === 0) out.push('- (no details recorded)')
   }
+  for (const f of seen.values()) if (f.count > 1) out[f.line] += ` _(same on ${f.count} items)_`
   out.push('', '_Done with an item? mark_notifications_read with its id (e.g. PROJ-12)._')
   return out.join('\n')
 })

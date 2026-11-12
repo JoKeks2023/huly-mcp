@@ -59,7 +59,8 @@ export async function socialIdNames (client: TxOperations, ids: string[]): Promi
   if (ids.length === 0) return new Map()
   const identities: any[] = await client.findAll(contact.class.SocialIdentity as any, { _id: { $in: ids } } as any)
   const names = await peopleNames(client)
-  return new Map(identities.map((i) => [i._id as string, names.get(i.attachedTo) ?? 'Unknown']))
+  // Bots and external accounts (GitHub sync) have no employee name: show their login instead of "Unknown".
+  return new Map(identities.map((i) => [i._id as string, names.get(i.attachedTo) ?? (i.type === 'github' && typeof i.value === 'string' ? `${i.value} (GitHub)` : 'Unknown')]))
 }
 
 /** Account UUID of the connected user (inbox notifications and calendars are keyed by it). */

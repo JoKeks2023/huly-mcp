@@ -45,6 +45,17 @@ afterEach(async () => {
   setConnectionManager(null)
 })
 
+test('normalizeArguments: per-tool aliases (milestoneLabel on milestone tools only)', () => {
+  const ms = new Set(['workspace', 'projectIdentifier', 'label', 'newLabel'])
+  assert.deepEqual(normalizeArguments('update_milestone', { projectIdentifier: 'P', milestoneLabel: 'v1' }, ms), { args: { projectIdentifier: 'P', label: 'v1' } })
+  assert.deepEqual(normalizeArguments('get_milestone', { projectIdentifier: 'P', milestone: 'v1' }, ms), { args: { projectIdentifier: 'P', label: 'v1' } })
+  assert.deepEqual(normalizeArguments('update_component', { projectIdentifier: 'P', componentLabel: 'API' }, ms), { args: { projectIdentifier: 'P', label: 'API' } })
+  // Not on the component tool: a milestone name there is a mistake, not a rename.
+  assert.ok('error' in normalizeArguments('update_component', { projectIdentifier: 'P', milestoneLabel: 'v1' }, ms))
+  // Both given: conflict.
+  assert.ok('error' in normalizeArguments('update_milestone', { projectIdentifier: 'P', label: 'v1', milestoneLabel: 'v2' }, ms))
+})
+
 const mutations = async (): Promise<any[]> => ((await getConnection(W)) as any).mutations
 
 test('normalizeArguments: aliases, workspace always allowed, unknown keys listed', () => {

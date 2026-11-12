@@ -8,7 +8,7 @@ import { createInterface } from 'readline'
 import { z } from 'zod'
 import { TOOLS, TOOLSETS, type ToolDef } from './registry'
 import { guard, isMutation, isRisky, type Asker } from './guard'
-import { normalizeArguments, ARG_ALIASES } from './server'
+import { normalizeArguments, aliasTarget } from './server'
 import { parseEnvFile } from './watch'
 import { closeConnection } from './connection'
 import { packageVersion } from './tools/diagnostics'
@@ -241,7 +241,7 @@ export function buildArgs (tool: ToolDef, parsed: Parsed, io: Io): Record<string
       continue
     }
     const name = camel(rawName)
-    const target = byName.has(name) ? name : (ARG_ALIASES[name] != null && byName.has(ARG_ALIASES[name]) ? ARG_ALIASES[name] : undefined)
+    const target = byName.has(name) ? name : aliasTarget(tool.name, name, new Set(byName.keys()))
     if (target == null) {
       const flags = params.filter((p) => p.name !== 'workspace').map((p) => `--${kebab(p.name)}`)
       const hint = closest(`--${rawName}`, flags)

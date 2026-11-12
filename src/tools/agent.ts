@@ -415,20 +415,28 @@ export const changesSince = wrapToolHandler<z.infer<typeof ChangesSinceSchema>>(
   const authors = await socialIdNames(client, [...new Set([...updates, ...comments].map((m) => m.createdBy).filter((x) => x != null))])
   const statusName = new Map(statuses.map((s) => [s._id, s.name]))
 
-  const lines = issues.map((issue) => {
+  const rows = issues.map((issue) => {
     const ups = updates.filter((u) => u.attachedTo === issue._id)
-    const fields = [...new Set(ups.map((u) => u.attributeUpdates?.attrKey).filter((k) => k != null && k !== 'rank').map((k) => k === 'attachedTo' ? 'parent' : k))]
     const cs = comments.filter((c) => c.attachedTo === issue._id)
-    const who = [...new Set([...ups, ...cs].map((m) => authors.get(m.createdBy)).filter((n) => n != null))]
+    const isNew = issue.createdOn >= since
+    // Fields set while creating an issue are part of "new", not changes.
+    const fields = isNew ? [] : [...new Set(ups.map((u) => u.attributeUpdates?.attrKey).filter((k) => k != null && k !== 'rank').map((k) => k === 'attachedTo' ? 'parent' : k))]
+    const who = [...new Set([...ups, ...cs].map((m) => authors.get(m.createdBy)).filter((n) => n != null))] as string[]
     const parts = [
-      issue.createdOn >= since ? 'new' : undefined,
+      isNew ? 'new' : undefined,
       fields.length > 0 ? `changed ${fields.join(', ')}` : undefined,
       cs.length > 0 ? `+${cs.length} comment(s)` : undefined
     ].filter((p) => p != null)
-    const kind = issue._class === C.PullRequest ? 'PR ' : ''
-    return `- ${kind}**${issue.identifier as string}** [${statusName.get(issue.status) ?? '?'}] ${issue.title as string} — ${parts.length > 0 ? parts.join(' · ') : 'updated'}${who.length > 0 ? ` (by ${who.join(', ')})` : ''} · ${formatDate(issue.modifiedOn)}`
+    return { issue, who, what: parts.length > 0 ? parts.join(' · ') : 'updated' }
   })
-  return `## Changes since ${new Date(since).toISOString()} (${issues.length}${issues.length === args.limit ? '+' : ''})\n\n${lines.join('\n')}`
+  // One author for everything: name them once in the heading instead of on every line.
+  const everyone = [...new Set(rows.flatMap((r) => r.who))]
+  const single = everyone.length === 1 && rows.every((r) => r.who.length === 1)
+  const lines = rows.map(({ issue, who, what }) => {
+    const kind = issue._class === C.PullRequest ? 'PR ' : ''
+    return `- ${kind}**${issue.identifier as string}** [${statusName.get(issue.status) ?? '?'}] ${issue.title as string} — ${what}${!single && who.length > 0 ? ` (by ${who.join(', ')})` : ''} · ${formatDate(issue.modifiedOn)}`
+  })
+  return `## Changes since ${new Date(since).toISOString()} (${issues.length}${issues.length === args.limit ? '+' : ''})${single ? `, all by ${everyone[0]}` : ''}\n\n${lines.join('\n')}`
 })
 
 // ── Claims: lightweight leases so parallel agents do not work on the same issue ──
