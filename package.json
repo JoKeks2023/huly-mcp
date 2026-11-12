@@ -47,7 +47,8 @@
     "start": "node dist/index.js",
     "setup": "node scripts/setup.js",
     "prepublishOnly": "npm run build",
-    "test": "node --import tsx --test test/*.test.ts"
+    "test": "node --import tsx --test test/*.test.ts",
+    "mcpb": "node scripts/mcpb.js"
   },
   "dependencies": {},
   "devDependencies": {

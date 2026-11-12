@@ -39,7 +39,7 @@
     'claude-desktop': {
       name: 'Claude Desktop',
       file: '~/Library/Application Support/Claude/claude_desktop_config.json',
-      note: 'Windows: %APPDATA%\\Claude\\claude_desktop_config.json — restart Claude Desktop after saving.',
+      note: 'Easiest: download huly-mcp-selfhost.mcpb from the latest GitHub release and double-click it — no Node.js, no JSON. By hand: this file (Windows: %APPDATA%\\Claude\\claude_desktop_config.json), then restart Claude Desktop.',
       render: function (vars) {
         return '{\n' +
           '  "mcpServers": {\n' +

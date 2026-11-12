@@ -1,0 +1,118 @@
+{
+  "manifest_version": "0.3",
+  "name": "huly-mcp-selfhost",
+  "display_name": "Huly",
+  "version": "0.0.0",
+  "description": "Work in Huly — issues, epics, documents, chat, inbox, planner — self-hosted or Huly Cloud.",
+  "long_description": "Lets Claude work in your Huly workspaces: issues, epics, milestones, components, documents, chat, inbox, planner, calendar, test management and more. One-call overviews (my day, standup, project report, release notes), start/finish work with PR links, plans and meeting notes into issues, and undo for every change. Works with self-hosted Huly and Huly Cloud. Talks only to your Huly server — no telemetry.",
+  "author": {
+    "name": "Joris Conrad",
+    "url": "https://github.com/JoKeks2023"
+  },
+  "homepage": "https://jokeks2023.github.io/huly-mcp/",
+  "documentation": "https://github.com/JoKeks2023/huly-mcp#readme",
+  "support": "https://github.com/JoKeks2023/huly-mcp/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JoKeks2023/huly-mcp"
+  },
+  "license": "EPL-2.0",
+  "icon": "icon.png",
+  "keywords": [
+    "huly",
+    "project management",
+    "issues",
+    "tracker",
+    "self-hosted"
+  ],
+  "server": {
+    "type": "node",
+    "entry_point": "server/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": [
+        "${__dirname}/server/index.js"
+      ],
+      "env": {
+        "HULY_EMAIL": "${user_config.huly_email}",
+        "HULY_PASSWORD": "${user_config.huly_password}",
+        "HULY_TOKEN": "${user_config.huly_token}",
+        "HULY_ACCOUNTS_URL": "${user_config.huly_accounts_url}",
+        "HULY_FRONT_URL": "${user_config.huly_front_url}",
+        "HULY_WORKSPACE": "${user_config.huly_workspace}",
+        "HULY_TOOLSETS": "${user_config.huly_toolsets}",
+        "HULY_WRITE_PROJECTS": "${user_config.huly_write_projects}",
+        "HULY_FILE_ROOT": "${user_config.huly_file_root}",
+        "HULY_ANNOTATIONS": "1"
+      }
+    }
+  },
+  "user_config": {
+    "huly_email": {
+      "type": "string",
+      "title": "Huly e-mail",
+      "description": "Login e-mail of your Huly account. Google/GitHub login: leave empty and use a token.",
+      "required": false
+    },
+    "huly_password": {
+      "type": "string",
+      "title": "Huly password",
+      "description": "Password of the Huly account. Stored in your system keychain.",
+      "sensitive": true,
+      "required": false
+    },
+    "huly_token": {
+      "type": "string",
+      "title": "Huly token (instead of e-mail/password)",
+      "description": "API token from Huly → Settings → API tokens, or from: npx huly-mcp-selfhost setup",
+      "sensitive": true,
+      "required": false
+    },
+    "huly_accounts_url": {
+      "type": "string",
+      "title": "Accounts URL (self-hosted)",
+      "description": "e.g. https://huly.example.com/_accounts — leave empty for Huly Cloud",
+      "required": false
+    },
+    "huly_front_url": {
+      "type": "string",
+      "title": "Front URL (self-hosted)",
+      "description": "e.g. https://huly.example.com — needed for descriptions, documents and files",
+      "required": false
+    },
+    "huly_workspace": {
+      "type": "string",
+      "title": "Workspace (optional)",
+      "description": "Pin one workspace (slug or name): fewer tokens. Empty = all workspaces of the account",
+      "required": false
+    },
+    "huly_toolsets": {
+      "type": "string",
+      "title": "Toolsets (optional)",
+      "description": "Comma-separated, e.g. tracker,documents,planner — or all. Empty = defaults",
+      "required": false
+    },
+    "huly_write_projects": {
+      "type": "string",
+      "title": "Writable projects (optional)",
+      "description": "Only allow changes in these project keys, e.g. TSK,WEB. Empty = all",
+      "required": false
+    },
+    "huly_file_root": {
+      "type": "directory",
+      "title": "Local file folder (optional)",
+      "description": "Drive uploads and downloads may use local paths inside this folder",
+      "required": false
+    }
+  },
+  "compatibility": {
+    "platforms": [
+      "darwin",
+      "win32",
+      "linux"
+    ],
+    "runtimes": {
+      "node": ">=20.0.0"
+    }
+  }
+}

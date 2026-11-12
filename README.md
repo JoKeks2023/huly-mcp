@@ -84,7 +84,7 @@ Same self-hosted Huly, same questions, the best parameters on both sides, measur
 
 ## Quick start
 
-You need Node.js 20+ and a Huly account — [Huly Cloud](https://huly.app) or self-hosted.
+You need a Huly account — [Huly Cloud](https://huly.app) or self-hosted — and, except for the Claude Desktop extension, Node.js 20+.
 
 **Claude Code** — install the plugin, then fill in its settings when asked:
 
@@ -95,7 +95,9 @@ You need Node.js 20+ and a Huly account — [Huly Cloud](https://huly.app) or se
 
 Then run `/huly:setup` in a repository. Details: [Claude Code plugin](#claude-code-plugin).
 
-**Claude Desktop, Cursor, VS Code, Windsurf, Zed, …** — add the server to your client's MCP config:
+**Claude Desktop** — download [`huly-mcp-selfhost.mcpb`](https://github.com/JoKeks2023/huly-mcp/releases/latest/download/huly-mcp-selfhost.mcpb), double-click it and enter your Huly login. Nothing else to install.
+
+**Cursor, VS Code, Windsurf, Zed, …** (or Claude Desktop by hand) — add the server to your client's MCP config:
 
 ```json
 {
@@ -564,6 +566,10 @@ The same MCP server works across all major AI coding tools. All examples use **e
 ---
 
 ### Claude Desktop
+
+**One click:** download [`huly-mcp-selfhost.mcpb`](https://github.com/JoKeks2023/huly-mcp/releases/latest/download/huly-mcp-selfhost.mcpb) and double-click it (or *Settings → Extensions → Advanced settings → Install Extension…*). Claude Desktop shows a form for your Huly login; password and token go to the system keychain. No Node.js or JSON needed — Claude Desktop brings its own Node.js.
+
+**Or by hand** in the config file:
 
 - **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
 - **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
