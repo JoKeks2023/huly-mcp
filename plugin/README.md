@@ -16,7 +16,7 @@ This is a community plugin. It is not made or endorsed by Huly Labs.
 
 ## What it runs
 
-- **MCP server:** `npx -y huly-mcp-selfhost@<version>` — the npm package [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mcp-selfhost) at exactly the plugin's version, open source in this repository. `npx` downloads it from the npm registry on first start.
+- **MCP server:** `node ${CLAUDE_PLUGIN_ROOT}/server/index.js` — the server of this release, bundled into one readable, unminified file (built with esbuild from `src/` in this repository; the same file as the npm package [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mcp-selfhost)). Nothing is downloaded at start; the release checks that the file matches its own build. It reads the plugin settings as `CLAUDE_PLUGIN_OPTION_HULY_*`.
 - **Hooks** (Node.js, local only, no network):
   - `SessionStart` — reads the git remote and branch name and checks whether `CLAUDE.md`/`CLAUDE.local.md`/`AGENTS.md` has a `## Huly` section, then tells Claude which repo and issue the session is about.
   - `PostToolUse` on Bash — after `gh pr create` / `gh pr merge`, reminds Claude to link the PR to its Huly issue and keep the status current.

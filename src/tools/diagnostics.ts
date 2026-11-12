@@ -1,6 +1,7 @@
 // check_setup: one call that says whether this server is configured right and up to date.
 // Never prints secrets — only which settings are present and which hosts are used.
 import { readFileSync } from 'fs'
+import { VERSION } from '../version'
 import { join } from 'path'
 import type { z } from 'zod'
 import { listWorkspaces, getWorkspace, tokenClaims, getConnectionManager } from '../connection'
@@ -19,7 +20,8 @@ export function packageVersion (): string {
     } catch { /* keep looking */ }
     dir = join(dir, '..')
   }
-  return 'unknown'
+  // Bundled without a package.json next to it (Claude plugin, desktop extension): the built-in version.
+  return VERSION
 }
 
 /** Host of a URL, never its path, query or credentials. */

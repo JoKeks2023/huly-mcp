@@ -54,6 +54,8 @@ jobs:
 
       - run: npm ci
       - run: npm run build
+      - name: Plugin ships the server of this release
+        run: node scripts/plugin-bundle.js --check
       - run: npm test
       - run: node .github/scripts/stdio-smoke.mjs node dist/index.js
       - run: node .github/scripts/package-check.mjs

@@ -2,6 +2,10 @@
 
 All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mcp-selfhost). Versions follow [semver](https://semver.org).
 
+### 3.6.2 — 2026-11-12
+
+- **Claude plugin: the server ships inside the plugin** — `node ${CLAUDE_PLUGIN_ROOT}/server/index.js` instead of `npx huly-mcp-selfhost@…`. The Claude plugin directory blocks a server that the start command downloads and runs. The file is the bundled build of the release (readable, not minified, the same as in the npm package); the release checks that it matches its own build. Starts faster and works offline. Guides are read from the plugin's skill files, the version is built in.
+
 ### 3.6.1 — 2026-11-12
 
 - **Claude plugin directory: the plugin passes its settings the way the directory requires** — as `CLAUDE_PLUGIN_OPTION_HULY_*` (e.g. `CLAUDE_PLUGIN_OPTION_HULY_EMAIL`) instead of `HULY_*` with `${user_config.…}` in the npx command, which the directory's validator blocked. The server reads those names as the matching `HULY_*` setting (an explicit `HULY_*` value still wins) and, started as a plugin, turns tool annotations on. Nothing changes for other setups.

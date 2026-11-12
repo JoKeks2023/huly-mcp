@@ -61,7 +61,7 @@ test('version is the same in package.json, server.json, the plugin and the MCP s
   assert.ok(server.description.length <= 100, `server.json description is ${server.description.length} chars; the MCP registry rejects more than 100`)
   for (const p of server.packages ?? []) assert.equal(p.version, version, `server.json package ${String(p.identifier)} version`)
   assert.equal(json('plugin/.claude-plugin/plugin.json').version, version, 'plugin.json version')
-  assert.match(read('src/server.ts'), new RegExp(`name: 'huly-mcp-selfhost', version: '${escapeRe(version)}'`), 'McpServer version in src/server.ts')
+  assert.match(read('src/version.ts'), new RegExp(`VERSION = '${escapeRe(version)}'`), 'VERSION in src/version.ts')
 })
 
 test('plugin: manifests parse, commands and skills have frontmatter, hook scripts exist', () => {
@@ -70,7 +70,7 @@ test('plugin: manifests parse, commands and skills have frontmatter, hook script
   const market = json('.claude-plugin/marketplace.json')
   for (const p of market.plugins) assert.ok(existsSync(join(ROOT, p.source)), `marketplace source ${String(p.source)} exists`)
   const mcp = json('plugin/.mcp.json')
-  assert.match(mcp.mcpServers.huly.args.join(' '), /huly-mcp-selfhost@\^?\d+\.\d+\.\d+/)
+  for (const a of mcp.mcpServers.huly.args) assert.ok(existsSync(join(ROOT, 'plugin', String(a).replace('${CLAUDE_PLUGIN_ROOT}/', ''))), `MCP server file ${String(a)} exists`)
   const hooks = json('plugin/hooks/hooks.json').hooks
   for (const groups of Object.values<any[]>(hooks)) {
     for (const g of groups) {
