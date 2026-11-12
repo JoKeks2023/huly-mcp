@@ -2,7 +2,7 @@
 
 All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mcp-selfhost). Versions follow [semver](https://semver.org).
 
-### Unreleased
+### 3.6.0 — 2026-11-12
 
 - **New: Claude Desktop extension** — `huly-mcp-selfhost.mcpb` on every GitHub release: double-click, enter your Huly login in Claude Desktop's form (password and token go to the system keychain), done — no Node.js, no JSON. Built from the same bundled server; the release smoke-tests it before attaching it.
 - **Clearer tool descriptions** for the tools rated weakest by Glama's Tool Definition Quality Score (`list_todos`, `search`, `create_document`, `delete_comment`, …): verb first, the key default or side effect, the tool to use instead. +732 characters in the default tool list (+1.9 %). `create_document` now points to `update_document` for the body.
@@ -11,6 +11,7 @@ All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mc
 - **Aliases per tool**: `update_milestone`/`get_milestone` accept `milestoneLabel` for `label`, `update_component` accepts `componentLabel` — the names other tools use.
 - **Release workflow** waits up to 15 minutes for npm before the MCP registry publish and retries it (3.5.1 needed a manual re-run).
 - Website and README: navigation with jump links, back-to-top links, plugin icon for the Claude directory.
+- Issue forms (bug report asks for `check_setup` output), questions in GitHub Discussions, private security reports.
 
 ### 3.5.1 — 2026-11-11
 

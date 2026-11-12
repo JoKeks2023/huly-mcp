@@ -1,0 +1,23 @@
+name: Feature request
+description: A Huly feature the server should cover, or a better way to do something
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: What do you want to do?
+      description: Describe the task in your words — what you'd ask your AI client. The tool design follows from that.
+      placeholder: |
+        "Show me every issue in WEB that has no estimate, grouped by milestone."
+    validations:
+      required: true
+  - type: textarea
+    id: today
+    attributes:
+      label: What happens today?
+      description: Does it fail, need many calls, or cost too many tokens? Tool names help.
+  - type: input
+    id: area
+    attributes:
+      label: Huly area
+      placeholder: Tracker, documents, planner, test management, recruiting, …
