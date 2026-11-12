@@ -4,7 +4,7 @@
       "command": "npx",
       "args": [
         "-y",
-        "huly-mcp-selfhost@3.5.1"
+        "huly-mcp-selfhost@3.6.0"
       ],
       "env": {
         "HULY_EMAIL": "${user_config.huly_email}",
