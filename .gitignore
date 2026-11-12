@@ -4,3 +4,4 @@ dist/
 .mcpregistry_github_token
 .mcpregistry_registry_token
 .DS_Store
+build/

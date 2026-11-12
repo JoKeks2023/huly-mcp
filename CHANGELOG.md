@@ -2,6 +2,16 @@
 
 All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mcp-selfhost). Versions follow [semver](https://semver.org).
 
+### Unreleased
+
+- **New: Claude Desktop extension** — `huly-mcp-selfhost.mcpb` on every GitHub release: double-click, enter your Huly login in Claude Desktop's form (password and token go to the system keychain), done — no Node.js, no JSON. Built from the same bundled server; the release smoke-tests it before attaching it.
+- **Clearer tool descriptions** for the tools rated weakest by Glama's Tool Definition Quality Score (`list_todos`, `search`, `create_document`, `delete_comment`, …): verb first, the key default or side effect, the tool to use instead. +732 characters in the default tool list (+1.9 %). `create_document` now points to `update_document` for the body.
+- **`changes_since` is shorter** — fields set when an issue was created count as "new", and when one person made every change the name appears once in the heading (−14 % measured on 14 days of changes).
+- **`triage_inbox`**: a comment that appears on several items (bots commenting on every PR) is shown once in full; GitHub-synced accounts are named by their login (`dependabot[bot] (GitHub)`) instead of "Unknown".
+- **Aliases per tool**: `update_milestone`/`get_milestone` accept `milestoneLabel` for `label`, `update_component` accepts `componentLabel` — the names other tools use.
+- **Release workflow** waits up to 15 minutes for npm before the MCP registry publish and retries it (3.5.1 needed a manual re-run).
+- Website and README: navigation with jump links, back-to-top links, plugin icon for the Claude directory.
+
 ### 3.5.1 — 2026-11-11
 
 - **Fixed: `resources/list` failed without a usable login** — it tried to list your open issues and errored when the login was missing or wrong (e.g. in an inspector or a client not set up yet). Now the guides are listed and issues are simply left out. Found through Glama's inspection.

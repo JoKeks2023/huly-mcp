@@ -95,6 +95,18 @@ jobs:
           if gh release view "$TAG" >/dev/null 2>&1; then gh release edit "$TAG" --notes-file notes.md
           else gh release create "$TAG" --title "$title" --notes-file notes.md --verify-tag --latest; fi
 
+      - name: Claude Desktop extension (.mcpb) on the GitHub release
+        id: mcpb
+        # Optional: a problem here must not fail the release.
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node scripts/mcpb.js build
+          mkdir -p build/check && unzip -q "build/huly-mcp-selfhost.mcpb" -d build/check
+          node .github/scripts/stdio-smoke.mjs node build/check/server/index.js
+          gh release upload "$TAG" "build/huly-mcp-selfhost.mcpb" --clobber
+
       - name: Publish to the MCP registry
         id: registry
         # The registry verifies the npm package, so only after npm worked.
@@ -115,6 +127,10 @@ jobs:
             echo "registry publish attempt $attempt failed"; [ "$attempt" -lt 3 ] && sleep 60
           done
           exit 1
+
+      - name: Warn if the Desktop extension is missing
+        if: steps.mcpb.outcome == 'failure'
+        run: echo "::warning::The .mcpb was not attached to $TAG (see 'Claude Desktop extension'). npm and the GitHub release are fine."
 
       - name: Warn if the MCP registry refused the entry
         if: steps.registry.outcome == 'failure'
