@@ -8,7 +8,22 @@
 
 **Huly for AI agents.** An MCP server for [Huly](https://huly.io) — self-hosted or Huly Cloud — that lets Claude and other agents work in your workspaces: issues, epics, milestones, documents, chat, inbox, planner, test management and more. 227 tools, built for agent workflows and to spend as few tokens as possible.
 
-[Website](https://jokeks2023.github.io/huly-mcp/) · [Quick start](#quick-start) · [Tools](#tools-227-total-grouped-in-toolsets) · [Claude Code plugin](#claude-code-plugin) · [Changelog](https://github.com/JoKeks2023/huly-mcp/blob/main/CHANGELOG.md)
+<p align="center">
+  <b><a href="#quick-start">Quick start</a></b> ·
+  <a href="#compatible-clients">Clients</a> ·
+  <a href="#claude-code-plugin">Claude Code plugin</a> ·
+  <a href="#command-line">Command line</a> ·
+  <a href="#team-server-over-http">Team server</a> ·
+  <a href="#tools-227-total-grouped-in-toolsets">Tools</a> ·
+  <a href="#configuration">Configuration</a> ·
+  <a href="#authentication">Authentication</a>
+  <br>
+  <a href="https://jokeks2023.github.io/huly-mcp/">Website</a> ·
+  <a href="https://github.com/JoKeks2023/huly-mcp/wiki/">Docs</a> ·
+  <a href="https://github.com/JoKeks2023/huly-mcp/blob/main/CHANGELOG.md">Changelog</a> ·
+  <a href="https://www.npmjs.com/package/huly-mcp-selfhost">npm</a> ·
+  <a href="https://hub.docker.com/r/jokeks2023/huly-mcp">Docker Hub</a>
+</p>
 
 ## Highlights
 
