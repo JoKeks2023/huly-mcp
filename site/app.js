@@ -220,4 +220,41 @@
       sync()
     })
   }
+
+  // ── Navigation: bar height for anchors, current section ──────────────────
+  var bar = document.getElementById('bar')
+  function setBarHeight () { if (bar) root.style.setProperty('--bar-h', bar.offsetHeight + 'px') }
+  setBarHeight()
+  window.addEventListener('resize', setBarHeight)
+
+  var strip = document.querySelector('.sections')
+  var links = strip ? Array.prototype.slice.call(strip.querySelectorAll('a[href^="#"]')) : []
+  var byId = {}
+  links.forEach(function (a) { byId[a.getAttribute('href').slice(1)] = a })
+
+  // Sections without their own link count as part of the one before.
+  var ALIAS = { 'multi-workspace': 'why', architecture: 'tools' }
+
+  function mark (id) {
+    id = ALIAS[id] || id
+    links.forEach(function (a) { a.removeAttribute('aria-current') })
+    var a = byId[id]
+    if (!a) return
+    a.setAttribute('aria-current', 'true')
+    // Keep the active link visible in the narrow-screen strip without scrolling the page.
+    if (strip.scrollWidth > strip.clientWidth) {
+      var left = a.offsetLeft - (strip.clientWidth - a.offsetWidth) / 2
+      strip.scrollTo({ left: Math.max(0, left), behavior: 'smooth' })
+    }
+  }
+
+  if ('IntersectionObserver' in window) {
+    var current = null
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting && e.target.id !== current) { current = e.target.id; mark(current) }
+      })
+    }, { rootMargin: '-40% 0px -55% 0px' })
+    document.querySelectorAll('main section').forEach(function (s) { io.observe(s) })
+  }
 })()
