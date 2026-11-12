@@ -4,7 +4,7 @@ import { McpServer, ResourceTemplate } from '@modelcontextprotocol/sdk/server/mc
 import { completable } from '@modelcontextprotocol/sdk/server/completable.js'
 import { SubscribeRequestSchema, UnsubscribeRequestSchema } from '@modelcontextprotocol/sdk/types.js'
 import { z } from 'zod'
-import { readFileSync } from 'fs'
+import { existsSync, readFileSync } from 'fs'
 import { join } from 'path'
 import tracker from '@hcengineering/tracker'
 import task from '@hcengineering/task'
@@ -95,7 +95,10 @@ export function readGuide (name: string): string {
   if (g == null) throw new Error(`Unknown guide: ${name}. Available: ${Object.keys(GUIDES).join(', ')}`)
   let text: string
   try { text = readFileSync(join(__dirname, 'guides', `${name}.md`), 'utf8') } catch {
-    text = readFileSync(join(__dirname, '..', 'plugin', 'skills', 'huly', g.file), 'utf8').replace(/\r\n/g, '\n').replace(/^---\n[\s\S]*?\n---\n+/, '')
+    // From source (src/ → plugin/skills) or bundled inside the Claude plugin (plugin/server/ → plugin/skills).
+    const skill = [join(__dirname, '..', 'plugin', 'skills', 'huly', g.file), join(__dirname, '..', 'skills', 'huly', g.file)]
+      .find((f) => existsSync(f)) ?? join(__dirname, '..', 'plugin', 'skills', 'huly', g.file)
+    text = readFileSync(skill, 'utf8').replace(/\r\n/g, '\n').replace(/^---\n[\s\S]*?\n---\n+/, '')
   }
   // Links between the skill files become links between the resources.
   return text.replace(/\]\((SKILL|costs|onboarding|features)\.md\)/g, (_m, f: string) => `](huly://guide/${f === 'SKILL' ? 'workflow' : f})`)

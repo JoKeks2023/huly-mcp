@@ -137,13 +137,13 @@ The repo is also a Claude Code plugin marketplace. The plugin bundles the MCP se
 /plugin install huly@huly-mcp
 ```
 
-> **Note:** the plugin starts the npm package at exactly its own version (e.g. `huly-mcp-selfhost@3.6.1`; the plugin directory does not accept version ranges), so a plugin update brings the matching server. To try a local checkout instead: `npm run build`, then point `plugin/.mcp.json` at `dist/index.js` and start `claude --plugin-dir ./plugin`.
+> **Note:** the plugin brings its own copy of the server (`plugin/server/index.js`, the bundled build of its release — nothing is downloaded at start), so a plugin update brings the matching server. To try a local checkout: `npm run build && npm run plugin:bundle`, then `claude --plugin-dir ./plugin`.
 
 Claude Code then asks for your Huly settings (e-mail + password or token, and for self-hosted Huly the accounts and front URL; passwords and tokens go to the OS keychain).
 
 | Part | What it does |
 |------|--------------|
-| MCP server | `huly-mcp-selfhost` via `npx`, configured from the plugin settings (toolsets, on-demand loading, pinned workspace and writable projects included); tool annotations on (`HULY_ANNOTATIONS=1`) |
+| MCP server | `huly-mcp-selfhost`, bundled in the plugin (no `npx`), configured from the plugin settings (toolsets, on-demand loading, pinned workspace and writable projects included); tool annotations on (`HULY_ANNOTATIONS=1`) |
 | Skill `huly` | How to use Huly while coding at the lowest token cost: the repo's `## Huly` rules first, find the project for the repo, pick up/hand back issues, status flow, duplicate check, component + milestone, epics for plans, cheapest call per question. Reference files are read only when needed: `costs.md` (measured output size per call), `onboarding.md` (bringing a project into Huly) and `features.md` (all of Huly for a software project — labels, templates, test management incl. CI import, documents, drive, custom fields, cards — with the toolsets each needs) |
 | Hook on session start | Reports the GitHub repo and branch; a branch like `proj-12-login` points Claude to issue `PROJ-12`; points to the repo's `## Huly` rules or offers `/huly:setup` (no network, no credentials) |
 | Hook after `gh pr create` / `gh pr merge` | Reminds Claude to link the new PR to its issue (`finish_work`) or to check the status after a merge |
@@ -748,7 +748,7 @@ For network access (HTTP/SSE) use the [Docker image](#docker).
 
 ### npx (recommended)
 
-Every client example uses `"command": "npx", "args": ["-y", "huly-mcp-selfhost"]`. Pin a version (`huly-mcp-selfhost@3.6.1`) if you want updates only when you choose.
+Every client example uses `"command": "npx", "args": ["-y", "huly-mcp-selfhost"]`. Pin a version (`huly-mcp-selfhost@3.6.2`) if you want updates only when you choose.
 
 ### From source
 

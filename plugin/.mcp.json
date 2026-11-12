@@ -1,10 +1,9 @@
 {
   "mcpServers": {
     "huly": {
-      "command": "npx",
+      "command": "node",
       "args": [
-        "-y",
-        "huly-mcp-selfhost@3.6.1"
+        "${CLAUDE_PLUGIN_ROOT}/server/index.js"
       ],
       "env": {
         "CLAUDE_PLUGIN_OPTION_HULY_EMAIL": "${user_config.huly_email}",

@@ -92,7 +92,11 @@ test('plugin files: marketplace points to the plugin, MCP env covers every setti
   for (const key of Object.keys(manifest.userConfig)) {
     assert.ok(Object.values(env).includes(`\${user_config.${key}}`), `${key} is not passed to the server`)
   }
-  assert.match(mcp.mcpServers.huly.args.join(' '), new RegExp(`huly-mcp-selfhost@${pkg.version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`), 'exact version: the plugin directory blocks ranges')
+  // The plugin directory blocks servers that npx downloads: the plugin runs its own copy of the bundle.
+  assert.equal(mcp.mcpServers.huly.command, 'node')
+  assert.deepEqual(mcp.mcpServers.huly.args, ['${CLAUDE_PLUGIN_ROOT}/server/index.js'])
+  const bundle = readFileSync('plugin/server/index.js', 'utf8')
+  assert.match(bundle, new RegExp(`VERSION = ["']${pkg.version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["']`), 'plugin/server/index.js is the current version (npm run build && npm run plugin:bundle)')
 })
 
 test('hulyRules: a "## Huly" section in CLAUDE.md, .claude/CLAUDE.md, CLAUDE.local.md or AGENTS.md counts as set', () => {
