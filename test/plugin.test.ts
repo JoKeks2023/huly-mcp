@@ -36,6 +36,30 @@ test('normalizeEnv drops empty and unresolved HULY_* values, keeps others', () =
   assert.deepEqual(env, { HULY_EMAIL: 'me@example.com', OTHER: '' })
 })
 
+test('normalizeEnv reads plugin options (CLAUDE_PLUGIN_OPTION_HULY_*) and turns annotations on', () => {
+  const env: NodeJS.ProcessEnv = {
+    CLAUDE_PLUGIN_OPTION_HULY_EMAIL: 'me@example.com',
+    CLAUDE_PLUGIN_OPTION_HULY_PASSWORD: 'pw',
+    CLAUDE_PLUGIN_OPTION_HULY_TOKEN: '',
+    CLAUDE_PLUGIN_OPTION_HULY_WORKSPACE: '${user_config.huly_workspace}',
+    CLAUDE_PLUGIN_OPTION_HULY_FRONT_URL: 'https://huly.example.com',
+    HULY_FRONT_URL: 'https://explicit.example.com'
+  }
+  normalizeEnv(env)
+  assert.equal(env.HULY_EMAIL, 'me@example.com')
+  assert.equal(env.HULY_PASSWORD, 'pw')
+  assert.equal(env.HULY_TOKEN, undefined)
+  assert.equal(env.HULY_WORKSPACE, undefined)
+  assert.equal(env.HULY_FRONT_URL, 'https://explicit.example.com', 'an explicit HULY_* value wins')
+  assert.equal(env.HULY_ANNOTATIONS, '1')
+  const off: NodeJS.ProcessEnv = { CLAUDE_PLUGIN_OPTION_HULY_EMAIL: '', HULY_ANNOTATIONS: '0' }
+  normalizeEnv(off)
+  assert.equal(off.HULY_ANNOTATIONS, '0')
+  const none: NodeJS.ProcessEnv = { HULY_EMAIL: 'a@b.c' }
+  normalizeEnv(none)
+  assert.equal(none.HULY_ANNOTATIONS, undefined, 'not a plugin: annotations stay off')
+})
+
 test('find_project_for_repo maps a GitHub repo to the linked project', async () => {
   const env = createFakeEnv({
     workspaces: [PERSONAL],

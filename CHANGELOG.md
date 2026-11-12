@@ -2,6 +2,10 @@
 
 All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mcp-selfhost). Versions follow [semver](https://semver.org).
 
+### 3.6.1 — 2026-11-12
+
+- **Claude plugin directory: the plugin passes its settings the way the directory requires** — as `CLAUDE_PLUGIN_OPTION_HULY_*` (e.g. `CLAUDE_PLUGIN_OPTION_HULY_EMAIL`) instead of `HULY_*` with `${user_config.…}` in the npx command, which the directory's validator blocked. The server reads those names as the matching `HULY_*` setting (an explicit `HULY_*` value still wins) and, started as a plugin, turns tool annotations on. Nothing changes for other setups.
+
 ### 3.6.0 — 2026-11-12
 
 - **New: Claude Desktop extension** — `huly-mcp-selfhost.mcpb` on every GitHub release: double-click, enter your Huly login in Claude Desktop's form (password and token go to the system keychain), done — no Node.js, no JSON. Built from the same bundled server; the release smoke-tests it before attaching it.

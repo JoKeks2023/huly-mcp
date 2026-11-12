@@ -4,20 +4,19 @@
       "command": "npx",
       "args": [
         "-y",
-        "huly-mcp-selfhost@3.6.0"
+        "huly-mcp-selfhost@3.6.1"
       ],
       "env": {
-        "HULY_EMAIL": "${user_config.huly_email}",
-        "HULY_PASSWORD": "${user_config.huly_password}",
-        "HULY_TOKEN": "${user_config.huly_token}",
-        "HULY_ACCOUNTS_URL": "${user_config.huly_accounts_url}",
-        "HULY_FRONT_URL": "${user_config.huly_front_url}",
-        "HULY_WORKSPACE": "${user_config.huly_workspace}",
-        "HULY_TOOLSETS": "${user_config.huly_toolsets}",
-        "HULY_DYNAMIC_TOOLSETS": "${user_config.huly_dynamic_toolsets}",
-        "HULY_WRITE_PROJECTS": "${user_config.huly_write_projects}",
-        "HULY_FILE_ROOT": "${user_config.huly_file_root}",
-        "HULY_ANNOTATIONS": "1"
+        "CLAUDE_PLUGIN_OPTION_HULY_EMAIL": "${user_config.huly_email}",
+        "CLAUDE_PLUGIN_OPTION_HULY_PASSWORD": "${user_config.huly_password}",
+        "CLAUDE_PLUGIN_OPTION_HULY_TOKEN": "${user_config.huly_token}",
+        "CLAUDE_PLUGIN_OPTION_HULY_ACCOUNTS_URL": "${user_config.huly_accounts_url}",
+        "CLAUDE_PLUGIN_OPTION_HULY_FRONT_URL": "${user_config.huly_front_url}",
+        "CLAUDE_PLUGIN_OPTION_HULY_WORKSPACE": "${user_config.huly_workspace}",
+        "CLAUDE_PLUGIN_OPTION_HULY_TOOLSETS": "${user_config.huly_toolsets}",
+        "CLAUDE_PLUGIN_OPTION_HULY_DYNAMIC_TOOLSETS": "${user_config.huly_dynamic_toolsets}",
+        "CLAUDE_PLUGIN_OPTION_HULY_WRITE_PROJECTS": "${user_config.huly_write_projects}",
+        "CLAUDE_PLUGIN_OPTION_HULY_FILE_ROOT": "${user_config.huly_file_root}"
       }
     }
   }
