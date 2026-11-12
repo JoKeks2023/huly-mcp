@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Question or setup help
+    url: https://github.com/JoKeks2023/huly-mcp/discussions/categories/q-a
+    about: How do I …? Which login, which toolsets, self-hosted URLs — ask in Discussions.
+  - name: Show what you built
+    url: https://github.com/JoKeks2023/huly-mcp/discussions/categories/show-and-tell
+    about: Workflows, prompts and setups that work well for you.
+  - name: Security problem
+    url: https://github.com/JoKeks2023/huly-mcp/security/advisories/new
+    about: Report privately, please — not as a public issue.
