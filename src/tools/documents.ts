@@ -173,7 +173,7 @@ export const createDocument = wrapToolHandler<z.infer<typeof CreateDocumentSchem
     docId
   )
 
-  return `✅ Document **"${args.title}"** created (id: \`${docId}\`) in teamspace "${teamspace.name}".\nOpen it in Huly to add content via the editor.`
+  return `✅ Document **"${args.title}"** created (id: \`${docId}\`) in teamspace "${teamspace.name}".\nWrite its content with update_document.`
 })
 
 export const deleteDocument = wrapToolHandler<z.infer<typeof DeleteDocumentSchema>>(async (args) => {

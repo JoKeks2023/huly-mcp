@@ -7,7 +7,7 @@ MCP server for [Huly](https://huly.io), self-hosted or Huly Cloud: Claude and ot
 - **Log in with Huly (OAuth)** — people add `https://<your host>/mcp` in Claude Code, Claude's custom connectors or another MCP client and log in in the browser (password, or a one-time e-mail code for Google/GitHub accounts). Stateless: nothing to store, survives restarts.
 - **Fast** — persistent sessions; a call takes ~0.2 s, the first one included.
 - **Agent workflows** — `my_day`, `standup`, `project_report`, `start_work` → `finish_work`, plans → epics, meeting notes → issues, `undo_changes`.
-- **Few tokens** — measured 2.9× less text per answer and 14× smaller tool definitions than another popular Huly MCP server.
+- **Few tokens** — measured 2.9× less text per answer and 13× smaller tool definitions than another popular Huly MCP server.
 - **No telemetry.** It talks to your Huly server and nothing else.
 
 **Full documentation, all tools, the Claude Code plugin and the command line:** https://github.com/JoKeks2023/huly-mcp

@@ -144,7 +144,7 @@ export const ListComponentsSchema = z.object({
 export const CreateComponentSchema = z.object({
   workspace: WorkspaceArg,
   projectIdentifier: z.string().describe('Project key'),
-  label: z.string().min(1),
+  label: z.string().min(1).describe('Component name'),
   description: z.string().optional(),
   lead: z.string().optional().describe('Person name')
 })
@@ -197,7 +197,7 @@ export const GetDocumentSchema = z.object({
 export const CreateDocumentSchema = z.object({
   workspace: WorkspaceArg,
   teamspaceId: z.string().describe('Teamspace id'),
-  title: z.string().min(1),
+  title: z.string().min(1).describe('Document title'),
   parentId: z.string().optional().describe('Parent document id; omit for top-level')
 })
 
@@ -222,7 +222,7 @@ export const ListLabelsSchema = z.object({
 
 export const CreateLabelSchema = z.object({
   workspace: WorkspaceArg,
-  title: z.string().min(1),
+  title: z.string().min(1).describe('Label name'),
   color: z.string().optional().describe('Hex color, e.g. #FF6B6B')
 })
 
