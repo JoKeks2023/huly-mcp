@@ -8,7 +8,10 @@ files=$(git ls-files | grep -vE '^package-lock\.json$|^\.github/scripts/personal
 generic='/Users/[A-Za-z0-9._-]+|/home/[a-z][a-z0-9_-]*/|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}|\b(192\.168|10\.[0-9]{1,3}|172\.(1[6-9]|2[0-9]|3[01]))\.[0-9]{1,3}\.[0-9]{1,3}\b'
 # Known harmless: placeholders, git remotes, attribution addresses.
 allow='/home/me/|/home/build/|/Users/<name>|your@email\.com|you@example\.com|@example\.(com|org)|git@github\.com|noreply@anthropic\.com|users\.noreply\.github\.com'
-hits=$(echo "$files" | xargs grep -nIE "$generic" 2>/dev/null | grep -vE "$allow" || true)
+# The bundled server in the plugin (a build of src/ plus third-party libraries) is full of example
+# IPs and addresses from those libraries; it gets only the private patterns. dist/ is checked the same way at release.
+generic_files=$(echo "$files" | grep -vE '^plugin/server/index\.js$')
+hits=$(echo "$generic_files" | xargs grep -nIE "$generic" 2>/dev/null | grep -vE "$allow" || true)
 if [ -n "${PERSONAL_DATA_PATTERNS:-}" ]; then
   while IFS= read -r p; do
     [ -z "$p" ] && continue
