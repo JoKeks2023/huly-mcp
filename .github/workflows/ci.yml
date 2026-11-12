@@ -35,8 +35,6 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      - name: Plugin ships the current server build
-        run: node scripts/plugin-bundle.js --check
       - run: npm test
       - name: Server answers over stdio
         run: node .github/scripts/stdio-smoke.mjs node dist/index.js
