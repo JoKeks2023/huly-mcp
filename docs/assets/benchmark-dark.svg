@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 584" width="900" height="584" role="img" aria-labelledby="t d" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
 <title id="t">Characters the model reads per answer: huly-mcp-selfhost vs. another popular Huly MCP server</title>
-<desc id="d">Open issues of a project: 2768 vs 11601 characters; Issues in progress: 211 vs 790 characters; One issue: 318 vs 585 characters; Everything about an issue (fields, sub-issues, comments, relations): 1246 vs 3585 characters; Search: 406 vs 1405 characters; Projects: 550 vs 1041 characters; Milestones: 208 vs 503 characters; Components: 1302 vs 692 characters; Documents of a teamspace: 106 vs 305 characters. Tool definitions of 49 same-named tools: 15728 vs 216890 characters.</desc>
+<desc id="d">Open issues of a project: 2768 vs 11601 characters; Issues in progress: 211 vs 790 characters; One issue: 318 vs 585 characters; Everything about an issue (fields, sub-issues, comments, relations): 1246 vs 3585 characters; Search: 406 vs 1405 characters; Projects: 550 vs 1041 characters; Milestones: 208 vs 503 characters; Components: 1302 vs 692 characters; Documents of a teamspace: 106 vs 305 characters. Tool definitions of 49 same-named tools: 16579 vs 216890 characters.</desc>
 <rect width="900" height="584" rx="8" fill="#1a1a19"/>
 <text x="28" y="58" font-size="34" font-weight="650" fill="#f0efec">2.9×</text><text x="28" y="82" font-size="14" fill="#c3c2b7">less text per answer (median)</text>
-<text x="308" y="58" font-size="34" font-weight="650" fill="#f0efec">14×</text><text x="308" y="82" font-size="14" fill="#c3c2b7">smaller tool definitions</text>
+<text x="308" y="58" font-size="34" font-weight="650" fill="#f0efec">13×</text><text x="308" y="82" font-size="14" fill="#c3c2b7">smaller tool definitions</text>
 <text x="588" y="58" font-size="34" font-weight="650" fill="#f0efec">1</text><text x="588" y="82" font-size="14" fill="#c3c2b7">call instead of up to 4</text>
 <rect x="28" y="108" width="12" height="12" rx="3" fill="#3987e5"/><text x="46" y="119" font-size="13" fill="#f0efec">huly-mcp-selfhost</text>
 <rect x="190" y="108" width="12" height="12" rx="3" fill="#d95926"/><text x="208" y="119" font-size="13" fill="#f0efec">another popular Huly MCP server</text>

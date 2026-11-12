@@ -42,8 +42,8 @@ What the model reads — measured on a real self-hosted project (≈60 issues):
 
 | | Characters | ≈ Tokens |
 |---|--:|--:|
-| Tool list, default toolsets (99 tools, each callable directly) | 38,259 | 10.9k |
-| Tool list, pinned workspace | 34,567 | 9.9k |
+| Tool list, default toolsets (99 tools, each callable directly) | 38,991 | 11.1k |
+| Tool list, pinned workspace | 35,299 | 10.1k |
 | Open issues of a project (one call, ≈30 issues) | 2,768 | 0.8k |
 | One issue with description | 318 | 0.1k |
 | Project report (done, in progress, blocked, milestones, PRs, time) | ~2,700 | 0.8k |
@@ -55,7 +55,7 @@ Lists default to open items, empty fields are left out, and one call answers wha
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/JoKeks2023/huly-mcp/main/docs/assets/benchmark-dark.svg">
-  <img alt="Characters per answer: huly-mcp-selfhost needs 2.9× less text per answer (median), 14× smaller tool definitions, one call instead of up to four" src="https://raw.githubusercontent.com/JoKeks2023/huly-mcp/main/docs/assets/benchmark-light.svg" width="900">
+  <img alt="Characters per answer: huly-mcp-selfhost needs 2.9× less text per answer (median), 13× smaller tool definitions, one call instead of up to four" src="https://raw.githubusercontent.com/JoKeks2023/huly-mcp/main/docs/assets/benchmark-light.svg" width="900">
 </picture>
 
 Same self-hosted Huly, same questions, the best parameters on both sides, measured 2026-11-11. For the other server only the text content is counted, not the duplicate JSON copy it also returns. Where we return more (components), it is because we include each component's description and code paths.
@@ -74,7 +74,7 @@ Same self-hosted Huly, same questions, the best parameters on both sides, measur
 | Milestones | 208 (1 call) | 503 (1 call) | 2.4× less |
 | Components | 1,302 (1 call) | 692 (1 call) | 2.0× more |
 | Documents of a teamspace | 106 (1 call) | 305 (1 call) | 2.9× less |
-| Tool definitions (49 tools with the same name) | 15,728 | 216,890 | 13.8× less |
+| Tool definitions (49 tools with the same name) | 16,579 | 216,890 | 13.1× less |
 
 </details>
 
@@ -225,8 +225,8 @@ Context cost of `tools/list` (≈3.5 chars/token):
 
 | | default (99 tools) | `all` (227 tools) |
 |---|--:|--:|
-| several workspaces | ~38.3k chars ≈ **10.9k tokens** | ~83.5k chars ≈ **23.9k tokens** |
-| pinned with `HULY_WORKSPACE` | ~34.6k chars ≈ **9.9k tokens** | ~75.0k chars ≈ **21.4k tokens** |
+| several workspaces | ~39.0k chars ≈ **11.1k tokens** | ~84.2k chars ≈ **24.1k tokens** |
+| pinned with `HULY_WORKSPACE` | ~35.3k chars ≈ **10.1k tokens** | ~75.8k chars ≈ **21.7k tokens** |
 
 For comparison, 2.2.0 needed ≈12.8k tokens for 64 tools. **Using one workspace? Set `HULY_WORKSPACE`** — the `workspace` argument then disappears from every tool (−10%). **Claude Code** loads MCP tools on demand, so there even `HULY_TOOLSETS=all` costs little up front.
 
