@@ -128,6 +128,20 @@ export const ARG_ALIASES: Record<string, string> = {
   milestone: 'milestoneLabel'
 }
 
+/** Per-tool aliases: names that are right elsewhere but would be wrong as a global alias
+ * (milestoneLabel → label must not hit the component tools). */
+export const TOOL_ARG_ALIASES: Record<string, Record<string, string>> = {
+  get_milestone: { milestoneLabel: 'label', milestone: 'label' },
+  update_milestone: { milestoneLabel: 'label', milestone: 'label' },
+  update_component: { componentLabel: 'label', component: 'label' }
+}
+
+/** The real parameter an alias stands for in this tool, if any. */
+export function aliasTarget (tool: string, name: string, known: Set<string>): string | undefined {
+  const target = TOOL_ARG_ALIASES[tool]?.[name] ?? ARG_ALIASES[name]
+  return target != null && known.has(target) ? target : undefined
+}
+
 /**
  * zod drops unknown keys silently, so `update_issue {status: "Done"}` answered "No changes made"
  * and the model never learned why. Before validation: map common aliases to the real name and
@@ -139,8 +153,8 @@ export function normalizeArguments (tool: string, args: Record<string, unknown>,
   const unknown: string[] = []
   for (const [k, v] of Object.entries(args)) {
     if (known.has(k) || k === 'workspace') { out[k] = v; continue }
-    const target = ARG_ALIASES[k]
-    if (target != null && known.has(target) && !(target in args)) { out[target] = v; continue }
+    const target = aliasTarget(tool, k, known)
+    if (target != null && !(target in args)) { out[target] = v; continue }
     unknown.push(k)
   }
   if (unknown.length === 0) return { args: out }

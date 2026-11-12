@@ -192,6 +192,26 @@ test('triage_inbox: per unread item what changed since last read, real comments 
   assert.equal(plain('<a href="x">Deploy</a>&nbsp;ok\n\nnext'), 'Deploy ok next')
 })
 
+test('triage_inbox: the same bot comment on several items is shown once; GitHub accounts by login', async () => {
+  const client: any = await getConnection(W)
+  const bot = 'Deploying with Cloudflare Workers — preview ready at https://example.dev'
+  client.docs.push(
+    { _id: 'sid-bot', _class: contact.class.SocialIdentity, attachedTo: 'nobody', type: 'github', value: 'cf-bot[bot]' },
+    { _id: 'ctx-2', _class: C.DocNotifyContext, user: 'acc-1', objectId: 'r-1', objectClass: tracker.class.Issue, lastViewedTimestamp: D - 1000 },
+    { _id: 'ctx-3', _class: C.DocNotifyContext, user: 'acc-1', objectId: 'r-2', objectClass: tracker.class.Issue, lastViewedTimestamp: D - 1000 },
+    { _id: 'n-5', _class: C.InboxNotification, user: 'acc-1', docNotifyContext: 'ctx-2', isViewed: false, archived: false, createdOn: D - 10 },
+    { _id: 'n-6', _class: C.InboxNotification, user: 'acc-1', docNotifyContext: 'ctx-3', isViewed: false, archived: false, createdOn: D - 20 },
+    { _id: 'bc-1', _class: 'chunter:class:ChatMessage', attachedTo: 'i-1', createdBy: 'sid-bot', createdOn: D + 20, message: bot },
+    { _id: 'bc-2', _class: 'chunter:class:ChatMessage', attachedTo: 'r-1', createdBy: 'sid-bot', createdOn: D + 20, message: bot },
+    { _id: 'bc-3', _class: 'chunter:class:ChatMessage', attachedTo: 'r-2', createdBy: 'sid-bot', createdOn: D + 20, message: bot }
+  )
+  const out = text(await triageInbox({ limit: 10 }))
+  assert.equal(out.split('Deploying with Cloudflare').length - 1, 1, 'full text once')
+  assert.match(out, /- 💬 \*\*cf-bot\[bot\] \(GitHub\)\*\*: Deploying with Cloudflare.* _\(same on 3 items\)_/)
+  assert.equal((out.match(/_same comment as on PROJ-1_/g) ?? []).length, 2)
+  assert.doesNotMatch(out, /Unknown/)
+})
+
 test('release_notes: done issues of a milestone split into features and fixes, merged PRs, epics left out', async () => {
   const out = text(await releaseNotes({ projectIdentifier: 'REP', milestoneLabel: 'V1.0' }))
   assert.match(out, /^# v1\.0 — \d{4}-\d{2}-\d{2}/)
