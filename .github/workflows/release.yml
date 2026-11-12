@@ -101,18 +101,24 @@ jobs:
         if: steps.npm.outcome == 'success'
         continue-on-error: true   # the registry is optional; a hiccup there must not fail the release
         run: |
-          # The registry checks the npm package; a fresh release can take a minute to appear there.
-          for i in $(seq 1 30); do
+          # The registry checks the npm package; a fresh release can take several minutes to appear
+          # there (3.5.1 took more than 5). Wait up to 15 minutes, then try the publish a few times,
+          # because the registry may still see the old npm data right after it became visible here.
+          for i in $(seq 1 90); do
             curl -sf "https://registry.npmjs.org/huly-mcp-selfhost/$VERSION" >/dev/null && break
-            echo "waiting for npm to show $VERSION ($i/30)"; sleep 10
+            echo "waiting for npm to show $VERSION ($i/90)"; sleep 10
           done
           curl -sL "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_linux_amd64.tar.gz" | tar xz mcp-publisher
           ./mcp-publisher login github-oidc
-          ./mcp-publisher publish
+          for attempt in 1 2 3; do
+            ./mcp-publisher publish && exit 0
+            echo "registry publish attempt $attempt failed"; [ "$attempt" -lt 3 ] && sleep 60
+          done
+          exit 1
 
       - name: Warn if the MCP registry refused the entry
         if: steps.registry.outcome == 'failure'
-        run: echo "::warning::The MCP registry did not take $TAG (see 'Publish to the MCP registry'). npm and the GitHub release are fine."
+        run: echo "::warning::The MCP registry did not take $TAG (see 'Publish to the MCP registry'). npm and the GitHub release are fine. Retry later via gh workflow run release.yml --ref $TAG -f tag=$TAG (npm is skipped when the version is already there)."
 
       - name: Fail the run if npm publishing failed
         if: steps.npm.outcome == 'failure'
