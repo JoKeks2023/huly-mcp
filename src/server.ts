@@ -13,6 +13,7 @@ Huly workspaces (tracker, docs, chat, planner, …), self-hosted or cloud.
 - Issue id PROJ-123; dates ISO 8601; people by name (ambiguous names are rejected); null clears a field; text is Markdown.
 - Start with one-call overviews: my_day, standup, triage_inbox, project_report, get_issue_context.
 - Agent work: start_work → work → finish_work; plans → create_issue_tree (dry run first); with parallel agents claim_issue first.
+  The user says they start or are working on an issue → start_work it, even unasked. A side finding for that work → create_issue with parentIdentifier.
 - Read before replacing: get_issue before update_issue description, get_document before update_document.
 - Risky tools may ask the user; if declined, do not retry. Login or setup problems: check_setup. A change was wrong: undo_changes (dry run first).
 - Missing tools may be in a disabled toolset (HULY_TOOLSETS).

@@ -2,6 +2,15 @@
 
 All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mcp-selfhost). Versions follow [semver](https://semver.org).
 
+### Unreleased
+
+- **Agent evals** (`evals/`, `npm run evals`): Haiku solves 12 typical Huly tasks through the server, with and without the skill; success is checked in Huly, calls/tokens/cost recorded. Findings and numbers: `evals/RESULTS.md`.
+- **Skill rewritten** along Anthropic's skill guidelines: description says what and when; checklists for the coding workflow (start → side findings → PR and hand-back → plan); a table that maps what the user says to the call ("I'm fixing X now" → `start_work`); what to do when a call fails. The plugin's SessionStart hook now tells Claude to load the skill — in the evals Haiku never loaded it on its own, and with it loaded it solved the workflow tasks it failed without.
+- **Server instructions** (all clients): when the user says they start or work on an issue → `start_work`; a side finding → sub-issue.
+- **`create_issue` takes `parentIdentifier`** — a sub-issue in one call.
+- **`list_issues` takes `blocked: true`** — issues waiting for an open blocker. `status: "Blocked"` (not a status in Huly) now says so and lists the real statuses.
+- **Fixed: `finish_work` failed when the PR was not synced to Huly yet** (sync takes a minute; projects without sync never have it). It now hands back anyway — summary with the PR link, status — and says to run it again later to put the PR under the issue.
+
 ### 3.6.2 — 2026-11-12
 
 - **Claude plugin: the server ships inside the plugin** — `node ${CLAUDE_PLUGIN_ROOT}/server/index.js` instead of `npx huly-mcp-selfhost@…`. The Claude plugin directory blocks a server that the start command downloads and runs. The file is the bundled build of the release (readable, not minified, the same as in the npm package); the release checks that it matches its own build. Starts faster and works offline. Guides are read from the plugin's skill files, the version is built in.

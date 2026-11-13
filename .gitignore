@@ -5,3 +5,4 @@ dist/
 .mcpregistry_registry_token
 .DS_Store
 build/
+evals/results/

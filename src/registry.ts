@@ -70,7 +70,7 @@ export const TOOLS: ToolDef[] = [
   { name: 'get_project', toolset: 'tracker', description: 'Project by key (e.g. "PROJ"): name, description, issue count, statuses', schema: S.GetProjectSchema, handler: getProject },
   { name: 'create_project', toolset: 'tracker-admin', description: 'Create a tracker project', schema: S.CreateProjectSchema, handler: createProject },
   { name: 'update_project', toolset: 'tracker-admin', description: 'Update project name, description, default assignee/status', schema: S.UpdateProjectSchema, handler: updateProject },
-  { name: 'list_issues', toolset: 'tracker', description: 'List issues of a project; filters: status, priority, milestone, component, label, assignee, parent', schema: S.ListIssuesSchema, handler: listIssues },
+  { name: 'list_issues', toolset: 'tracker', description: 'List issues of a project; filters: status, priority, milestone, component, label, assignee, parent, blocked, due', schema: S.ListIssuesSchema, handler: listIssues },
   { name: 'get_issue', toolset: 'tracker', description: 'Get full details of an issue by identifier (e.g. "PROJ-123")', schema: S.GetIssueSchema, handler: getIssue },
   { name: 'create_issue', toolset: 'tracker', description: 'Create a new issue in a project', schema: S.CreateIssueSchema, handler: createIssue },
   { name: 'update_issue', toolset: 'tracker', description: 'Update issue fields', schema: S.UpdateIssueSchema, handler: updateIssue },

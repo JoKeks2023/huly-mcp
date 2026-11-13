@@ -53,6 +53,16 @@ test('list_issues: due overdue / set / none, combinable with title', async () =>
   assert.deepEqual(await ids({ due: 'set', title: 'redirect' }), ['PROJ-2'])
 })
 
+test('list_issues: blocked = waiting for an open blocker; "Blocked" as a status points to the filter', async () => {
+  const client: any = await getConnection(W)
+  client.docs.push({ _id: 'st-done', _class: tracker.class.IssueStatus, name: 'Done', category: task.statusCategory.Won })
+  client.docs.find((d: any) => d._id === 'i-2').blockedBy = [{ _id: 'i-1', _class: tracker.class.Issue }]
+  client.docs.find((d: any) => d._id === 'i-4').blockedBy = [{ _id: 'i-3', _class: tracker.class.Issue }]
+  client.docs.find((d: any) => d._id === 'i-3').status = 'st-done'
+  assert.deepEqual(await ids({ blocked: true, status: 'all' }), ['PROJ-2'], 'PROJ-4 waits only for a done issue')
+  await assert.rejects(listIssues({ workspace: W, projectIdentifier: 'PROJ', limit: 50, status: 'Blocked' } as any), /Blocked is not a status: pass blocked: true/)
+})
+
 test('check_setup: version compare, hosts without paths, no secrets in the report', async () => {
   const { isNewer, hostOf, checkSetupReport } = await import('../src/tools/diagnostics')
   assert.equal(isNewer('3.10.0', '3.9.9'), true)
