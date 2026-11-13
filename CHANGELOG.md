@@ -2,6 +2,11 @@
 
 All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mcp-selfhost). Versions follow [semver](https://semver.org).
 
+### Unreleased
+
+- **About twice as fast.** Statuses, people, projects, milestones, components and labels are kept per connection and dropped the moment Huly reports a change to them — Huly pushes every change in the workspace to the connection, also those made by other people (verified live: a component added from another session was visible on the next call). Never older than 10 minutes either way; `HULY_CACHE=0` turns it off. Measured on nine typical calls (warm connection, median of 3): 3.8 s → 1.9 s in total; `standup` 1.1 s → 0.44 s, `my_day` 0.83 s → 0.24 s, `project_report` 0.32 s → 0.16 s, `list_milestones` 108 ms → 1 ms.
+- `my_day` labels its inbox items with one query per class instead of one per item (10 → 1 queries); `triage_inbox` no longer loads each object twice.
+
 ### 3.6.2 — 2026-11-12
 
 - **Claude plugin: the server ships inside the plugin** — `node ${CLAUDE_PLUGIN_ROOT}/server/index.js` instead of `npx huly-mcp-selfhost@…`. The Claude plugin directory blocks a server that the start command downloads and runs. The file is the bundled build of the release (readable, not minified, the same as in the npm package); the release checks that it matches its own build. Starts faster and works offline. Guides are read from the plugin's skill files, the version is built in.
