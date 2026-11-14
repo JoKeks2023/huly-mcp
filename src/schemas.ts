@@ -1327,3 +1327,47 @@ export const StartProcessSchema = z.object({ workspace: WorkspaceArg, process: z
 export const CancelExecutionSchema = z.object({ workspace: WorkspaceArg, execution: z.string().describe('Execution id'), dryRun: z.boolean().optional() })
 export const ListSurveysSchema = z.object({ workspace: ReadWorkspaceArg })
 export const GetSurveySchema = z.object({ workspace: ReadWorkspaceArg, survey: z.string(), maxTextAnswers: z.number().int().min(0).max(100).optional() })
+
+// ── Administration (toolset admin) ───────────────────────────────────────────
+export const ListModulesSchema = z.object({ workspace: ReadWorkspaceArg })
+export const SetModuleSchema = z.object({ workspace: WorkspaceArg, module: z.string().min(1).describe('Module id from list_modules, e.g. hr, lead, drive'), enabled: z.boolean() })
+export const UpdateWorkspaceSettingsSchema = z.object({
+  workspace: WorkspaceArg,
+  name: z.string().min(1).optional().describe('Display name (the slug stays)'),
+  readOnlyGuests: z.boolean().optional().describe('Allow read-only guest links'),
+  guestSignUp: z.boolean().optional().describe('Let guests sign up'),
+  passwordAgingDays: z.number().int().min(0).optional().describe('Passwords expire after n days; 0 = never')
+})
+export const GetMyProfileSchema = z.object({ workspace: ReadWorkspaceArg })
+export const UpdateMyProfileSchema = z.object({
+  workspace: WorkspaceArg,
+  firstName: z.string().min(1).optional(),
+  lastName: z.string().optional(),
+  bio: z.string().optional(),
+  city: z.string().optional(),
+  country: z.string().optional(),
+  website: z.string().optional(),
+  socialLinks: z.record(z.string(), z.string()).optional().describe('e.g. {"github": "https://github.com/me"}'),
+  isPublic: z.boolean().optional().describe('Profile visible to people outside your workspaces')
+})
+export const CreateWorkspaceSchema = z.object({ workspace: WorkspaceArg.describe('Any workspace of the account (for the login)'), name: z.string().min(1), region: z.string().optional() })
+export const HulyApiSchema = z.object({
+  workspace: WorkspaceArg,
+  method: z.string().min(1).describe('Account-service method, e.g. getWorkspaceMembers, updateWorkspaceName'),
+  params: z.array(z.unknown()).optional().describe('Positional arguments'),
+  dryRun: z.boolean().optional().describe('Write methods: default true')
+})
+export const SetupWorkspaceSchema = z.object({
+  workspace: WorkspaceArg,
+  modules: z.strictObject({ enable: z.array(z.string()).optional(), disable: z.array(z.string()).optional() }).optional(),
+  statuses: z.array(z.strictObject({ name: z.string().min(1), category: StatusCategoryEnum, projectIdentifier: z.string().optional() })).optional(),
+  projects: z.array(z.strictObject({
+    identifier: z.string().min(1).max(5).regex(/^[A-Z]+$/),
+    name: z.string().min(1),
+    description: z.string().optional(),
+    components: z.array(z.strictObject({ label: z.string().min(1), description: z.string().optional() })).optional(),
+    milestones: z.array(z.strictObject({ label: z.string().min(1), targetDate: z.string() })).optional()
+  })).optional(),
+  teamspaces: z.array(z.strictObject({ name: z.string().min(1), description: z.string().optional() })).optional(),
+  dryRun: z.boolean().optional().describe('Default true: show the plan')
+})

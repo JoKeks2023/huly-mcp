@@ -4,6 +4,12 @@ All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mc
 
 ### Unreleased
 
+- **New toolset `admin` — set a workspace up like with `gh api`:**
+  - `list_modules` / `set_module`: switch Huly's apps (HR, CRM, training, …) on or off for everyone, as Settings → Configure does.
+  - `update_workspace_settings`: workspace name, read-only guests, guest sign-up, password expiry.
+  - `get_my_profile` / `update_my_profile`: name, bio, city, country, website, social links, public profile; login identities.
+  - `create_workspace`, and `setup_workspace`: one template switches modules, adds issue statuses to the workflow, creates projects with components and milestones, and teamspaces — dry run first, existing items are reused.
+  - `huly_api`: the account service directly — read methods freely, write methods as dry run unless `dryRun: false`, then with confirmation. Deleting workspaces or accounts, logins, passwords and secrets are not reachable; tokens in answers are redacted.
 - **Components and milestones by partial name** — "Backend" finds "API Backend" when that is the only match; an ambiguous name lists the candidates, an unknown one the available names (all tools that take `componentLabel` / `milestoneLabel`).
 - **Resource subscriptions are instant** — a subscribed issue or document (or a comment, sub-issue or file on it) changed by anyone is reported within a second, from Huly's own change events, instead of up to 30 s later by polling. A slow poll (5 min, `HULY_SUBSCRIBE_POLL_MS`) stays as a safety net.
 - **`create_issue` points out a missing component or milestone** when the project has components or open milestones, with their names — one cheap correction instead of an unsorted issue.

@@ -7,7 +7,7 @@ import { readFileSync } from 'fs'
 import { createInterface } from 'readline'
 import { z } from 'zod'
 import { TOOLS, TOOLSETS, type ToolDef } from './registry'
-import { guard, isMutation, isRisky, type Asker } from './guard'
+import { guard, isMutation, isRisky, needsConfirmation, type Asker } from './guard'
 import { normalizeArguments, aliasTarget } from './server'
 import { parseEnvFile } from './watch'
 import { closeConnection } from './connection'
@@ -475,7 +475,7 @@ export async function runCli (argv: string[], io: Io): Promise<number> {
 
     // Hard-to-undo tools: ask in a terminal; in scripts only with --yes.
     const env = { ...io.env }
-    const risky = isRisky(tool.name) && (checked.data as any).dryRun !== true
+    const risky = needsConfirmation(tool.name, checked.data)
     if (parsed.yes) env.HULY_CONFIRM = 'off'
     else if (risky && io.confirm == null && (env.HULY_CONFIRM ?? 'auto') !== 'off') {
       return fail(`${tool.name} changes data that is hard to undo. Run it in a terminal to confirm, or pass --yes.`, 1, tool.name)

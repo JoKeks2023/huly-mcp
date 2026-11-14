@@ -38,6 +38,7 @@ import * as MTT from './tools/message-templates'
 import * as MEET from './tools/meetings'
 import * as QMST from './tools/qms'
 import * as TRN from './tools/training'
+import * as ADM from './tools/admin'
 import * as PROC from './tools/process'
 import * as SURV from './tools/surveys'
 import { listCustomFields, createCustomField, setCustomFields } from './tools/fields'
@@ -49,7 +50,7 @@ import { myDay, projectReport, standup, triageInbox, releaseNotes } from './tool
 import { listProducts, getProduct } from './tools/products'
 import * as S from './schemas'
 
-export const TOOLSETS = ['core', 'agent', 'tracker', 'tracker-admin', 'documents', 'chat', 'contacts', 'inbox', 'activity', 'planner', 'calendar', 'github', 'generic', 'generic-write', 'collaboration', 'cards', 'fields', 'drive', 'templates', 'testing', 'products', 'members', 'recruiting', 'crm', 'hr', 'inventory', 'meetings', 'qms', 'process', 'surveys'] as const
+export const TOOLSETS = ['core', 'agent', 'tracker', 'tracker-admin', 'documents', 'chat', 'contacts', 'inbox', 'activity', 'planner', 'calendar', 'github', 'generic', 'generic-write', 'collaboration', 'cards', 'fields', 'drive', 'templates', 'testing', 'products', 'members', 'recruiting', 'crm', 'hr', 'inventory', 'meetings', 'qms', 'process', 'surveys', 'admin'] as const
 export type Toolset = typeof TOOLSETS[number]
 
 /** Enabled when HULY_TOOLSETS is not set. 'core' is always enabled. */
@@ -252,6 +253,14 @@ export const TOOLS: ToolDef[] = [
   { name: 'create_label_category', toolset: 'tracker-admin', description: 'Create an issue label category', schema: S.CreateLabelCategorySchema, handler: createLabelCategory },
   { name: 'set_label_category', toolset: 'tracker-admin', description: 'Move a label into a category', schema: S.SetLabelCategorySchema, handler: setLabelCategory },
   { name: 'list_project_types', toolset: 'tracker-admin', description: 'Project types with task types and their status workflows', schema: S.ListProjectTypesSchema, handler: listProjectTypes },
+  { name: 'list_modules', toolset: 'admin', description: 'Workspace modules (apps) and whether they are on', schema: S.ListModulesSchema, handler: ADM.listModules },
+  { name: 'set_module', toolset: 'admin', description: 'Switch a workspace module on or off for everyone (Settings → Configure)', schema: S.SetModuleSchema, handler: ADM.setModule },
+  { name: 'update_workspace_settings', toolset: 'admin', description: 'Workspace name, guest access, password expiry', schema: S.UpdateWorkspaceSettingsSchema, handler: ADM.updateWorkspaceSettings },
+  { name: 'get_my_profile', toolset: 'admin', description: 'Your name, profile and login identities', schema: S.GetMyProfileSchema, handler: ADM.getMyProfile },
+  { name: 'update_my_profile', toolset: 'admin', description: 'Change your name, bio, city, website, social links', schema: S.UpdateMyProfileSchema, handler: ADM.updateMyProfile },
+  { name: 'create_workspace', toolset: 'admin', description: 'Create a new workspace (you become owner); then setup_workspace', schema: S.CreateWorkspaceSchema, handler: ADM.createWorkspace },
+  { name: 'setup_workspace', toolset: 'admin', description: 'Set a workspace up from a template: modules, statuses, projects with components and milestones, teamspaces. Dry run first; reuses what exists', schema: S.SetupWorkspaceSchema, handler: ADM.setupWorkspace },
+  { name: 'huly_api', toolset: 'admin', description: 'Call an account-service method directly (like gh api): read methods, and writes with dry run. Deletes, logins and secrets are excluded', schema: S.HulyApiSchema, handler: ADM.hulyApi },
   { name: 'get_workspace_settings', toolset: 'members', description: 'Workspace info: your role, members per role, invite defaults, integrations', schema: S.GetWorkspaceSettingsSchema, handler: getWorkspaceSettings },
   { name: 'create_invite_link', toolset: 'members', description: 'Create an invite link (personal for an e-mail, or with use limit/e-mail mask); sends nothing', schema: S.CreateInviteLinkSchema, handler: createInviteLink },
   { name: 'send_invite', toolset: 'members', description: 'Send an invitation e-mail to join the workspace', schema: S.SendInviteSchema, handler: sendInvite },
