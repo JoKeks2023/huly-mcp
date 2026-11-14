@@ -6,7 +6,7 @@
 [![MCP Registry](https://img.shields.io/badge/MCP_Registry-io.github.JoKeks2023%2Fhuly--mcp--selfhost-blue)](https://registry.modelcontextprotocol.io)
 [![License: EPL-2.0](https://img.shields.io/badge/license-EPL--2.0-blue)](https://github.com/JoKeks2023/huly-mcp/blob/main/LICENSE)
 
-**Huly for AI agents.** An MCP server for [Huly](https://huly.io) — self-hosted or Huly Cloud — that lets Claude and other agents work in your workspaces: issues, epics, milestones, documents, chat, inbox, planner, test management and more. 232 tools, built for agent workflows and to spend as few tokens as possible.
+**Huly for AI agents.** An MCP server for [Huly](https://huly.io) — self-hosted or Huly Cloud — that lets Claude and other agents work in your workspaces: issues, epics, milestones, documents, chat, inbox, planner, test management and more. 240 tools, built for agent workflows and to spend as few tokens as possible.
 
 <p align="center">
   <b><a href="#quick-start">Quick start</a></b> ·
@@ -14,7 +14,7 @@
   <a href="#claude-code-plugin">Claude Code plugin</a> ·
   <a href="#command-line">Command line</a> ·
   <a href="#team-server-over-http">Team server</a> ·
-  <a href="#tools-232-total-grouped-in-toolsets">Tools</a> ·
+  <a href="#tools-240-total-grouped-in-toolsets">Tools</a> ·
   <a href="#configuration">Configuration</a> ·
   <a href="#authentication">Authentication</a>
   <br>
@@ -186,7 +186,7 @@ huly-mcp my_day --format json | jq -r .text
 
 <div align="right"><a href="#huly-mcp-selfhost">↑ Back to top</a></div>
 
-## Tools (232 total, grouped in toolsets)
+## Tools (240 total, grouped in toolsets)
 
 All tools except `list_workspaces` take a `workspace` argument — required for every change, optional for reads when only one workspace is available.
 
@@ -224,6 +224,7 @@ HULY_TOOLSETS=tracker,documents,planner # just these ('core' = list_workspaces, 
 | `testing` | | 23 | test management: projects, suites, cases, plans, runs, results; JUnit import, report, bugs from failed tests |
 | `products` | | 2 | products and versions (read-only) |
 | `members` | | 4 | workspace settings, invite links and e-mails, member roles |
+| `admin` | | 8 | modules on/off, workspace name and guest access, your profile, new workspaces, set a workspace up from a template, `huly_api` (account service like `gh api`) |
 | `recruiting` | | 9 | vacancies, candidates, applications |
 | `crm` | | 5 | leads, customers |
 | `hr` | | 7 | departments, staff, vacation/sick/remote days |
@@ -235,7 +236,7 @@ HULY_TOOLSETS=tracker,documents,planner # just these ('core' = list_workspaces, 
 
 Context cost of `tools/list` (≈3.5 chars/token):
 
-| | default (99 tools) | `all` (232 tools) |
+| | default (99 tools) | `all` (240 tools) |
 |---|--:|--:|
 | several workspaces | ~39.6k chars ≈ **11.3k tokens** | ~87.8k chars ≈ **25.1k tokens** |
 | pinned with `HULY_WORKSPACE` | ~36.0k chars ≈ **10.3k tokens** | ~79.1k chars ≈ **22.6k tokens** |
@@ -445,6 +446,11 @@ Options: `--run <name>`, `--parent-suite <suite>`, `--no-create` (only existing 
 | **Project types** (`tracker-admin`) | `list_project_types` | Project types, their task types and status workflows, and which projects use them |
 | **Workspace** (`members`) | `get_workspace_settings` | Your role, members per role, invite defaults, integrations |
 | | `create_invite_link` / `send_invite` / `set_member_role` | Invite links (personal or with use limit and e-mail mask; nothing is sent), invitation e-mails, roles. `send_invite` and `set_member_role` ask for confirmation |
+| **Administration** (`admin`) | `list_modules` / `set_module` | Modules (apps) of the workspace on or off for everyone, like Settings → Configure |
+| | `update_workspace_settings` | Workspace name, read-only guests, guest sign-up, password expiry |
+| | `get_my_profile` / `update_my_profile` | Your name, bio, city, website, social links, login identities |
+| | `create_workspace` / `setup_workspace` | A new workspace; a template that switches modules, adds statuses, projects with components and milestones, and teamspaces — dry run first, reuses what exists |
+| | `huly_api` | The account service directly, like `gh api`: read methods freely, write methods with dry run and confirmation. Deleting workspaces or accounts, logins, passwords and secrets are not reachable; tokens are redacted |
 | **Recruiting** (`recruiting`) | `list_vacancies` / `create_vacancy` / `update_vacancy` | Vacancies with applications per status; archive via `update_vacancy` |
 | | `list_candidates` / `create_candidate` | Candidates (person + title, e-mail, onsite/remote) |
 | | `list_applications` / `create_application` / `update_application` / `delete_application` | Applications `APP-n` through the vacancy's workflow, one per candidate and vacancy |

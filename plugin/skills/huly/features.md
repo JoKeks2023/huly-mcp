@@ -9,7 +9,7 @@ Many features below are **not in the default toolset**. A tool that is missing i
 - **On-demand server** (`HULY_DYNAMIC_TOOLSETS=1`): call `enable_toolsets` with the names, e.g. `["testing", "templates"]`.
 - **Otherwise**: tell the user which toolsets to add to `HULY_TOOLSETS` (Claude Code plugin: `/plugin` → huly → configure → Toolsets), e.g. `agent,tracker,documents,chat,inbox,planner,testing,templates,tracker-admin`. Takes effect after reconnecting the server (`/mcp`).
 
-Default: `agent, tracker, documents, chat, contacts, inbox, activity, planner, generic`. Extra: `tracker-admin` (label categories, statuses, project settings), `templates`, `testing`, `qms` (trainings, controlled documents), `github`, `drive`, `calendar`, `collaboration` (doc comments, sharing), `fields` (custom fields), `cards`, `products`.
+Default: `agent, tracker, documents, chat, contacts, inbox, activity, planner, generic`. Extra: `tracker-admin` (label categories, statuses, project settings), `templates`, `testing`, `qms` (trainings, controlled documents), `admin` (modules, workspace settings, profile, new workspaces, `huly_api`), `github`, `drive`, `calendar`, `collaboration` (doc comments, sharing), `fields` (custom fields), `cards`, `products`.
 
 ## Map: what goes where
 
@@ -36,6 +36,7 @@ Default: `agent, tracker, documents, chat, contacts, inbox, activity, planner, g
 | Extra issue data (customer, risk, platform) | **Custom fields** on issues or a project type | `create_custom_field`, `set_custom_fields` (fields) | the team keeps such data in titles or labels today |
 | Records that are not tasks (ADR register, customers, devices) | **Cards** with card types | `list_card_types`, `create_card` (cards) | a list of things, not of work |
 | Shipped products and versions | **Products** (read) | `list_products`, `get_product` (products) | only to read existing product data |
+| The workspace itself: which apps, name, guest access, your profile; a new workspace from a template | **Administration** (Settings) | `list_modules`, `set_module`, `update_workspace_settings`, `update_my_profile`, `create_workspace`, `setup_workspace` (dry run first), `huly_api` for other account-service calls (admin) | setting a workspace up; a module the project needs is off (e.g. training, hr) |
 | Anything without a tool | Any Huly class | `list_classes`, `describe_class`, `query_documents` (generic); writes: `generic_*` with dry run (generic-write) | last resort — specific tools are cheaper |
 
 ## Order for a full setup

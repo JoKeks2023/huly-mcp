@@ -4,6 +4,7 @@
 // - HULY_CONFIRM: destructive tools ask the user first (MCP elicitation) when the client can ask
 import { appendFileSync } from 'node:fs'
 import type { ToolDef } from './registry'
+import { API_READ as HULY_API_READ } from './tools/admin'
 import { recordChanges, addEntry, type UndoStep } from './utils/undo'
 import { getConnectionManager, getConnection } from './connection'
 
@@ -64,11 +65,17 @@ export function audit (path: string | undefined, tool: ToolDef, args: unknown, o
 
 // ── Confirmation for destructive tools ───────────────────────────────────────
 
-const RISKY = new Set(['undo_changes', 'bulk_update_issues', 'move_issue', 'generic_update', 'generic_delete', 'revoke_public_link', 'restore_file_version', 'send_invite', 'set_member_role', 'cancel_execution'])
+const RISKY = new Set(['set_module', 'update_workspace_settings', 'create_workspace', 'huly_api', 'undo_changes', 'bulk_update_issues', 'move_issue', 'generic_update', 'generic_delete', 'revoke_public_link', 'restore_file_version', 'send_invite', 'set_member_role', 'cancel_execution'])
 
 /** Deletes and bulk/structural changes that are hard to undo. */
 export function isRisky (name: string): boolean {
   return name.startsWith('delete_') || RISKY.has(name)
+}
+
+/** Whether this call needs a confirmation: risky tools, except huly_api reads and its dry runs. */
+export function needsConfirmation (name: string, args: any): boolean {
+  if (name === 'huly_api') return args?.dryRun === false && !(HULY_API_READ as readonly string[]).includes(String(args?.method ?? ''))
+  return isRisky(name) && args?.dryRun !== true
 }
 
 /**
@@ -144,7 +151,7 @@ export function guard (tool: ToolDef, env: NodeJS.ProcessEnv = process.env, aske
   const confirm = parseConfirmMode(env.HULY_CONFIRM)
   return async (args) => {
     assertWriteAllowed(tool, args, allowed)
-    if (confirm !== 'off' && isRisky(tool.name) && (args as any)?.dryRun !== true) {
+    if (confirm !== 'off' && needsConfirmation(tool.name, args)) {
       const canAsk = asker?.canAsk() === true
       if (!canAsk && confirm === 'strict') {
         audit(auditPath, tool, args, { ok: false, text: 'refused: HULY_CONFIRM=strict and the client cannot ask' })
