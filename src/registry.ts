@@ -37,6 +37,7 @@ import * as INVT from './tools/inventory'
 import * as MTT from './tools/message-templates'
 import * as MEET from './tools/meetings'
 import * as QMST from './tools/qms'
+import * as TRN from './tools/training'
 import * as PROC from './tools/process'
 import * as SURV from './tools/surveys'
 import { listCustomFields, createCustomField, setCustomFields } from './tools/fields'
@@ -292,6 +293,11 @@ export const TOOLS: ToolDef[] = [
   { name: 'get_controlled_document', toolset: 'qms', description: 'Controlled document: state, people, requests, versions, content', schema: S.GetControlledDocumentSchema, handler: QMST.getControlledDocument },
   { name: 'list_trainings', toolset: 'qms', description: 'Trainings (latest revision)', schema: S.ListTrainingsSchema, handler: QMST.listTrainings },
   { name: 'get_training', toolset: 'qms', description: 'Training questions and trainee results', schema: S.GetTrainingSchema, handler: QMST.getTraining },
+  { name: 'create_training', toolset: 'qms', description: 'Create a training draft (code TR-n) with scored or open questions: single, multiple, ordering. Then release_training', schema: S.CreateTrainingSchema, handler: TRN.createTraining },
+  { name: 'add_training_questions', toolset: 'qms', description: 'Add questions to a training draft', schema: S.AddTrainingQuestionsSchema, handler: TRN.addTrainingQuestions },
+  { name: 'release_training', toolset: 'qms', description: 'Release a training draft so it can be assigned; archives the earlier released revision', schema: S.ReleaseTrainingSchema, handler: TRN.releaseTraining },
+  { name: 'assign_training', toolset: 'qms', description: 'Assign a released training to people, with due date and max attempts. Progress: get_training', schema: S.AssignTrainingSchema, handler: TRN.assignTraining },
+  { name: 'cancel_training_request', toolset: 'qms', description: 'Cancel a training assignment (id from get_training)', schema: S.CancelTrainingRequestSchema, handler: TRN.cancelTrainingRequest },
   { name: 'list_processes', toolset: 'process', description: 'Process definitions: states and transitions', schema: S.ListProcessesSchema, handler: PROC.listProcesses },
   { name: 'list_executions', toolset: 'process', description: 'Running/finished process executions with current state', schema: S.ListExecutionsSchema, handler: PROC.listExecutions },
   { name: 'start_process', toolset: 'process', description: 'Run a process on a card', schema: S.StartProcessSchema, handler: PROC.startProcess },

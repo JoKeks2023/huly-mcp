@@ -1296,6 +1296,30 @@ export const ListControlledDocumentsSchema = z.object({ workspace: ReadWorkspace
 export const GetControlledDocumentSchema = z.object({ workspace: ReadWorkspaceArg, document: z.string().describe('Code (SOP-12), title or id'), content: z.boolean().optional().describe('Default true') })
 export const ListTrainingsSchema = z.object({ workspace: ReadWorkspaceArg, includeArchived: z.boolean().optional() })
 export const GetTrainingSchema = z.object({ workspace: ReadWorkspaceArg, training: z.string().describe('Code, title or id'), showAnswers: z.boolean().optional() })
+export const TrainingQuestionSchema = z.strictObject({
+  type: z.enum(['single', 'multiple', 'ordering']),
+  title: z.string().min(1),
+  options: z.array(z.string().min(1)).min(2),
+  correct: z.union([z.string(), z.number().int(), z.array(z.union([z.string(), z.number().int()]))]).optional()
+    .describe('Option text or number (1 = first); several for multiple; all, in order, for ordering. Omit: not scored')
+})
+export const CreateTrainingSchema = z.object({
+  workspace: WorkspaceArg,
+  title: z.string().min(1),
+  description: z.string().optional().describe('Markdown'),
+  passingScore: z.number().int().min(0).max(100).default(80).describe('Percent of scored questions'),
+  questions: z.array(TrainingQuestionSchema).optional()
+})
+export const AddTrainingQuestionsSchema = z.object({ workspace: WorkspaceArg, training: z.string().describe('Code or title of a draft'), questions: z.array(TrainingQuestionSchema).min(1) })
+export const ReleaseTrainingSchema = z.object({ workspace: WorkspaceArg, training: z.string().describe('Code or title of a draft') })
+export const AssignTrainingSchema = z.object({
+  workspace: WorkspaceArg,
+  training: z.string().describe('Code or title of a released training'),
+  trainees: z.array(z.string()).min(1).describe('Person names'),
+  dueDate: z.string().optional().describe('ISO date'),
+  maxAttempts: z.number().int().min(1).optional()
+})
+export const CancelTrainingRequestSchema = z.object({ workspace: WorkspaceArg, requestId: z.string().describe('Assignment id from get_training') })
 export const ListProcessesSchema = z.object({ workspace: ReadWorkspaceArg })
 export const ListExecutionsSchema = z.object({ workspace: ReadWorkspaceArg, process: z.string().optional(), status: z.enum(['active', 'done', 'cancelled']).optional(), limit: z.number().int().min(1).max(200).optional() })
 export const StartProcessSchema = z.object({ workspace: WorkspaceArg, process: z.string().describe('Name or id'), card: z.string().describe('Card id'), dryRun: z.boolean().optional() })

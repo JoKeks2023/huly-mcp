@@ -46,4 +46,4 @@ Every Huly call costs a round trip and its output stays in context. Aim for **on
 ## Setup that saves tokens before the first call
 
 - `HULY_WORKSPACE` pins one workspace: the `workspace` argument disappears from every tool (~10% smaller tool list).
-- `HULY_TOOLSETS` with only what you use (default set ≈ 36k chars; `all` ≈ 82k). With `HULY_DYNAMIC_TOOLSETS=1` more toolsets load on demand via `enable_toolsets`.
+- `HULY_TOOLSETS` with only what you use (default set ≈ 40k chars; `all` ≈ 88k). With `HULY_DYNAMIC_TOOLSETS=1` more toolsets load on demand via `enable_toolsets`.

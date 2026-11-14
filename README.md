@@ -6,7 +6,7 @@
 [![MCP Registry](https://img.shields.io/badge/MCP_Registry-io.github.JoKeks2023%2Fhuly--mcp--selfhost-blue)](https://registry.modelcontextprotocol.io)
 [![License: EPL-2.0](https://img.shields.io/badge/license-EPL--2.0-blue)](https://github.com/JoKeks2023/huly-mcp/blob/main/LICENSE)
 
-**Huly for AI agents.** An MCP server for [Huly](https://huly.io) — self-hosted or Huly Cloud — that lets Claude and other agents work in your workspaces: issues, epics, milestones, documents, chat, inbox, planner, test management and more. 227 tools, built for agent workflows and to spend as few tokens as possible.
+**Huly for AI agents.** An MCP server for [Huly](https://huly.io) — self-hosted or Huly Cloud — that lets Claude and other agents work in your workspaces: issues, epics, milestones, documents, chat, inbox, planner, test management and more. 232 tools, built for agent workflows and to spend as few tokens as possible.
 
 <p align="center">
   <b><a href="#quick-start">Quick start</a></b> ·
@@ -14,7 +14,7 @@
   <a href="#claude-code-plugin">Claude Code plugin</a> ·
   <a href="#command-line">Command line</a> ·
   <a href="#team-server-over-http">Team server</a> ·
-  <a href="#tools-227-total-grouped-in-toolsets">Tools</a> ·
+  <a href="#tools-232-total-grouped-in-toolsets">Tools</a> ·
   <a href="#configuration">Configuration</a> ·
   <a href="#authentication">Authentication</a>
   <br>
@@ -29,7 +29,7 @@
 
 - **Everything in Huly:** tracker, documents, chat, inbox, activity, planner, calendar, GitHub PRs, contacts, drive, cards, templates, test management, recruiting, CRM, HR and more — plus read access to *any* Huly class.
 - **Made for agents:** one-call overviews (`my_day`, `standup`, `project_report`, `get_issue_context`), `start_work` → `finish_work`, plans → epics with sub-issues, specs and meeting notes → issues, claims for parallel agents, and `huly-mcp watch` to hand issues to Claude from Huly.
-- **Few tokens:** tools come in toolsets (default ≈11k tokens, everything ≈24k), optionally loaded on demand; pin a workspace for −10 %; compact outputs; wrong parameters are rejected with the valid list instead of silently ignored.
+- **Few tokens:** tools come in toolsets (default ≈11k tokens, everything ≈25k), optionally loaded on demand; pin a workspace for −10 %; compact outputs; wrong parameters are rejected with the valid list instead of silently ignored.
 - **Safe by default:** every change names its workspace, risky tools ask first, writes can be limited to projects, optional audit log — and `undo_changes` reverses your last changes.
 - **Small and quick to install:** one self-contained package of ~4 MB (900 kB download) — no 180 dependencies to fetch on the first `npx`.
 - **No telemetry.** The server talks to your Huly server and nothing else: no analytics, no usage tracking, nothing to opt out of. (The only other request, the npm version check, runs when you call `check_setup`.)
@@ -186,7 +186,7 @@ huly-mcp my_day --format json | jq -r .text
 
 <div align="right"><a href="#huly-mcp-selfhost">↑ Back to top</a></div>
 
-## Tools (227 total, grouped in toolsets)
+## Tools (232 total, grouped in toolsets)
 
 All tools except `list_workspaces` take a `workspace` argument — required for every change, optional for reads when only one workspace is available.
 
@@ -229,16 +229,16 @@ HULY_TOOLSETS=tracker,documents,planner # just these ('core' = list_workspaces, 
 | `hr` | | 7 | departments, staff, vacation/sick/remote days |
 | `inventory` | | 5 | categories, products, variants (SKU) |
 | `meetings` | | 2 | office rooms, meeting minutes and transcripts (read-only) |
-| `qms` | | 4 | controlled documents and trainings (read-only) |
+| `qms` | | 9 | controlled documents (read-only); trainings: create with questions, release, assign, track |
 | `process` | | 4 | process definitions and executions; start and cancel |
 | `surveys` | | 2 | surveys and aggregated poll answers (read-only) |
 
 Context cost of `tools/list` (≈3.5 chars/token):
 
-| | default (99 tools) | `all` (227 tools) |
+| | default (99 tools) | `all` (232 tools) |
 |---|--:|--:|
-| several workspaces | ~39.6k chars ≈ **11.3k tokens** | ~84.9k chars ≈ **24.3k tokens** |
-| pinned with `HULY_WORKSPACE` | ~36.0k chars ≈ **10.3k tokens** | ~76.4k chars ≈ **21.8k tokens** |
+| several workspaces | ~39.6k chars ≈ **11.3k tokens** | ~87.8k chars ≈ **25.1k tokens** |
+| pinned with `HULY_WORKSPACE` | ~36.0k chars ≈ **10.3k tokens** | ~79.1k chars ≈ **22.6k tokens** |
 
 For comparison, 2.2.0 needed ≈12.8k tokens for 64 tools. **Using one workspace? Set `HULY_WORKSPACE`** — the `workspace` argument then disappears from every tool (−10%). **Claude Code** loads MCP tools on demand, so there even `HULY_TOOLSETS=all` costs little up front.
 
@@ -455,7 +455,8 @@ Options: `--run <name>`, `--parent-suite <suite>`, `--no-create` (only existing 
 | **Message templates** (`templates`) | `list_message_templates` / `get_message_template` / `create_message_template` / `update_message_template` / `delete_message_template` | Reusable texts with `${field}` placeholders |
 | **Meetings** (`meetings`) | `list_meetings` / `get_meeting` | Rooms, meeting minutes, action items and transcripts (read-only) |
 | **QMS** (`qms`) | `list_controlled_documents` / `get_controlled_document` | Controlled documents: version, state, reviewers/approvers, requests, content (read-only) |
-| | `list_trainings` / `get_training` | Trainings, questions (answers optional) and trainee results (read-only) |
+| | `list_trainings` / `get_training` | Trainings, questions (answers optional) and per-person results with assignment ids |
+| | `create_training` / `add_training_questions` / `release_training` / `assign_training` / `cancel_training_request` | A draft `TR-n` with scored or open questions (single, multiple, ordering) → release (archives the earlier revision) → assign to people with due date and max attempts |
 | **Processes** (`process`) | `list_processes` / `list_executions` / `start_process` / `cancel_execution` | Process states and transitions; running executions; run a process on a card like Huly's "Run process" menu (processes that ask for input in the app are refused); cancel asks first |
 | **Surveys** (`surveys`) | `list_surveys` / `get_survey` | Surveys and aggregated poll answers (read-only) |
 

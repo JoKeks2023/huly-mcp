@@ -195,6 +195,7 @@ const MUTATION_SCHEMAS = [
   'CreateInventoryCategorySchema', 'CreateInventoryProductSchema', 'UpdateInventoryItemSchema', 'DeleteInventoryItemSchema',
   'CreateMessageTemplateSchema', 'UpdateMessageTemplateSchema', 'DeleteMessageTemplateSchema',
   'StartProcessSchema', 'CancelExecutionSchema',
+  'CreateTrainingSchema', 'AddTrainingQuestionsSchema', 'ReleaseTrainingSchema', 'AssignTrainingSchema', 'CancelTrainingRequestSchema',
   'UpdateTestSuiteSchema', 'DeleteTestSuiteSchema', 'UpdateTestRunSchema', 'DeleteTestRunSchema', 'DeleteTestPlanSchema', 'ImportTestResultsSchema', 'CreateIssueFromTestResultSchema', 'CreateTestCasesSchema'
 ] as const
 
@@ -218,7 +219,7 @@ test('every registered tool except list_workspaces accepts workspace', () => {
     const shape = tools[name].inputSchema?.shape
     assert.ok(shape?.workspace !== undefined, `${name} does not accept workspace`)
   }
-  const mutationTools = names.filter((n) => /^(create|update|delete|add|remove|set|log|link|send|attach|start|bulk|move|repair|mark|reply|pin|schedule|generic|finish|claim|release(?!_notes)|revoke|upload|restore|cancel|import)_/.test(n))
+  const mutationTools = names.filter((n) => /^(create|update|delete|add|remove|set|log|link|send|attach|start|bulk|move|repair|mark|reply|pin|schedule|generic|finish|claim|release(?!_notes)|revoke|upload|restore|cancel|import|assign)_/.test(n))
   assert.equal(mutationTools.length, MUTATION_SCHEMAS.length)
   for (const name of mutationTools) {
     assert.equal(tools[name].inputSchema.shape.workspace.isOptional(), false, `${name}.workspace must be required`)
