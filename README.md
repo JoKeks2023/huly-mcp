@@ -84,7 +84,7 @@ Same self-hosted Huly, same questions, the best parameters on both sides, measur
 
 ## Quick start
 
-You need a Huly account — [Huly Cloud](https://huly.app) or self-hosted — and, except for the Claude Desktop extension, Node.js 20+.
+You need a Huly account — [Huly Cloud](https://huly.app) or self-hosted — and, except for the Claude Desktop extension, Node.js 22+.
 
 **Claude Code** — install the plugin, then fill in its settings when asked:
 
@@ -1013,7 +1013,7 @@ GitHub Actions check every pull request:
 
 | Workflow | What it checks |
 |---|---|
-| `ci.yml` | build and tests on Node 20/22/24 (Linux), macOS and Windows; the built server answers `tools/list` over stdio; `npm pack` contents; gitleaks and a personal-data check; the Docker image (build, stdio smoke, Trivy); actionlint; a **token report** comment with the `tools/list` size before and after the PR |
+| `ci.yml` | build and tests on Node 22/24/26 (Linux), macOS and Windows; the built server answers `tools/list` over stdio; `npm pack` contents; gitleaks and a personal-data check; the Docker image (build, stdio smoke, Trivy); actionlint; a **token report** comment with the `tools/list` size before and after the PR |
 | `codeql.yml` | CodeQL security analysis (also weekly) |
 | `links.yml` | broken links in Markdown and the site (on PRs that touch them, and weekly → issue) |
 | `dependabot-automerge.yml` | Dependabot patch/minor updates merge by themselves once checks are green; majors and Huly packages wait for review |

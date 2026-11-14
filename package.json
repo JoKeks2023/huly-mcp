@@ -39,7 +39,7 @@
     "CHANGELOG.md"
   ],
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "scripts": {
     "build": "node --max-old-space-size=4096 node_modules/typescript/bin/tsc --noEmit && node scripts/build.js",

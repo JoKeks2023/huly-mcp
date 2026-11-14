@@ -71,6 +71,7 @@ export async function checkSetupReport (args: z.infer<typeof CheckSetupSchema>, 
   ])
   if (latest != null && isNewer(latest, version)) warn(`Version ${version} — ${latest} is available (npx -y huly-mcp-selfhost@latest, or update the plugin / Docker image)`)
   else ok(`Version ${version}${latest != null ? ' (latest)' : ''}, Node.js ${process.versions.node}`)
+  if (Number(process.versions.node.split('.')[0]) < 22) warn(`Node.js ${process.versions.node} is older than the supported 22 — update Node.js (huly-mcp-selfhost 4 needs 22 or newer)`)
 
   // The login of this connection: the environment over stdio, the session's own login over HTTP/OAuth.
   const session = getConnectionManager().describeAuth()
