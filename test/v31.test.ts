@@ -252,6 +252,30 @@ test('resource subscriptions notify when a subscribed issue changes', async () =
   await mcp.close()
 })
 
+test('resource subscriptions: a change pushed by Huly (also to a comment of the issue) notifies at once, debounced', async () => {
+  const server = createServer({ toolsets: 'agent' })
+  const [c, s] = InMemoryTransport.createLinkedPair()
+  await server.connect(s)
+  const mcp = new Client({ name: 't', version: '0' })
+  const updated: string[] = []
+  const { ResourceUpdatedNotificationSchema } = await import('@modelcontextprotocol/sdk/types.js')
+  mcp.setNotificationHandler(ResourceUpdatedNotificationSchema, async (n) => { updated.push(n.params.uri) })
+  await mcp.connect(c)
+  const uri = `huly://${W}/issue/PROJ-1`
+  await mcp.subscribeResource({ uri })
+  const raw: any = env.clients.get(W)!
+  raw.notify({ _class: 'core:class:TxUpdateDoc', objectId: 'someone-else' })
+  raw.notify({ _class: 'core:class:TxCreateDoc', objectId: 'comment-9', attachedTo: 'i-1' })
+  raw.notify({ _class: 'core:class:TxUpdateDoc', objectId: 'i-1' })
+  await new Promise((r) => setTimeout(r, 900))
+  assert.deepEqual(updated, [uri], 'one notification for the burst, none for other objects')
+  await mcp.unsubscribeResource({ uri })
+  raw.notify({ _class: 'core:class:TxUpdateDoc', objectId: 'i-1' })
+  await new Promise((r) => setTimeout(r, 900))
+  assert.deepEqual(updated, [uri], 'nothing after unsubscribing')
+  await mcp.close()
+})
+
 test('resources/list works without a usable login: guides are listed, issues are simply left out', async () => {
   const env = createFakeEnv({ workspaces: [PERSONAL] })
   ;(env.manager as any).opts.email = undefined
