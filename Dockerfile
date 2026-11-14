@@ -10,7 +10,7 @@
 # fork" section.
 
 # The build output (plain JS) is platform-independent: build natively, even for arm64 images.
-FROM --platform=$BUILDPLATFORM node:22-slim AS builder
+FROM --platform=$BUILDPLATFORM node:26-slim AS builder
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
@@ -20,7 +20,7 @@ COPY scripts/build.js scripts/setup.js ./scripts/
 COPY plugin/skills/huly ./plugin/skills/huly
 RUN npm run build
 
-FROM node:22-slim
+FROM node:26-slim
 WORKDIR /app
 
 # mcp-proxy (Python) bridges stdio <-> HTTP/SSE, same pattern used by other
