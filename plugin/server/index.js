@@ -60219,6 +60219,18 @@ var require_setup = __commonJS({
   }
 });
 
+// src/node-globals.ts
+function hideWebStorage(g = globalThis) {
+  for (const name2 of ["sessionStorage", "localStorage"]) {
+    if (typeof g.window !== "undefined") return;
+    try {
+      Object.defineProperty(g, name2, { value: void 0, configurable: true, writable: true, enumerable: false });
+    } catch {
+    }
+  }
+}
+hideWebStorage();
+
 // node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
 var import_node_process = __toESM(require("node:process"), 1);
 
@@ -104848,6 +104860,76 @@ function simplePage(title, text3) {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc2(title)}</title></head><body style="font:16px -apple-system,sans-serif;padding:40px"><h1 style="font-size:20px">${esc2(title)}</h1><p>${esc2(text3)}</p></body></html>`;
 }
 
+// src/profiles.ts
+var import_node_fs5 = require("node:fs");
+var ProfileSchema = external_exports.strictObject({
+  email: external_exports.string().min(3).optional(),
+  password: external_exports.string().min(1).optional(),
+  token: external_exports.string().min(10).optional(),
+  workspace: external_exports.string().min(1).optional().describe("Pin one workspace"),
+  toolsets: external_exports.string().min(1).optional().describe("Like HULY_TOOLSETS"),
+  authToken: external_exports.string().min(16).optional().describe("Bearer token clients must send"),
+  public: external_exports.boolean().optional().describe("No bearer token (protect the path elsewhere)")
+});
+var NAME = /^[a-z0-9][a-z0-9_-]{0,39}$/;
+var ENV_FIELDS = [
+  ["AUTH_TOKEN", "authToken"],
+  ["PASSWORD", "password"],
+  ["EMAIL", "email"],
+  ["TOKEN", "token"],
+  ["WORKSPACE", "workspace"],
+  ["TOOLSETS", "toolsets"],
+  ["PUBLIC", "public"]
+];
+function profilesFromVars(env) {
+  const out = {};
+  for (const [key, value] of Object.entries(env)) {
+    if (!key.startsWith("MCP_PROFILE_") || value == null || value.trim() === "") continue;
+    const rest = key.slice("MCP_PROFILE_".length);
+    const field = ENV_FIELDS.find(([suffix]) => rest.endsWith(`_${suffix}`) && rest.length > suffix.length + 1);
+    if (field == null) throw new Error(`${key}: unknown field \u2014 use MCP_PROFILE_<NAME>_${ENV_FIELDS.map(([s]) => s).join("|")}.`);
+    const name2 = rest.slice(0, rest.length - field[0].length - 1).toLowerCase();
+    const v = value.trim();
+    if (field[1] === "public") {
+      if (!["true", "1", "yes", "false", "0", "no"].includes(v.toLowerCase())) throw new Error(`${key}: use true or false.`);
+      if (["false", "0", "no"].includes(v.toLowerCase())) continue;
+    }
+    ;
+    (out[name2] ??= {})[field[1]] = field[1] === "public" ? true : v;
+  }
+  return out;
+}
+function loadProfiles(env, read = (p) => (0, import_node_fs5.readFileSync)(p, "utf8")) {
+  const file2 = (env.MCP_PROFILES_FILE ?? "").trim();
+  const inline = (env.MCP_PROFILES ?? "").trim();
+  if (file2 !== "" && inline !== "") throw new Error("Set MCP_PROFILES_FILE or MCP_PROFILES, not both.");
+  let raw = {};
+  if (file2 !== "" || inline !== "") {
+    try {
+      raw = JSON.parse(file2 !== "" ? read(file2) : inline);
+    } catch (e) {
+      throw new Error(`${file2 !== "" ? `MCP_PROFILES_FILE (${file2})` : "MCP_PROFILES"} is not valid JSON: ${e.message}`);
+    }
+    if (raw == null || typeof raw !== "object" || Array.isArray(raw)) throw new Error('Profiles must be a JSON object: { "name": { "email": \u2026, "password": \u2026, "authToken": \u2026 } }.');
+  }
+  const fromVars = profilesFromVars(env);
+  for (const name2 of Object.keys(fromVars)) {
+    if (Object.hasOwn(raw, name2)) throw new Error(`Profile '${name2}' is defined twice (MCP_PROFILE_${name2.toUpperCase()}_* and the JSON) \u2014 keep one.`);
+  }
+  const out = /* @__PURE__ */ new Map();
+  for (const [name2, value] of Object.entries({ ...raw, ...fromVars })) {
+    if (!NAME.test(name2)) throw new Error(`Profile name '${name2}': use lowercase letters, digits, - and _ (it becomes the path /${name2}/mcp).`);
+    const parsed = ProfileSchema.safeParse(value);
+    if (!parsed.success) throw new Error(`Profile '${name2}': ${parsed.error.issues.map((i) => `${i.path.join(".") || "value"} ${i.message}`).join("; ")}.`);
+    const p = parsed.data;
+    if (p.token == null && (p.email == null || p.password == null)) throw new Error(`Profile '${name2}': give "token", or "email" and "password".`);
+    if (p.authToken == null && p.public !== true) throw new Error(`Profile '${name2}': set "authToken" (at least 16 characters) \u2014 or "public": true if the path is protected elsewhere (e.g. Cloudflare Access).`);
+    if (p.authToken != null && p.public === true) throw new Error(`Profile '${name2}': "authToken" and "public": true exclude each other.`);
+    out.set(name2, p);
+  }
+  return out;
+}
+
 // src/http.ts
 var MAX_BODY = 4 * 1024 * 1024;
 var header = (req, name2) => {
@@ -104933,13 +105015,17 @@ function startHttpServer(opts) {
     for (const [id, s] of sessions) if (s.lastSeen < cutoff) void closeSession(id);
   }, Math.min(idleMs, 6e4));
   sweeper.unref();
-  const handleMcp = async (req, res, oauth2) => {
+  const handleMcp = async (req, res, oauth2, fixed) => {
     const sessionId = header(req, "mcp-session-id");
     const body = req.method === "POST" ? await readJson(req) : void 0;
     const existing = sessionId != null ? sessions.get(sessionId) : void 0;
     if (existing != null) {
       if (oauth2 != null && existing.account !== oauth2.hulyToken) {
         sendError(res, 403, "This session belongs to another login.");
+        return;
+      }
+      if ((fixed?.key ?? void 0) !== (existing.account?.startsWith("profile:") === true ? existing.account : void 0)) {
+        sendError(res, 403, "This session belongs to another path.");
         return;
       }
       existing.lastSeen = Date.now();
@@ -104954,6 +105040,25 @@ function startHttpServer(opts) {
     }
     if (req.method !== "POST" || !isInitializeRequest(body)) {
       sendError(res, 400, "No session: send an initialize request first.");
+      return;
+    }
+    if (fixed != null) {
+      const transport2 = new StreamableHTTPServerTransport({
+        sessionIdGenerator: () => (0, import_node_crypto4.randomUUID)(),
+        allowedHosts: hosts,
+        enableDnsRebindingProtection: hosts != null,
+        onsessioninitialized: (id) => {
+          sessions.set(id, { transport: transport2, manager: fixed.manager, own: false, lastSeen: Date.now(), account: fixed.key });
+        }
+      });
+      transport2.onclose = () => {
+        if (transport2.sessionId != null) void closeSession(transport2.sessionId);
+      };
+      const mcp2 = withConnectionManager(fixed.manager, () => createServer({ workspace: fixed.workspace, toolsets: fixed.toolsets }));
+      await mcp2.connect(transport2);
+      await withConnectionManager(fixed.manager, async () => {
+        await transport2.handleRequest(req, res, body);
+      });
       return;
     }
     const creds = oauth2 != null ? { token: oauth2.hulyToken, workspace: header(req, "x-huly-workspace") } : headerCredentials(req);
@@ -104989,8 +105094,39 @@ function startHttpServer(opts) {
       sendError(res, 500, "Internal error.");
     }
   };
+  const profiles = opts.profiles ?? loadProfiles(env);
+  const fixedOf = /* @__PURE__ */ new Map();
+  for (const [name2, p] of profiles) {
+    const manager2 = make({ email: p.email, password: p.password, token: p.token, workspace: p.workspace });
+    fixedOf.set(name2, { key: `profile:${name2}`, manager: manager2, workspace: p.workspace, toolsets: p.toolsets });
+    void withConnectionManager(manager2, async () => await prewarm({ HULY_EMAIL: p.email, HULY_PASSWORD: p.password, HULY_TOKEN: p.token, HULY_WORKSPACE: p.workspace }));
+  }
+  const profileLimit = rate_limit_default({
+    windowMs: 6e4,
+    limit: 600,
+    standardHeaders: "draft-7",
+    legacyHeaders: false,
+    validate: false,
+    keyGenerator: (req) => `${String(req.url)}|${header(req, "cf-connecting-ip") ?? String(req.socket?.remoteAddress ?? "")}`
+  });
+  const PROFILE_PATH = /^\/([a-z0-9][a-z0-9_-]{0,39})\/mcp\/?$/;
+  const handleProfile = (req, res, name2) => {
+    const p = profiles.get(name2);
+    profileLimit(req, res, () => {
+      void (async () => {
+        if (p.public !== true && !bearerOk(req, p.authToken ?? "")) {
+          res.setHeader("www-authenticate", "Bearer");
+          sendError(res, 401, `Missing or wrong bearer token for /${name2}/mcp.`);
+          return;
+        }
+        await handleMcp(req, res, void 0, fixedOf.get(name2));
+      })().catch((e) => {
+        fail(res, e);
+      });
+    });
+  };
   const oauth = opts.oauth ?? oauthFromEnv(env, opts.port);
-  const server = oauth != null ? import_node_http3.default.createServer(oauthApp(oauth, handleMcp, fail)) : import_node_http3.default.createServer((req, res) => {
+  const base = oauth != null ? oauthApp(oauth, handleMcp, fail) : (req, res) => {
     void (async () => {
       const url2 = new URL(req.url ?? "/", "http://local");
       if (url2.pathname === "/healthz") {
@@ -105010,11 +105146,22 @@ function startHttpServer(opts) {
     })().catch((e) => {
       fail(res, e);
     });
+  };
+  const server = import_node_http3.default.createServer((req, res) => {
+    const m = PROFILE_PATH.exec(new URL(req.url ?? "/", "http://local").pathname);
+    if (m != null && profiles.has(m[1])) {
+      handleProfile(req, res, m[1]);
+      return;
+    }
+    base(req, res);
   });
+  if (profiles.size > 0) log(`profiles: ${[...profiles].map(([n, p]) => `/${n}/mcp${p.public === true ? " (no token)" : ""}`).join(", ")}`);
   if (oauth != null) log(`"Log in with Huly" (OAuth) at ${oauth.publicUrl.href} \u2014 clients connect to ${new URL("/mcp", oauth.publicUrl).href}`);
   server.on("close", () => {
     clearInterval(sweeper);
     for (const id of [...sessions.keys()]) void closeSession(id);
+    for (const f of fixedOf.values()) void f.manager.closeAll().catch(() => {
+    });
   });
   return server;
 }

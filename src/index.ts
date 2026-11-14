@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import './node-globals' // first: before any Huly client code (#109)
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { createServer } from './server'
 import { closeConnection, prewarm } from './connection'

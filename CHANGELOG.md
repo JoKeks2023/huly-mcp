@@ -4,6 +4,8 @@ All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mc
 
 ### Unreleased
 
+- **Fix: "window is not defined" on Node 25+ (#109).** Node 25 and newer define `localStorage`/`sessionStorage` globally; the Huly client took that for a browser and every workspace connection failed (Docker images run Node 26). The server now hides both at start-up.
+
 - **Team server: several fixed accounts in one container (profiles).** Logins go in the `.env` as `MCP_PROFILE_<NAME>_EMAIL` / `_PASSWORD` / `_AUTH_TOKEN` … (or as JSON in `MCP_PROFILES_FILE` / `MCP_PROFILES`); each gets its own path `/<name>/mcp` — easy to route through a Cloudflare Tunnel — and its own bearer token (`"public": true` only when the path is protected elsewhere). Per profile: token or e-mail + password, a pinned workspace, toolsets. One Huly connection per profile, opened at start-up; sessions cannot cross paths.
 - **New plugin `huly-remote`** for teams with a huly-mcp server: the same skill, hooks and commands, but nothing runs on your computer — Claude Code connects to the server URL you enter and you log in with your Huly account in the browser (OAuth). `/plugin install huly-remote@huly-mcp`. Generated from `plugin/` (`npm run plugin:remote`), checked in CI.
 
