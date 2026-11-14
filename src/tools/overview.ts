@@ -10,7 +10,7 @@ import { C, TODO_PRIORITY, TODO_PRIORITY_LABEL } from '../utils/classes'
 import { priorityLabel, clip, markupToText } from '../utils/format'
 import { currentAccountUuid, currentPerson, peopleNames, socialIdNames } from '../utils/people'
 import { parseSince } from './agent'
-import { loadLabel } from '../utils/resolve'
+import { labelOf, loadLabel, loadLabels } from '../utils/resolve'
 import type { z } from 'zod'
 import type * as S from '../schemas'
 
@@ -101,12 +101,12 @@ export async function myDayText (client: any, date: string | undefined, limit: n
   out.push('', `## Inbox (${unread.length}${unread.length === 500 ? '+' : ''} unread on ${groups.size} item(s))`)
   if (unread.length === 0) out.push('Inbox zero.')
   const ctxs: any[] = groups.size > 0 ? await client.findAll(C.DocNotifyContext, { _id: { $in: [...groups.keys()].slice(0, limit) } }) : []
-  for (const [ctxId, notes] of [...groups.entries()].slice(0, limit)) {
+  const shown = [...groups.entries()].slice(0, limit).map(([ctxId, notes]) => {
     const ctx = ctxs.find((c) => c._id === ctxId)
-    const cls = ctx?.objectClass ?? notes[0].objectClass
-    const label = cls != null ? await loadLabel(client, cls, ctx?.objectId ?? notes[0].objectId) : '(unknown)'
-    out.push(`- **${label}** — ${notes.length} unread`)
-  }
+    return { notes, cls: ctx?.objectClass ?? notes[0].objectClass, id: ctx?.objectId ?? notes[0].objectId }
+  })
+  const labels = await loadLabels(client, shown.filter((x) => x.cls != null).map((x) => ({ _class: x.cls, _id: x.id })))
+  for (const x of shown) out.push(`- **${x.cls != null ? labels.get(`${String(x.cls)}:${String(x.id)}`) ?? String(x.id) : '(unknown)'}** — ${x.notes.length} unread`)
   if (unread.length > 0) out.push(`_${groups.size > limit ? `${groups.size - limit} more. ` : ''}Work through them: triage_inbox._`)
   return out.join('\n')
 }
@@ -315,7 +315,7 @@ export const triageInbox = wrapToolHandler<z.infer<typeof S.TriageInboxSchema>>(
       client.findAll(C.ActivityMessage, { attachedTo: objectId, createdOn: { $gt: since } }, { sort: { createdOn: SortingOrder.Descending }, limit: 50 })
     ])
     const msgs = found.filter((m) => (m.createdOn ?? 0) > since).sort((a, b) => (b.createdOn ?? 0) - (a.createdOn ?? 0))
-    const label = objectClass != null ? await loadLabel(client, objectClass, objectId) : '(unknown)'
+    const label = doc != null ? labelOf(doc) : objectClass != null ? await loadLabel(client, objectClass, objectId) : '(unknown)'
     const state = doc?.status != null ? ` — ${String(statuses.get(doc.status) ?? '?')}${doc.assignee != null ? ` · ${names.get(doc.assignee) ?? '?'}` : ''}` : ''
     out.push('', `## ${label}${state} (${notes.length} unread)`)
     const who = await socialIdNames(client, [...new Set(msgs.map((m) => m.createdBy).filter((x) => x != null))])

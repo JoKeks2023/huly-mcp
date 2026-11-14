@@ -26,6 +26,20 @@ export async function loadLabel (client: TxOperations, _class: string, _id: stri
   }
 }
 
+/** Labels for many documents at once: one query per class instead of one per document. Key: `${_class}:${_id}`. */
+export async function loadLabels (client: TxOperations, refs: Array<{ _class: string, _id: string }>): Promise<Map<string, string>> {
+  const byClass = new Map<string, Set<string>>()
+  for (const r of refs) byClass.set(r._class, (byClass.get(r._class) ?? new Set()).add(r._id))
+  const out = new Map<string, string>()
+  await Promise.all([...byClass].map(async ([cls, ids]) => {
+    let docs: any[] = []
+    try { docs = await client.findAll(cls as any, { _id: { $in: [...ids] } } as any) } catch { /* labelled by id below */ }
+    const found = new Map(docs.map((d) => [String(d._id), d]))
+    for (const id of ids) out.set(`${cls}:${id}`, found.has(id) ? labelOf(found.get(id)) : '(deleted)')
+  }))
+  return out
+}
+
 /**
  * Resolves "PROJ-12" (issue, pull request or any task) or a raw document id.
  * For raw ids the class is unknown, so the activity/notification records that point at it are used.

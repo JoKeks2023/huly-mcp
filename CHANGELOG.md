@@ -10,6 +10,8 @@ All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mc
 - **`create_issue` takes `parentIdentifier`** — a sub-issue in one call.
 - **`list_issues` takes `blocked: true`** — issues waiting for an open blocker. `status: "Blocked"` (not a status in Huly) now says so and lists the real statuses.
 - **Fixed: `finish_work` failed when the PR was not synced to Huly yet** (sync takes a minute; projects without sync never have it). It now hands back anyway — summary with the PR link, status — and says to run it again later to put the PR under the issue.
+- **About twice as fast.** Statuses, people, projects, milestones, components and labels are kept per connection and dropped the moment Huly reports a change to them — Huly pushes every change in the workspace to the connection, also those made by other people (verified live: a component added from another session was visible on the next call). Never older than 10 minutes either way; `HULY_CACHE=0` turns it off. Measured on nine typical calls (warm connection, median of 3): 3.8 s → 1.9 s in total; `standup` 1.1 s → 0.44 s, `my_day` 0.83 s → 0.24 s, `project_report` 0.32 s → 0.16 s, `list_milestones` 108 ms → 1 ms.
+- `my_day` labels its inbox items with one query per class instead of one per item (10 → 1 queries); `triage_inbox` no longer loads each object twice.
 
 ### 3.6.2 — 2026-11-12
 

@@ -204,8 +204,9 @@ export function registerPrompts (server: McpServer): void {
 }
 
 // ── Resource subscriptions (resources/subscribe → notifications/resources/updated) ──
-// Huly pushes no per-document events to this client, so subscribed issues/documents are
-// polled for a newer modifiedOn. The timer only runs while something is subscribed.
+// Subscribed issues/documents are polled for a newer modifiedOn; the timer only runs while
+// something is subscribed. (Huly does push every workspace transaction to the connection —
+// client.notify, used by the reference cache — so this could become push-based.)
 
 /** modifiedOn of the object behind a huly:// URI, or undefined if it cannot be read. */
 export async function modifiedOn (uri: string): Promise<number | undefined> {
