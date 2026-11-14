@@ -1376,3 +1376,11 @@ export const SetupWorkspaceSchema = z.object({
 export const TestCoverageSchema = z.object({ workspace: ReadWorkspaceArg, projectIdentifier: z.string().describe('Project key'), milestoneLabel: z.string().optional(), onlyOpen: z.boolean().optional().describe('Only open issues') })
 export const LinkTestCaseSchema = z.object({ workspace: WorkspaceArg, identifier: z.string().describe('Issue id'), testCase: z.string().describe('Test case id or exact name') })
 export const ReleaseCheckSchema = z.object({ workspace: ReadWorkspaceArg, projectIdentifier: z.string().describe('Project key'), milestoneLabel: z.string().describe('Milestone name') })
+
+export const TimesheetSchema = z.object({
+  workspace: ReadWorkspaceArg,
+  week: z.string().optional().describe('A date in it; default now'),
+  member: z.string().optional(),
+  everyone: z.boolean().optional().describe('Row per person'),
+  hoursPerDay: z.number().min(0).max(24).optional()
+})

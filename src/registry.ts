@@ -7,7 +7,7 @@ import { undoChanges } from './tools/undo'
 import { listProjects, getProject, createProject, updateProject } from './tools/projects'
 import { listIssues, getIssue, createIssue, updateIssue, deleteIssue, bulkUpdateIssues, moveIssue, listSubIssues } from './tools/issues'
 import { addComment, listComments, deleteComment, updateComment } from './tools/comments'
-import { logTime, listTimeReports } from './tools/log-time'
+import { logTime, listTimeReports, timesheet } from './tools/log-time'
 import { listLabels, createLabel, addLabel, removeLabel, updateLabel, deleteLabel, listLabelCategories, createLabelCategory, setLabelCategory } from './tools/labels'
 import { addRelation, addBlockedBy, setParent, removeRelation, removeBlockedBy, repairParentLinks } from './tools/relations'
 import { listMembers } from './tools/members'
@@ -67,7 +67,7 @@ export interface ToolDef {
 
 export const TOOLS: ToolDef[] = [
   { name: 'list_workspaces', toolset: 'core', description: 'List accessible workspaces (name, slug, id)', schema: S.ListWorkspacesSchema, handler: listWorkspaces },
-  { name: 'undo_changes', toolset: 'core', description: 'Undo your last changes made through this server: created → removed, changed → old values, deleted → restored. Dry run first', schema: S.UndoChangesSchema, handler: undoChanges },
+  { name: 'undo_changes', toolset: 'core', description: 'Undo your last changes made through this server (creates, edits, deletes). Dry run first', schema: S.UndoChangesSchema, handler: undoChanges },
   { name: 'check_setup', toolset: 'core', description: 'Diagnose the setup: version and updates, login, workspaces, front URL, settings (no secrets)', schema: S.CheckSetupSchema, handler: checkSetup },
   { name: 'list_projects', toolset: 'tracker', description: 'List all projects in a Huly workspace', schema: S.ListProjectsSchema, handler: listProjects },
   { name: 'get_project', toolset: 'tracker', description: 'Project by key (e.g. "PROJ"): name, description, issue count, statuses', schema: S.GetProjectSchema, handler: getProject },
@@ -87,6 +87,7 @@ export const TOOLS: ToolDef[] = [
   { name: 'update_comment', toolset: 'tracker', description: 'Edit a comment by id', schema: S.UpdateCommentSchema, handler: updateComment },
   { name: 'log_time', toolset: 'tracker', description: 'Log hours spent on an issue', schema: S.LogTimeSchema, handler: logTime },
   { name: 'list_time_reports', toolset: 'tracker', description: 'Logged time for an issue or project, totals per person; person/date filters', schema: S.ListTimeReportsSchema, handler: listTimeReports },
+  { name: 'timesheet', toolset: 'tracker', description: 'Hours of a week by day and project; gaps marked', schema: S.TimesheetSchema, handler: timesheet },
   { name: 'list_labels', toolset: 'tracker', description: 'List all labels in the workspace', schema: S.ListLabelsSchema, handler: listLabels },
   { name: 'create_label', toolset: 'tracker', description: 'Create a workspace-wide label (optional hex color); an existing title is reused. Tag an issue: add_label', schema: S.CreateLabelSchema, handler: createLabel },
   { name: 'add_label', toolset: 'tracker', description: 'Add label to issue (auto-creates label)', schema: S.AddLabelSchema, handler: addLabel },
@@ -113,7 +114,7 @@ export const TOOLS: ToolDef[] = [
   { name: 'create_teamspace', toolset: 'documents', description: 'Create a document teamspace', schema: S.CreateTeamspaceSchema, handler: createTeamspace },
   { name: 'list_documents', toolset: 'documents', description: 'List documents in a teamspace', schema: S.ListDocumentsSchema, handler: listDocuments },
   { name: 'get_document', toolset: 'documents', description: 'Document metadata and content', schema: S.GetDocumentSchema, handler: getDocument },
-  { name: 'create_document', toolset: 'documents', description: 'Create an empty document in a teamspace, optionally under a parent; returns its id. Write the body with update_document', schema: S.CreateDocumentSchema, handler: createDocument },
+  { name: 'create_document', toolset: 'documents', description: 'Create an empty document in a teamspace (optionally under a parent); body: update_document', schema: S.CreateDocumentSchema, handler: createDocument },
   { name: 'delete_document', toolset: 'documents', description: 'Permanently delete a document by its ID', schema: S.DeleteDocumentSchema, handler: deleteDocument },
   { name: 'update_document', toolset: 'documents', description: 'Replace content (Markdown), rename or move a document', schema: S.UpdateDocumentSchema, handler: updateDocument },
   { name: 'list_document_comments', toolset: 'collaboration', description: 'Comments on a document', schema: S.ListDocumentCommentsSchema, handler: listDocumentComments },

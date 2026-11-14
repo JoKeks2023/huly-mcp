@@ -6,7 +6,7 @@
 [![MCP Registry](https://img.shields.io/badge/MCP_Registry-io.github.JoKeks2023%2Fhuly--mcp--selfhost-blue)](https://registry.modelcontextprotocol.io)
 [![License: EPL-2.0](https://img.shields.io/badge/license-EPL--2.0-blue)](https://github.com/JoKeks2023/huly-mcp/blob/main/LICENSE)
 
-**Huly for AI agents.** An MCP server for [Huly](https://huly.io) — self-hosted or Huly Cloud — that lets Claude and other agents work in your workspaces: issues, epics, milestones, documents, chat, inbox, planner, test management and more. 243 tools, built for agent workflows and to spend as few tokens as possible.
+**Huly for AI agents.** An MCP server for [Huly](https://huly.io) — self-hosted or Huly Cloud — that lets Claude and other agents work in your workspaces: issues, epics, milestones, documents, chat, inbox, planner, test management and more. 244 tools, built for agent workflows and to spend as few tokens as possible.
 
 <p align="center">
   <b><a href="#quick-start">Quick start</a></b> ·
@@ -14,7 +14,7 @@
   <a href="#claude-code-plugin">Claude Code plugin</a> ·
   <a href="#command-line">Command line</a> ·
   <a href="#team-server-over-http">Team server</a> ·
-  <a href="#tools-243-total-grouped-in-toolsets">Tools</a> ·
+  <a href="#tools-244-total-grouped-in-toolsets">Tools</a> ·
   <a href="#configuration">Configuration</a> ·
   <a href="#authentication">Authentication</a>
   <br>
@@ -44,7 +44,7 @@ What the model reads — measured on a real self-hosted project (≈60 issues):
 
 | | Characters | ≈ Tokens |
 |---|--:|--:|
-| Tool list, default toolsets (99 tools, each callable directly) | 39,649 | 11.3k |
+| Tool list, default toolsets (100 tools, each callable directly) | 39,934 | 11.4k |
 | Tool list, pinned workspace | 35,957 | 10.3k |
 | Open issues of a project (one call, ≈30 issues) | 2,768 | 0.8k |
 | One issue with description | 318 | 0.1k |
@@ -186,7 +186,7 @@ huly-mcp my_day --format json | jq -r .text
 
 <div align="right"><a href="#huly-mcp-selfhost">↑ Back to top</a></div>
 
-## Tools (243 total, grouped in toolsets)
+## Tools (244 total, grouped in toolsets)
 
 All tools except `list_workspaces` take a `workspace` argument — required for every change, optional for reads when only one workspace is available.
 
@@ -204,7 +204,7 @@ HULY_TOOLSETS=tracker,documents,planner # just these ('core' = list_workspaces, 
 | Toolset | Default | Tools | Contents |
 |---------|:-:|--:|----------|
 | `agent` | ✓ | 14 | agent workflow: my day at a glance, standup, project report, release notes, issue context in one call, start/finish work, plan → issue tree, spec document → issues, meeting notes → issues, changes since, claims, repo → project — plus [resources and prompts](#agent-workflow) |
-| `tracker` | ✓ | 37 | projects, issues, comments, time, labels, relations, milestones, components, statuses, attachments, search |
+| `tracker` | ✓ | 38 | projects, issues, comments, time, labels, relations, milestones, components, statuses, attachments, search |
 | `documents` | ✓ | 8 | teamspaces and documents (tree, move, rename) |
 | `chat` | ✓ | 12 | channels, DMs, threads, edit/delete, reactions, pins |
 | `contacts` | ✓ | 11 | members, organizations, persons, contact channels |
@@ -236,7 +236,7 @@ HULY_TOOLSETS=tracker,documents,planner # just these ('core' = list_workspaces, 
 
 Context cost of `tools/list` (≈3.5 chars/token):
 
-| | default (99 tools) | `all` (243 tools) |
+| | default (100 tools) | `all` (244 tools) |
 |---|--:|--:|
 | several workspaces | ~39.6k chars ≈ **11.3k tokens** | ~87.8k chars ≈ **25.1k tokens** |
 | pinned with `HULY_WORKSPACE` | ~36.0k chars ≈ **10.3k tokens** | ~79.1k chars ≈ **22.6k tokens** |
@@ -339,6 +339,7 @@ Options: `--run <name>`, `--parent-suite <suite>`, `--no-create` (only existing 
 | | `delete_comment` | Delete a specific comment by ID |
 | **Time Tracking** | `log_time` | Log hours spent on an issue |
 | | `list_time_reports` | Logged time per issue or project, totals per member, member/date filters |
+| | `timesheet` | One week by day and project with totals; gaps on past workdays marked (default 8 h); `everyone` gives a row per person |
 | **Labels** | `list_labels` | List all labels with color + usage count |
 | | `create_label` | Create a new label with an optional hex color |
 | | `add_label` | Add a label to an issue (auto-creates if it doesn't exist) |

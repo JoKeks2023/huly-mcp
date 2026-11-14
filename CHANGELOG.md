@@ -4,6 +4,7 @@ All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mc
 
 ### Unreleased
 
+- **`timesheet`** — one week of logged hours by day and project, with totals; past workdays below the expected hours (default 8) are marked as gaps; `everyone` shows a row per person. In the default toolset.
 - **Release readiness and test coverage** (toolset `testing`): `release_check` answers "can we ship this milestone?" in one call — open and blocked issues, open PRs, failing or blocked tests, done issues without tests, linked tests never run, target date — with a verdict and the reasons. `test_coverage` lists which issues of a project or milestone have test cases and the latest result of each; `link_test_case` links a case to an issue (Related).
 - **New toolset `admin` — set a workspace up like with `gh api`:**
   - `list_modules` / `set_module`: switch Huly's apps (HR, CRM, training, …) on or off for everyone, as Settings → Configure does.
