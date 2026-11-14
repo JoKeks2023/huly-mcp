@@ -90524,7 +90524,7 @@ Pass the slug (or name/id) as \`workspace\` to other tools.`;
 var import_fs = require("fs");
 
 // src/version.ts
-var VERSION = "4.0.0";
+var VERSION = "4.1.0";
 
 // src/tools/diagnostics.ts
 var import_path = require("path");

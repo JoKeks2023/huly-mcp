@@ -1,6 +1,6 @@
 {
   "name": "huly-remote",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "description": "Huly for Claude Code through your team server: workflow skill, session/PR hooks and /huly-remote commands — nothing runs on your computer",
   "author": {
     "name": "JoKeks2023"
