@@ -39,6 +39,7 @@ import * as MEET from './tools/meetings'
 import * as QMST from './tools/qms'
 import * as TRN from './tools/training'
 import * as ADM from './tools/admin'
+import * as COV from './tools/coverage'
 import * as PROC from './tools/process'
 import * as SURV from './tools/surveys'
 import { listCustomFields, createCustomField, setCustomFields } from './tools/fields'
@@ -246,6 +247,9 @@ export const TOOLS: ToolDef[] = [
   { name: 'delete_test_plan', toolset: 'testing', description: 'Delete a test plan', schema: S.DeleteTestPlanSchema, handler: TM.deleteTestPlan },
   { name: 'import_test_results', toolset: 'testing', description: 'Import a JUnit XML report as a test run (CI results)', schema: S.ImportTestResultsSchema, handler: TA.importTestResults },
   { name: 'get_test_report', toolset: 'testing', description: 'Failing, flaky, blocked and never-run cases over recent runs', schema: S.GetTestReportSchema, handler: TA.getTestReport },
+  { name: 'test_coverage', toolset: 'testing', description: 'Which issues of a project or milestone have test cases, with the latest result of each', schema: S.TestCoverageSchema, handler: COV.testCoverage },
+  { name: 'link_test_case', toolset: 'testing', description: 'Link a test case to an issue (Related)', schema: S.LinkTestCaseSchema, handler: COV.linkTestCase },
+  { name: 'release_check', toolset: 'testing', description: 'Is a milestone ready to ship: open and blocked issues, open PRs, failing or missing tests, target date — with a verdict', schema: S.ReleaseCheckSchema, handler: COV.releaseCheck },
   { name: 'create_issue_from_test_result', toolset: 'testing', description: 'File a bug from a failed test result (steps + failure, linked)', schema: S.CreateIssueFromTestResultSchema, handler: TA.createIssueFromTestResult },
   { name: 'list_products', toolset: 'products', description: 'Products with their active versions', schema: S.ListProductsSchema, handler: listProducts },
   { name: 'get_product', toolset: 'products', description: 'Product with all versions', schema: S.GetProductSchema, handler: getProduct },
