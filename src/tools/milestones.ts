@@ -1,3 +1,4 @@
+import { findByLabel } from '../utils/labels'
 import tracker, { MilestoneStatus, type Milestone } from '@hcengineering/tracker'
 import task from '@hcengineering/task'
 import { generateId, type Ref, type DocumentUpdate } from '@hcengineering/core'
@@ -22,10 +23,7 @@ async function findProject (client: Client, identifier: string): Promise<any> {
 }
 
 async function findMilestone (client: Client, project: any, label: string): Promise<Milestone> {
-  const matches = await client.findAll(tracker.class.Milestone, { space: project._id, label })
-  if (matches.length === 0) throw new Error(`Milestone '${label}' not found in project ${project.identifier as string}.`)
-  if (matches.length > 1) throw new Error(`Milestone name '${label}' is ambiguous in project ${project.identifier as string} (${matches.length} matches).`)
-  return matches[0]
+  return await findByLabel(client, 'milestone', project._id, label, project.identifier)
 }
 
 function parseDate (value: string): number {
