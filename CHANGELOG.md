@@ -15,6 +15,7 @@ All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mc
 - **Components and milestones by partial name** — "Backend" finds "API Backend" when that is the only match; an ambiguous name lists the candidates, an unknown one the available names (all tools that take `componentLabel` / `milestoneLabel`).
 - **Resource subscriptions are instant** — a subscribed issue or document (or a comment, sub-issue or file on it) changed by anyone is reported within a second, from Huly's own change events, instead of up to 30 s later by polling. A slow poll (5 min, `HULY_SUBSCRIBE_POLL_MS`) stays as a safety net.
 - **`create_issue` points out a missing component or milestone** when the project has components or open milestones, with their names — one cheap correction instead of an unsorted issue.
+- Module review: request, rating, emoji, export, support and communication get no tools for now (no data in a real workspace, no agent use); listed with reasons in `.github/huly-modules-ignore.txt`, so the weekly module check stays quiet.
 
 ### 3.8.0 — 2026-11-14
 

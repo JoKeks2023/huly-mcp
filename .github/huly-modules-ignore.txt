@@ -15,3 +15,10 @@ gmail               # mail integration (out of scope since 3.0.0)
 telegram            # Telegram integration (out of scope since 3.0.0)
 bitrix              # Bitrix integration (out of scope since 3.0.0)
 board               # hidden in current Huly versions
+# Reviewed 2026-11-14 (HULY-48, HULY-69): no user data in a real workspace, no agent use case.
+request             # generic change requests/approvals; off by default; QMS approvals are in get_controlled_document
+rating              # internal person/document rating (beta)
+emoji               # custom emoji; add_reaction takes any emoji
+export              # UI export jobs
+support             # chat with Huly's own support
+communication       # new messaging layer (polls, guest settings) — no data yet; revisit when Huly uses it for chat
