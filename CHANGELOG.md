@@ -2,7 +2,7 @@
 
 All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mcp-selfhost). Versions follow [semver](https://semver.org).
 
-### Unreleased
+### 3.8.0 — 2026-11-14
 
 - **Fixed: issue statuses that the issue's workflow does not allow were set anyway.** Statuses are workspace-wide, but each project type allows some per task type — Huly's GitHub sync, for example, adds "Review in progress" and "Merged" for pull requests only. `update_issue`, `bulk_update_issues`, `create_issue`, `start_work` and `finish_work` took the first status with the name, and Huly later reset such issues to Backlog. Now only allowed statuses are accepted; otherwise the error names the ones that work. `finish_work` hands back anyway and says when there is no review status for issues.
 - **`create_issue_status` adds the status to the issue workflow** of a project type (`projectIdentifier`, default: all tracker project types) and reuses an existing status of that name — before, it only created the status document, which no issue could use.
