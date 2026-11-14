@@ -61,6 +61,7 @@ Compose: [`docker-compose.yml`](https://github.com/JoKeks2023/huly-mcp/blob/main
 | `MCP_TRANSPORT=http` | The server's own HTTP endpoint (`/mcp`, health check `/healthz`) instead of mcp-proxy |
 | `MCP_OAUTH_SECRET`, `MCP_PUBLIC_URL` | Log in with Huly (OAuth); secret ≥ 32 characters, public URL with https |
 | `MCP_AUTH_TOKEN` | Bearer token for every request; needed to use the server's own Huly login |
+| `MCP_PROFILES_FILE` | Several fixed Huly logins, each at `/<name>/mcp` with its own bearer token — one container instead of one per person ([format](https://github.com/JoKeks2023/huly-mcp#team-server-over-http)) |
 | `MCP_ALLOWED_HOSTS` | Host names clients use (DNS-rebinding protection) |
 | `HULY_ACCOUNTS_URL`, `HULY_FRONT_URL` | Self-hosted Huly: login/discovery and document/file content |
 | `HULY_TRANSACTOR_URL` | Server next to Huly: connect internally, e.g. `ws://huly/_transactor` |

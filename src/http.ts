@@ -15,6 +15,7 @@ import express from 'express'
 import { mcpAuthRouter, getOAuthProtectedResourceMetadataUrl } from '@modelcontextprotocol/sdk/server/auth/router.js'
 import { requireBearerAuth } from '@modelcontextprotocol/sdk/server/auth/middleware/bearerAuth.js'
 import { HulyOAuthProvider, Sealer, accountServiceLogin } from './oauth'
+import { loadProfiles, type Profile } from './profiles'
 
 export interface HttpOptions {
   port: number
@@ -26,6 +27,8 @@ export interface HttpOptions {
   log?: (line: string) => void
   /** OAuth ("log in with Huly"); default: from MCP_OAUTH_SECRET + MCP_PUBLIC_URL. */
   oauth?: OAuthConfig
+  /** Fixed logins at /<name>/mcp; default: from MCP_PROFILES_FILE / MCP_PROFILES. */
+  profiles?: Map<string, Profile>
 }
 
 export interface Credentials { email?: string, password?: string, token?: string, workspace?: string }
@@ -124,19 +127,36 @@ export function startHttpServer (opts: HttpOptions): http.Server {
   sweeper.unref()
 
   /** One /mcp request. With OAuth, `oauth` is the verified login of the bearer token. */
-  const handleMcp = async (req: http.IncomingMessage, res: http.ServerResponse, oauth?: { hulyToken: string }): Promise<void> => {
+  /** A profile request: its shared manager and settings; sessions belong to the profile. */
+  interface Fixed { key: string, manager: WorkspaceConnectionManager, workspace?: string, toolsets?: string }
+  const handleMcp = async (req: http.IncomingMessage, res: http.ServerResponse, oauth?: { hulyToken: string }, fixed?: Fixed): Promise<void> => {
     const sessionId = header(req, 'mcp-session-id')
     const body = req.method === 'POST' ? await readJson(req) : undefined
     const existing = sessionId != null ? sessions.get(sessionId) : undefined
     if (existing != null) {
       // A session belongs to the login that opened it.
       if (oauth != null && existing.account !== oauth.hulyToken) { sendError(res, 403, 'This session belongs to another login.'); return }
+      if ((fixed?.key ?? undefined) !== (existing.account?.startsWith('profile:') === true ? existing.account : undefined)) { sendError(res, 403, 'This session belongs to another path.'); return }
       existing.lastSeen = Date.now()
       await withConnectionManager(existing.manager, async () => { await existing.transport.handleRequest(req, res, body) })
       return
     }
     if (sessionId != null) { sendError(res, 404, 'Unknown or expired session — start a new one.'); return }
     if (req.method !== 'POST' || !isInitializeRequest(body)) { sendError(res, 400, 'No session: send an initialize request first.'); return }
+
+    if (fixed != null) {
+      const transport: StreamableHTTPServerTransport = new StreamableHTTPServerTransport({
+        sessionIdGenerator: () => randomUUID(),
+        allowedHosts: hosts,
+        enableDnsRebindingProtection: hosts != null,
+        onsessioninitialized: (id) => { sessions.set(id, { transport, manager: fixed.manager, own: false, lastSeen: Date.now(), account: fixed.key }) }
+      })
+      transport.onclose = () => { if (transport.sessionId != null) void closeSession(transport.sessionId) }
+      const mcp = withConnectionManager(fixed.manager, () => createServer({ workspace: fixed.workspace, toolsets: fixed.toolsets }))
+      await mcp.connect(transport)
+      await withConnectionManager(fixed.manager, async () => { await transport.handleRequest(req, res, body) })
+      return
+    }
 
     const creds = oauth != null ? { token: oauth.hulyToken, workspace: header(req, 'x-huly-workspace') } : headerCredentials(req)
     if (creds == null && !sharedAllowed) {
@@ -168,10 +188,40 @@ export function startHttpServer (opts: HttpOptions): http.Server {
     else { log(`request failed: ${(e as Error).message}`); sendError(res, 500, 'Internal error.') }
   }
 
+  // Profiles: /<name>/mcp with a fixed login, one shared connection per profile.
+  const profiles = opts.profiles ?? loadProfiles(env)
+  const fixedOf = new Map<string, Fixed>()
+  for (const [name, p] of profiles) {
+    const manager = make({ email: p.email, password: p.password, token: p.token, workspace: p.workspace })
+    fixedOf.set(name, { key: `profile:${name}`, manager, workspace: p.workspace, toolsets: p.toolsets })
+    void withConnectionManager(manager, async () => await prewarm({ HULY_EMAIL: p.email, HULY_PASSWORD: p.password, HULY_TOKEN: p.token, HULY_WORKSPACE: p.workspace }))
+  }
+  const profileLimit = rateLimit({
+    windowMs: 60_000,
+    limit: 600,
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    validate: false,
+    keyGenerator: (req: any) => `${String(req.url)}|${header(req, 'cf-connecting-ip') ?? String(req.socket?.remoteAddress ?? '')}`
+  })
+  const PROFILE_PATH = /^\/([a-z0-9][a-z0-9_-]{0,39})\/mcp\/?$/
+  const handleProfile = (req: http.IncomingMessage, res: http.ServerResponse, name: string): void => {
+    const p = profiles.get(name)!
+    profileLimit(req as any, res as any, () => {
+      void (async () => {
+        if (p.public !== true && !bearerOk(req, p.authToken ?? '')) {
+          res.setHeader('www-authenticate', 'Bearer')
+          sendError(res, 401, `Missing or wrong bearer token for /${name}/mcp.`); return
+        }
+        await handleMcp(req, res, undefined, fixedOf.get(name))
+      })().catch((e: unknown) => { fail(res, e) })
+    })
+  }
+
   const oauth = opts.oauth ?? oauthFromEnv(env, opts.port)
-  const server = oauth != null
-    ? http.createServer(oauthApp(oauth, handleMcp, fail))
-    : http.createServer((req, res) => {
+  const base = oauth != null
+    ? oauthApp(oauth, handleMcp, fail)
+    : (req: http.IncomingMessage, res: http.ServerResponse) => {
       void (async () => {
         const url = new URL(req.url ?? '/', 'http://local')
         if (url.pathname === '/healthz') { res.writeHead(204).end(); return }
@@ -182,12 +232,19 @@ export function startHttpServer (opts: HttpOptions): http.Server {
         }
         await handleMcp(req, res)
       })().catch((e: unknown) => { fail(res, e) })
-    })
+    }
+  const server = http.createServer((req, res) => {
+    const m = PROFILE_PATH.exec(new URL(req.url ?? '/', 'http://local').pathname)
+    if (m != null && profiles.has(m[1])) { handleProfile(req, res, m[1]); return }
+    base(req, res)
+  })
+  if (profiles.size > 0) log(`profiles: ${[...profiles].map(([n, p]) => `/${n}/mcp${p.public === true ? ' (no token)' : ''}`).join(', ')}`)
   if (oauth != null) log(`"Log in with Huly" (OAuth) at ${oauth.publicUrl.href} — clients connect to ${new URL('/mcp', oauth.publicUrl).href}`)
 
   server.on('close', () => {
     clearInterval(sweeper)
     for (const id of [...sessions.keys()]) void closeSession(id)
+    for (const f of fixedOf.values()) void f.manager.closeAll().catch(() => {})
   })
   return server
 }

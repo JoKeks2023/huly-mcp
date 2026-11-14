@@ -4,6 +4,7 @@ All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mc
 
 ### Unreleased
 
+- **Team server: several fixed accounts in one container (profiles).** `MCP_PROFILES_FILE` (or `MCP_PROFILES`) lists logins; each gets its own path `/<name>/mcp` — easy to route through a Cloudflare Tunnel — and its own bearer token (`"public": true` only when the path is protected elsewhere). Per profile: token or e-mail + password, a pinned workspace, toolsets. One Huly connection per profile, opened at start-up; sessions cannot cross paths.
 - **New plugin `huly-remote`** for teams with a huly-mcp server: the same skill, hooks and commands, but nothing runs on your computer — Claude Code connects to the server URL you enter and you log in with your Huly account in the browser (OAuth). `/plugin install huly-remote@huly-mcp`. Generated from `plugin/` (`npm run plugin:remote`), checked in CI.
 
 ### 4.0.0 — 2026-11-14
