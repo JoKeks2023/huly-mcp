@@ -2,10 +2,13 @@
 
 All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mcp-selfhost). Versions follow [semver](https://semver.org).
 
-### Unreleased
+### 3.7.1 — 2026-11-14
 
 - **Team server (OAuth): the token key is derived from `MCP_OAUTH_SECRET` with scrypt** instead of a single SHA-256 — a passphrase used as secret no longer makes guessing it from a stolen token cheap. **Everyone logs in once more after the update** (existing tokens were sealed with the old key).
 - **Team server: rate limits per client IP** — `/oauth/login` 30 per minute (on top of the per-failure throttle), `/mcp` 600 per minute; standard `RateLimit` headers, 429 when exceeded.
+- **Docker image on Node 26** (the current LTS) instead of 22.
+- Community files: [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), a pull-request template and [ACCESSIBILITY.md](ACCESSIBILITY.md); the website passes an axe-core check (contrast, keyboard access to scrollable code, tap targets).
+- CI warns when the nightly live test is skipped because its sandbox secrets are missing.
 - Code scanning no longer scans the plugin's bundled server (its source in `src/` is scanned); 436 of 447 alerts came from third-party code in that build.
 
 ### 3.7.0 — 2026-11-14
