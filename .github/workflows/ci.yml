@@ -35,6 +35,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      - name: plugin-remote/ matches plugin/
+        run: node scripts/plugin-remote.js --check
       - run: npm test
       - name: Server answers over stdio
         run: node .github/scripts/stdio-smoke.mjs node dist/index.js

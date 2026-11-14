@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "huly": {
+      "type": "http",
+      "url": "${user_config.huly_server_url}"
+    }
+  }
+}
