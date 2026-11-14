@@ -6,7 +6,7 @@
 [![MCP Registry](https://img.shields.io/badge/MCP_Registry-io.github.JoKeks2023%2Fhuly--mcp--selfhost-blue)](https://registry.modelcontextprotocol.io)
 [![License: EPL-2.0](https://img.shields.io/badge/license-EPL--2.0-blue)](https://github.com/JoKeks2023/huly-mcp/blob/main/LICENSE)
 
-**Huly for AI agents.** An MCP server for [Huly](https://huly.io) — self-hosted or Huly Cloud — that lets Claude and other agents work in your workspaces: issues, epics, milestones, documents, chat, inbox, planner, test management and more. 240 tools, built for agent workflows and to spend as few tokens as possible.
+**Huly for AI agents.** An MCP server for [Huly](https://huly.io) — self-hosted or Huly Cloud — that lets Claude and other agents work in your workspaces: issues, epics, milestones, documents, chat, inbox, planner, test management and more. 243 tools, built for agent workflows and to spend as few tokens as possible.
 
 <p align="center">
   <b><a href="#quick-start">Quick start</a></b> ·
@@ -14,7 +14,7 @@
   <a href="#claude-code-plugin">Claude Code plugin</a> ·
   <a href="#command-line">Command line</a> ·
   <a href="#team-server-over-http">Team server</a> ·
-  <a href="#tools-240-total-grouped-in-toolsets">Tools</a> ·
+  <a href="#tools-243-total-grouped-in-toolsets">Tools</a> ·
   <a href="#configuration">Configuration</a> ·
   <a href="#authentication">Authentication</a>
   <br>
@@ -186,7 +186,7 @@ huly-mcp my_day --format json | jq -r .text
 
 <div align="right"><a href="#huly-mcp-selfhost">↑ Back to top</a></div>
 
-## Tools (240 total, grouped in toolsets)
+## Tools (243 total, grouped in toolsets)
 
 All tools except `list_workspaces` take a `workspace` argument — required for every change, optional for reads when only one workspace is available.
 
@@ -221,7 +221,7 @@ HULY_TOOLSETS=tracker,documents,planner # just these ('core' = list_workspaces, 
 | `fields` | | 3 | custom fields on issues, project types, card types or any class; set values |
 | `drive` | | 10 | drives, folders, versioned files: upload, download, move, restore versions |
 | `templates` | | 11 | issue templates with sub-issues, new issue from template; message templates |
-| `testing` | | 23 | test management: projects, suites, cases, plans, runs, results; JUnit import, report, bugs from failed tests |
+| `testing` | | 26 | test management: projects, suites, cases, plans, runs, results; JUnit import, report, bugs from failed tests |
 | `products` | | 2 | products and versions (read-only) |
 | `members` | | 4 | workspace settings, invite links and e-mails, member roles |
 | `admin` | | 8 | modules on/off, workspace name and guest access, your profile, new workspaces, set a workspace up from a template, `huly_api` (account service like `gh api`) |
@@ -236,7 +236,7 @@ HULY_TOOLSETS=tracker,documents,planner # just these ('core' = list_workspaces, 
 
 Context cost of `tools/list` (≈3.5 chars/token):
 
-| | default (99 tools) | `all` (240 tools) |
+| | default (99 tools) | `all` (243 tools) |
 |---|--:|--:|
 | several workspaces | ~39.6k chars ≈ **11.3k tokens** | ~87.8k chars ≈ **25.1k tokens** |
 | pinned with `HULY_WORKSPACE` | ~36.0k chars ≈ **10.3k tokens** | ~79.1k chars ≈ **22.6k tokens** |
@@ -439,6 +439,7 @@ Options: `--run <name>`, `--parent-suite <suite>`, `--no-create` (only existing 
 | | `create_test_cases` | Many cases in one call (e.g. drafted from a spec or an issue); existing names are skipped |
 | | `update_test_suite` / `delete_test_suite` / `update_test_run` / `delete_test_run` / `delete_test_plan` | Rename/move suites (no cycles), delete with `recursive`, run due dates |
 | | `import_test_results` | JUnit XML from CI (Jest, Vitest, pytest, Go, Gradle, Maven, xcpretty …) as a run; missing suites/cases are created, failures keep message and stack trace |
+| | `test_coverage` / `link_test_case` / `release_check` | Which issues of a milestone have test cases and their latest result; link a case to an issue; is the milestone ready to ship (open/blocked issues, open PRs, failing or missing tests, target date) with a verdict |
 | | `get_test_report` | Over the latest runs: failing now, flaky (flipped ≥ 2×), blocked, never run, per-suite table |
 | | `create_issue_from_test_result` | Bug from a failed result: steps + failure in the description, related to the test case, comment on the result |
 | **Products** (`products`) | `list_products` / `get_product` | Products and their versions (read-only) |

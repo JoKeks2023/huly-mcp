@@ -1371,3 +1371,8 @@ export const SetupWorkspaceSchema = z.object({
   teamspaces: z.array(z.strictObject({ name: z.string().min(1), description: z.string().optional() })).optional(),
   dryRun: z.boolean().optional().describe('Default true: show the plan')
 })
+
+// ── Test coverage and release check ──────────────────────────────────────────
+export const TestCoverageSchema = z.object({ workspace: ReadWorkspaceArg, projectIdentifier: z.string().describe('Project key'), milestoneLabel: z.string().optional(), onlyOpen: z.boolean().optional().describe('Only open issues') })
+export const LinkTestCaseSchema = z.object({ workspace: WorkspaceArg, identifier: z.string().describe('Issue id'), testCase: z.string().describe('Test case id or exact name') })
+export const ReleaseCheckSchema = z.object({ workspace: ReadWorkspaceArg, projectIdentifier: z.string().describe('Project key'), milestoneLabel: z.string().describe('Milestone name') })

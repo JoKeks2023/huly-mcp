@@ -1,6 +1,6 @@
 # huly-mcp — Huly for AI agents
 
-MCP server for [Huly](https://huly.io), self-hosted or Huly Cloud: Claude and other AI agents work in your Huly workspaces — issues, epics, milestones, documents, chat, inbox, planner, test management and more. 240 tools in toolsets (`HULY_TOOLSETS`, default 99), built for agent workflows and for few tokens.
+MCP server for [Huly](https://huly.io), self-hosted or Huly Cloud: Claude and other AI agents work in your Huly workspaces — issues, epics, milestones, documents, chat, inbox, planner, test management and more. 243 tools in toolsets (`HULY_TOOLSETS`, default 99), built for agent workflows and for few tokens.
 
 **This image is the team server:** one container, everyone logs in with their own Huly account.
 
