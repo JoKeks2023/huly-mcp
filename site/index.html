@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>huly-mcp — Huly for AI agents</title>
-  <meta name="description" content="Huly for AI agents: MCP server for self-hosted Huly and Huly Cloud. 227 tools, 2.9× fewer tokens per answer, agent workflows, log in with Huly for teams, undo, command line, no telemetry. Open source, EPL-2.0.">
+  <meta name="description" content="Huly for AI agents: MCP server for self-hosted Huly and Huly Cloud. 232 tools, 2.9× fewer tokens per answer, agent workflows, log in with Huly for teams, undo, command line, no telemetry. Open source, EPL-2.0.">
   <meta name="theme-color" content="#fafaf9" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0c0c0c" media="(prefers-color-scheme: dark)">
   <meta property="og:title" content="huly-mcp — Huly for AI agents">
-  <meta property="og:description" content="MCP server for Huly, self-hosted or cloud. 227 tools, 2.9× fewer tokens per answer, agent workflows, log in with Huly, undo. No telemetry.">
+  <meta property="og:description" content="MCP server for Huly, self-hosted or cloud. 232 tools, 2.9× fewer tokens per answer, agent workflows, log in with Huly, undo. No telemetry.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="https://raw.githubusercontent.com/JoKeks2023/huly-mcp/main/docs/assets/social-preview.png">
   <meta property="og:image:width" content="1280">
@@ -64,7 +64,7 @@
         <li>Self-hosted + Huly Cloud.</li>
         <li>2.9× fewer tokens per answer.</li>
         <li>One server for the team — log in with Huly.</li>
-        <li>227 tools · undo · no telemetry · 4 MB.</li>
+        <li>232 tools · undo · no telemetry · 4 MB.</li>
       </ul>
       <p class="byline"><em>for Claude, by Claude.</em></p>
       <div class="actions">
@@ -213,7 +213,7 @@
       <h2>Every tool, by toolset.</h2>
       <p class="lede">Only the default toolsets are loaded unless you choose more (<code>HULY_TOOLSETS</code>) — or let the agent load them on demand.</p>
       <div class="stats">
-        <div class="stat"><b>227</b><span>tools</span></div>
+        <div class="stat"><b>232</b><span>tools</span></div>
         <div class="stat"><b>30</b><span>toolsets</span></div>
         <div class="stat"><b>99</b><span>loaded by default</span></div>
         <div class="stat"><b>137</b><span>change data — workspace required</span></div>
@@ -246,12 +246,12 @@
         <div class="row"><h3>HR</h3><div class="toolnames"><span>list_departments</span><span class="w">create_department</span><span class="w">delete_department</span><span class="w">set_department</span><span>list_time_off</span><span class="w">create_time_off</span><span class="w">delete_time_off</span></div><span class="count">7</span></div>
         <div class="row"><h3>Inventory</h3><div class="toolnames"><span>list_inventory</span><span class="w">create_inventory_category</span><span class="w">create_inventory_product</span><span class="w">update_inventory_item</span><span class="w">delete_inventory_item</span></div><span class="count">5</span></div>
         <div class="row"><h3>Meetings</h3><div class="toolnames"><span>list_meetings</span><span>get_meeting</span></div><span class="count">2</span></div>
-        <div class="row"><h3>Quality documents</h3><div class="toolnames"><span>list_controlled_documents</span><span>get_controlled_document</span><span>list_trainings</span><span>get_training</span></div><span class="count">4</span></div>
+        <div class="row"><h3>Quality documents</h3><div class="toolnames"><span>list_controlled_documents</span><span>get_controlled_document</span><span>list_trainings</span><span>get_training</span><span>create_training</span><span>add_training_questions</span><span>release_training</span><span>assign_training</span><span>cancel_training_request</span></div><span class="count">9</span></div>
         <div class="row"><h3>Processes</h3><div class="toolnames"><span>list_processes</span><span>list_executions</span><span class="w">start_process</span><span class="w">cancel_execution</span></div><span class="count">4</span></div>
         <div class="row"><h3>Surveys</h3><div class="toolnames"><span>list_surveys</span><span>get_survey</span></div><span class="count">2</span></div>
       </div>
       <div class="legend"><span class="w">changes data — <code>workspace</code> required</span><span>reads: <code>workspace</code> optional when only one is available</span></div>
-      <a class="more" href="https://github.com/JoKeks2023/huly-mcp#tools-227-total-grouped-in-toolsets">Full tool reference →</a>
+      <a class="more" href="https://github.com/JoKeks2023/huly-mcp#tools-232-total-grouped-in-toolsets">Full tool reference →</a>
     </div>
   </section>
 
@@ -263,7 +263,7 @@
       <p class="lede">No database, no cache service, no extra infrastructure. All state is in process memory: account sessions, the discovered workspaces, one connection per workspace in use and the undo history. OAuth tokens are sealed, so nothing needs storing.</p>
       <div class="layers">
         <div class="layer"><div class="name">MCP client<small>Claude · Codex · Cursor · Zed · CLI</small></div><p>Calls tools over stdio, or over HTTP to the team server — each session with its own Huly login (OAuth or headers).</p></div>
-        <div class="layer"><div class="name">MCP tools<small>src/tools/*.ts</small></div><p>227 handlers in toolsets. Each resolves its own connection from its <code>workspace</code> argument; inputs are validated against zod schemas first; writes are recorded for <code>undo_changes</code>.</p></div>
+        <div class="layer"><div class="name">MCP tools<small>src/tools/*.ts</small></div><p>232 handlers in toolsets. Each resolves its own connection from its <code>workspace</code> argument; inputs are validated against zod schemas first; writes are recorded for <code>undo_changes</code>.</p></div>
         <div class="layer"><div class="name">Account client<small>HULY_ACCOUNTS_URL · account token</small></div><p><code>login</code> / <code>getLoginInfoByToken</code>, then <code>getUserWorkspaces()</code> and <code>selectWorkspace()</code>. Never holds a workspace token.</p></div>
         <div class="layer"><div class="name">Workspace connection manager<small>src/connection.ts</small></div><p>Caches the session, the workspace list and one connection per workspace id. Failed attempts are not cached; shutdown closes everything.</p></div>
         <div class="layer"><div class="name">Workspace client<small>per workspace · workspace token</small></div><p><code>TxOperations</code> for all reads and writes, plus a workspace-scoped account client for <code>getWorkspaceMembers()</code>.</p></div>

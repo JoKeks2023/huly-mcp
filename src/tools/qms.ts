@@ -141,7 +141,8 @@ export const getTraining = wrapToolHandler<z.infer<typeof S.GetTrainingSchema>>(
     const correct = new Set<number>(a.correctIndex != null ? [a.correctIndex] : a.correctIndices ?? [])
     out.push(`${i + 1}. ${markupToText(q.title).trim()} _(${kind})_`)
     opts.forEach((o, j) => out.push(`   - ${args.showAnswers === true && correct.has(j) ? '✅ ' : ''}${o}`))
-    if (args.showAnswers === true && a.correctOrder != null) out.push(`   - correct order: ${(a.correctOrder as number[]).map((j) => opts[j]).join(' → ')}`)
+    // correctOrder[i] is the 1-based position of option i (Huly's OrderingAssessmentData).
+    if (args.showAnswers === true && a.correctOrder != null) out.push(`   - correct order: ${opts.map((o, i) => ({ o, pos: Number((a.correctOrder as number[])[i]) })).sort((x, y) => x.pos - y.pos).map((x) => x.o).join(' → ')}`)
   })
   if (requests.length > 0) {
     out.push('', '### Assignments')
@@ -151,7 +152,7 @@ export const getTraining = wrapToolHandler<z.infer<typeof S.GetTrainingSchema>>(
         const best = mine.filter((x) => x.owner === p).sort((a, b) => Number(b.score ?? 0) - Number(a.score ?? 0))[0]
         return `${names.get(p) ?? '?'}: ${best != null ? `${String(best.state)}${best.score != null ? ` ${Number(best.score)}%` : ''}` : 'not started'}`
       })
-      out.push(`- due ${formatDate(r.dueDate)}${r.canceledOn != null ? ' (canceled)' : ''} — ${per.join('; ') || 'no trainees'}`)
+      out.push(`- due ${formatDate(r.dueDate)}${r.canceledOn != null ? ' (canceled)' : ''} — ${per.join('; ') || 'no trainees'} — \`${String(r._id)}\``)
     }
   }
   return out.join('\n')

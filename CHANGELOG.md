@@ -2,6 +2,11 @@
 
 All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mcp-selfhost). Versions follow [semver](https://semver.org).
 
+### Unreleased
+
+- **Trainings can be written** (toolset `qms`): `create_training` makes a draft `TR-n` with questions in one call — single choice, multiple choice, ordering; with `correct` they are scored, without they are open (e.g. feedback); `add_training_questions` for drafts; `release_training` (archives the earlier released revision and releases the questions, like Huly's "Release"); `assign_training` to people with due date and max attempts (released trainings only); `cancel_training_request`. `get_training` shows assignment ids. Same data as Huly's own UI; verified live (create → release → assign → results → cancel), test data removed.
+- **Fixed: `get_training` showed the correct order of ordering questions wrong** — Huly stores each option's position, the output read it as an index.
+
 ### 3.7.1 — 2026-11-14
 
 - **Team server (OAuth): the token key is derived from `MCP_OAUTH_SECRET` with scrypt** instead of a single SHA-256 — a passphrase used as secret no longer makes guessing it from a stolen token cheap. **Everyone logs in once more after the update** (existing tokens were sealed with the old key).
