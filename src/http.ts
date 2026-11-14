@@ -27,7 +27,7 @@ export interface HttpOptions {
   log?: (line: string) => void
   /** OAuth ("log in with Huly"); default: from MCP_OAUTH_SECRET + MCP_PUBLIC_URL. */
   oauth?: OAuthConfig
-  /** Fixed logins at /<name>/mcp; default: from MCP_PROFILES_FILE / MCP_PROFILES. */
+  /** Fixed logins at /<name>/mcp; default: from MCP_PROFILE_<NAME>_* / MCP_PROFILES_FILE / MCP_PROFILES. */
   profiles?: Map<string, Profile>
 }
 

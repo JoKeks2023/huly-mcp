@@ -66,3 +66,19 @@ test('profiles: mistakes in the file are refused with the reason', () => {
   assert.equal(loadProfiles({}).size, 0)
   assert.equal(loadProfiles({ MCP_PROFILES_FILE: '/p.json' }, () => JSON.stringify({ ci: { token: 'x'.repeat(12), public: true } })).get('ci')?.public, true)
 })
+
+test('profiles: one .env variable per field (MCP_PROFILE_<NAME>_<FIELD>)', () => {
+  const p = loadProfiles({
+    MCP_PROFILE_JORIS_EMAIL: 'a@b.c', MCP_PROFILE_JORIS_PASSWORD: 'pw', MCP_PROFILE_JORIS_AUTH_TOKEN: 'x'.repeat(16),
+    MCP_PROFILE_TEAM_CI_TOKEN: 'y'.repeat(12), MCP_PROFILE_TEAM_CI_PUBLIC: 'true', MCP_PROFILE_TEAM_CI_WORKSPACE: 'acme',
+    MCP_PROFILE_OLD_EMAIL: '', HULY_EMAIL: 'ignored@b.c'
+  })
+  assert.deepEqual([...p.keys()].sort(), ['joris', 'team_ci'])
+  assert.deepEqual(p.get('joris'), { email: 'a@b.c', password: 'pw', authToken: 'x'.repeat(16) })
+  assert.deepEqual(p.get('team_ci'), { token: 'y'.repeat(12), public: true, workspace: 'acme' })
+  assert.throws(() => loadProfiles({ MCP_PROFILE_JORIS_PASWORD: 'typo' }), /unknown field/)
+  assert.throws(() => loadProfiles({ MCP_PROFILE_JORIS_TOKEN: 'y'.repeat(12), MCP_PROFILE_JORIS_PUBLIC: 'maybe' }), /true or false/)
+  assert.throws(() => loadProfiles({ MCP_PROFILE_JORIS_EMAIL: 'a@b.c', MCP_PROFILE_JORIS_PASSWORD: 'pw' }), /set "authToken"/)
+  assert.throws(() => loadProfiles({ MCP_PROFILE_JORIS_TOKEN: 'y'.repeat(12), MCP_PROFILE_JORIS_PUBLIC: 'true', MCP_PROFILES: JSON.stringify({ joris: { token: 'z'.repeat(12), public: true } }) }), /defined twice/)
+  assert.equal(loadProfiles({ MCP_PROFILE_A_TOKEN: 'y'.repeat(12), MCP_PROFILE_A_PUBLIC: 'true', MCP_PROFILES: JSON.stringify({ b: { token: 'z'.repeat(12), public: true } }) }).size, 2)
+})

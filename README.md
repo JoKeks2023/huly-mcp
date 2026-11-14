@@ -819,7 +819,19 @@ claude mcp add --transport http huly https://huly-mcp.example.com/mcp \
 
 **One shared account.** The server's own `HULY_*` login is only used behind a bearer token — set `MCP_AUTH_TOKEN` and give clients `Authorization: Bearer <token>`. Without it an open port would act as that account, so the server refuses and asks for per-user headers instead. With `MCP_AUTH_TOKEN` set, every request needs the bearer token, also when it brings its own login.
 
-**Several fixed accounts on one server (profiles).** Instead of one container per person, list the logins in a JSON file and point `MCP_PROFILES_FILE` at it (or put the JSON in `MCP_PROFILES`). Each profile gets its own path — easy to route through a Cloudflare Tunnel — and its own bearer token:
+**Several fixed accounts on one server (profiles).** Instead of one container per person, put the logins in the `.env` — one variable per field, `MCP_PROFILE_<NAME>_<FIELD>`. Each profile gets its own path `/<name>/mcp` — easy to route through a Cloudflare Tunnel — and its own bearer token:
+
+```bash
+MCP_PROFILE_JORIS_EMAIL=joris@example.com
+MCP_PROFILE_JORIS_PASSWORD=…
+MCP_PROFILE_JORIS_AUTH_TOKEN=a-long-random-string        # openssl rand -hex 24
+MCP_PROFILE_ANNA_TOKEN=<Huly API token>
+MCP_PROFILE_ANNA_WORKSPACE=acme
+MCP_PROFILE_ANNA_TOOLSETS=tracker,documents,planner
+MCP_PROFILE_ANNA_AUTH_TOKEN=another-long-random-string
+```
+
+Fields: `EMAIL`, `PASSWORD`, `TOKEN`, `WORKSPACE`, `TOOLSETS`, `AUTH_TOKEN`, `PUBLIC`. Names become lowercase paths (`MCP_PROFILE_TEAM_CI_TOKEN` → `/team_ci/mcp`). The same as JSON, if you prefer a file: `MCP_PROFILES_FILE=/run/secrets/huly-profiles.json` (or the JSON in `MCP_PROFILES`):
 
 ```json
 {
@@ -828,7 +840,7 @@ claude mcp add --transport http huly https://huly-mcp.example.com/mcp \
 }
 ```
 
-Clients connect to `https://huly-mcp.example.com/joris/mcp` with `Authorization: Bearer <authToken>` (Claude Code: `claude mcp add --transport http huly https://huly-mcp.example.com/joris/mcp --header "Authorization: Bearer …"`). Per profile: `token` or `email` + `password`, optional `workspace` (pin) and `toolsets`; `authToken` (16+ characters) is required unless `"public": true` — only when the path is protected elsewhere, e.g. by Cloudflare Access. Each profile keeps one Huly connection, opened at start-up. All profiles use the server's `HULY_ACCOUNTS_URL` / `HULY_FRONT_URL`. Profiles work next to OAuth and the other modes; `/healthz` and `/mcp` stay as they are.
+Clients connect to `https://huly-mcp.example.com/joris/mcp` with `Authorization: Bearer <authToken>` (Claude Code: `claude mcp add --transport http huly https://huly-mcp.example.com/joris/mcp --header "Authorization: Bearer …"`). Per profile: `token` or `email` + `password`, optional `workspace` (pin) and `toolsets`; `authToken` (16+ characters) is required unless `"public": true` (`PUBLIC=true`) — only when the path is protected elsewhere, e.g. by Cloudflare Access. Each profile keeps one Huly connection, opened at start-up. All profiles use the server's `HULY_ACCOUNTS_URL` / `HULY_FRONT_URL`. Profiles work next to OAuth and the other modes; `/healthz` and `/mcp` stay as they are.
 
 Set `MCP_ALLOWED_HOSTS` to the host names clients use (DNS-rebinding protection). Use HTTPS (reverse proxy) as soon as logins travel over a network. Idle sessions close after 30 minutes.
 
