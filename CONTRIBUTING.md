@@ -50,7 +50,7 @@ limits writes to one project. Don't commit `.env` or any real data (a personal-d
 1. Move the `### Unreleased` entries in `CHANGELOG.md` under `### X.Y.Z — date`.
 2. Set the version in `package.json` (+ `npm install --package-lock-only`), `server.json` (twice),
    `plugin/.claude-plugin/plugin.json` and `src/version.ts`. `test/repo.test.ts` checks that they agree.
-3. `npm ci && npm run build && npm run plugin:bundle` — the Claude plugin ships its own copy of the server
+3. `npm ci && npm run build && npm run plugin:bundle && npm run plugin:remote` — the Claude plugin ships its own copy of the server
    (`plugin/server/index.js`); the release fails if it doesn't match the build.
 4. Merge, then tag `vX.Y.Z` on `main`. npm (Trusted Publishing), the GitHub release with the Claude Desktop
    extension, the MCP registry and the Docker images follow by themselves.

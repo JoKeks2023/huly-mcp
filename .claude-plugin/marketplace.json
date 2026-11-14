@@ -7,6 +7,11 @@
       "name": "huly",
       "source": "./plugin",
       "description": "Work on Huly issues from Claude Code: issue context, start/finish work, plans to epics, PR linking, inbox and stand-ups"
+    },
+    {
+      "name": "huly-remote",
+      "source": "./plugin-remote",
+      "description": "The same, through your team's huly-mcp server: nothing runs on your computer, log in with Huly in the browser"
     }
   ]
 }

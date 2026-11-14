@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process'
 // Repository consistency: the numbers in the docs match the registry, versions agree everywhere,
 // and the Claude Code plugin is well-formed. These drift silently when edited by hand.
 import { test } from 'node:test'
@@ -86,4 +87,13 @@ test('plugin: manifests parse, commands and skills have frontmatter, hook script
   assert.match(skill, /^name: huly$/m)
   assert.match(skill, /^description: .{40,}/m)
   for (const c of ['start', 'finish', 'plan', 'standup', 'triage']) assert.match(front(`plugin/commands/${c}.md`), /^description: .+/m, `command ${c} has a description`)
+})
+
+test('plugin-remote: generated from plugin/, connects over HTTP to the configured URL, same version', () => {
+  const r = spawnSync(process.execPath, ['scripts/plugin-remote.js', '--check'], { cwd: ROOT, encoding: 'utf8' })
+  assert.equal(r.status, 0, r.stderr)
+  const mcp = json('plugin-remote/.mcp.json')
+  assert.deepEqual(mcp.mcpServers.huly, { type: 'http', url: '${user_config.huly_server_url}' })
+  assert.equal(json('plugin-remote/.claude-plugin/plugin.json').version, json('package.json').version)
+  assert.ok(json('.claude-plugin/marketplace.json').plugins.some((p: any) => p.name === 'huly-remote' && p.source === './plugin-remote'))
 })

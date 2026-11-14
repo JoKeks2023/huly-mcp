@@ -50,7 +50,8 @@
     "test": "node --import tsx --test test/*.test.ts",
     "mcpb": "node scripts/mcpb.js",
     "plugin:bundle": "node scripts/plugin-bundle.js",
-    "evals": "tsx evals/run.ts"
+    "evals": "tsx evals/run.ts",
+    "plugin:remote": "node scripts/plugin-remote.js"
   },
   "dependencies": {},
   "devDependencies": {

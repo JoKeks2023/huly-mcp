@@ -1,0 +1,26 @@
+{
+  "name": "huly-remote",
+  "version": "4.0.0",
+  "description": "Huly for Claude Code through your team server: workflow skill, session/PR hooks and /huly-remote commands — nothing runs on your computer",
+  "author": {
+    "name": "JoKeks2023"
+  },
+  "homepage": "https://github.com/JoKeks2023/huly-mcp",
+  "repository": "https://github.com/JoKeks2023/huly-mcp",
+  "license": "EPL-2.0",
+  "keywords": [
+    "huly",
+    "mcp",
+    "issues",
+    "project-management",
+    "remote"
+  ],
+  "userConfig": {
+    "huly_server_url": {
+      "type": "string",
+      "title": "Huly MCP server URL",
+      "description": "Your team server's MCP endpoint, e.g. https://huly-mcp.example.com/mcp — you log in with your Huly account in the browser",
+      "required": true
+    }
+  }
+}

@@ -2,6 +2,10 @@
 
 All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mcp-selfhost). Versions follow [semver](https://semver.org).
 
+### Unreleased
+
+- **New plugin `huly-remote`** for teams with a huly-mcp server: the same skill, hooks and commands, but nothing runs on your computer — Claude Code connects to the server URL you enter and you log in with your Huly account in the browser (OAuth). `/plugin install huly-remote@huly-mcp`. Generated from `plugin/` (`npm run plugin:remote`), checked in CI.
+
 ### 4.0.0 — 2026-11-14
 
 Everything that was left in the backlog, in one release. **Breaking:** Node.js 22 or newer (the Claude Code plugin, the Claude Desktop extension and the Docker image bring their own). Highlights: set a whole workspace up from Claude (`admin`), know whether a release is ready (`release_check`), a weekly timesheet, instant resource subscriptions, components and milestones by partial name.
