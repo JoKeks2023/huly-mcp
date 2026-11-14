@@ -49,15 +49,18 @@ function listTree (dir, base = dir) {
   return fs.readdirSync(dir).filter((f) => f !== '.DS_Store').flatMap((f) => listTree(path.join(dir, f), base))
 }
 
+// Windows checkouts may turn LF into CRLF: compare text without line-ending differences.
+const same = (a, b) => a.equals(b) || a.toString('utf8').replace(/\r\n/g, '\n') === b.toString('utf8').replace(/\r\n/g, '\n')
+
 if (process.argv.includes('--check')) {
   const problems = []
   for (const s of SHARED) {
     for (const rel of listTree(path.join(src, s), src)) {
       const a = path.join(src, rel); const b = path.join(dst, rel)
-      if (!fs.existsSync(b) || !adapt(rel, fs.readFileSync(a)).equals(fs.readFileSync(b))) problems.push(rel)
+      if (!fs.existsSync(b) || !same(adapt(rel, fs.readFileSync(a)), fs.readFileSync(b))) problems.push(rel)
     }
   }
-  for (const [rel, text] of Object.entries(files())) if (!fs.existsSync(path.join(dst, rel)) || fs.readFileSync(path.join(dst, rel), 'utf8') !== text) problems.push(rel)
+  for (const [rel, text] of Object.entries(files())) if (!fs.existsSync(path.join(dst, rel)) || !same(Buffer.from(text), fs.readFileSync(path.join(dst, rel)))) problems.push(rel)
   if (problems.length > 0) { console.error(`plugin-remote/ is out of date (${problems.join(', ')}) — run: npm run plugin:remote`); process.exit(1) }
   console.log('plugin-remote/ matches plugin/.')
 } else {
