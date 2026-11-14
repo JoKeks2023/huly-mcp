@@ -10,6 +10,7 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js'
 import { createServer } from './server'
 import { createConnectionManager, getConnectionManager, withConnectionManager, prewarm, type WorkspaceConnectionManager } from './connection'
+import rateLimit from 'express-rate-limit'
 import express from 'express'
 import { mcpAuthRouter, getOAuthProtectedResourceMetadataUrl } from '@modelcontextprotocol/sdk/server/auth/router.js'
 import { requireBearerAuth } from '@modelcontextprotocol/sdk/server/auth/middleware/bearerAuth.js'
@@ -258,8 +259,12 @@ function oauthApp (
     scopesSupported: ['huly'],
     clientRegistrationOptions: { clientIdGeneration: false }
   }))
-  app.post('/oauth/login', express.urlencoded({ extended: false, limit: '16kb' }), (req, res) => { void cfg.provider.handleLogin(req, res) })
-  app.all('/mcp', requireBearerAuth({ verifier: cfg.provider, resourceMetadataUrl: getOAuthProtectedResourceMetadataUrl(mcpUrl) }), (req, res) => {
+  // Per client IP (trust proxy above): logins are also throttled per failure; /mcp gets a ceiling
+  // far above normal agent use (a busy session makes a few calls per second at most).
+  const loginLimit = rateLimit({ windowMs: 60_000, limit: 30, standardHeaders: 'draft-7', legacyHeaders: false })
+  const mcpLimit = rateLimit({ windowMs: 60_000, limit: 600, standardHeaders: 'draft-7', legacyHeaders: false })
+  app.post('/oauth/login', loginLimit, express.urlencoded({ extended: false, limit: '16kb' }), (req, res) => { void cfg.provider.handleLogin(req, res) })
+  app.all('/mcp', mcpLimit, requireBearerAuth({ verifier: cfg.provider, resourceMetadataUrl: getOAuthProtectedResourceMetadataUrl(mcpUrl) }), (req, res) => {
     const hulyToken = String((req as any).auth?.extra?.hulyToken ?? '')
     handleMcp(req, res, { hulyToken }).catch((e: unknown) => { fail(res, e) })
   })
