@@ -2,7 +2,7 @@
 
 All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mcp-selfhost). Versions follow [semver](https://semver.org).
 
-### Unreleased
+### 3.7.0 — 2026-11-14
 
 - **Agent evals** (`evals/`, `npm run evals`): Haiku solves 12 typical Huly tasks through the server, with and without the skill; success is checked in Huly, calls/tokens/cost recorded. Findings and numbers: `evals/RESULTS.md`.
 - **Skill rewritten** along Anthropic's skill guidelines: description says what and when; checklists for the coding workflow (start → side findings → PR and hand-back → plan); a table that maps what the user says to the call ("I'm fixing X now" → `start_work`); what to do when a call fails. The plugin's SessionStart hook now tells Claude to load the skill — in the evals Haiku never loaded it on its own, and with it loaded it solved the workflow tasks it failed without.
@@ -10,6 +10,9 @@ All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mc
 - **`create_issue` takes `parentIdentifier`** — a sub-issue in one call.
 - **`list_issues` takes `blocked: true`** — issues waiting for an open blocker. `status: "Blocked"` (not a status in Huly) now says so and lists the real statuses.
 - **Fixed: `finish_work` failed when the PR was not synced to Huly yet** (sync takes a minute; projects without sync never have it). It now hands back anyway — summary with the PR link, status — and says to run it again later to put the PR under the issue.
+- **Clearer choice between similar tools** — `get_issue` / `get_issue_context` / `get_activity`, `search` / `search_issues`, `my_day` / `standup` / `triage_inbox` / `project_report`, `claim_issue` / `start_work` each name the sibling to use instead (from Glama's tool-quality review).
+- **`update_organization`** changes name and city too, not only the description.
+- **Claude plugin directory:** the slash commands no longer run inline shell (`!`…``); they tell Claude which git commands to run. The directory's validator refused inline programs such as `--jq` there.
 - **About twice as fast.** Statuses, people, projects, milestones, components and labels are kept per connection and dropped the moment Huly reports a change to them — Huly pushes every change in the workspace to the connection, also those made by other people (verified live: a component added from another session was visible on the next call). Never older than 10 minutes either way; `HULY_CACHE=0` turns it off. Measured on nine typical calls (warm connection, median of 3): 3.8 s → 1.9 s in total; `standup` 1.1 s → 0.44 s, `my_day` 0.83 s → 0.24 s, `project_report` 0.32 s → 0.16 s, `list_milestones` 108 ms → 1 ms.
 - `my_day` labels its inbox items with one query per class instead of one per item (10 → 1 queries); `triage_inbox` no longer loads each object twice.
 

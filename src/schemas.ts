@@ -393,7 +393,9 @@ export const CreateOrganizationSchema = z.object({
 export const UpdateOrganizationSchema = z.object({
   workspace: WorkspaceArg,
   organizationId: z.string().describe('Organization id'),
-  description: z.string().describe('Markdown, replaces existing')
+  name: z.string().min(1).optional(),
+  city: z.string().optional(),
+  description: z.string().optional().describe('Markdown, replaces existing')
 })
 
 // ── 2.2.0 additions ──────────────────────────────────────────────────────────

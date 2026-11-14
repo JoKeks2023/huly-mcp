@@ -7,7 +7,7 @@ Turn this into a Huly epic with sub-issues:
 
 $ARGUMENTS
 
-Remote: !`git remote get-url origin`
+First run `git remote get-url origin` for the remote.
 
 1. `find_project_for_repo` for the remote (ask me if none is linked).
 2. `list_components` and `list_milestones`; pick fitting ones per child, say so if nothing fits.

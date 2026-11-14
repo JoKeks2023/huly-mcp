@@ -84,11 +84,15 @@ export const updateOrganization = wrapToolHandler<z.infer<typeof UpdateOrganizat
   const org = await client.findOne(contact.class.Organization, { _id: args.organizationId as Ref<Organization> })
   if (org == null) throw new Error(`Organization '${args.organizationId}' not found.`)
 
-  const prosemirror = markdownToProseMirror(args.description)
-  const blobId = `${org._id}-description-${Date.now()}`
-  const uploadedId = await uploadMarkupBlob(wsToken, workspaceUuid, blobId, JSON.stringify(prosemirror))
+  const update: Record<string, unknown> = {}
+  if (args.name != null) update.name = args.name
+  if (args.city != null) update.city = args.city
+  if (args.description != null) {
+    const prosemirror = markdownToProseMirror(args.description)
+    update.description = await uploadMarkupBlob(wsToken, workspaceUuid, `${org._id}-description-${Date.now()}`, JSON.stringify(prosemirror))
+  }
+  if (Object.keys(update).length === 0) throw new Error('Nothing to change: pass name, city or description.')
+  await client.updateDoc(contact.class.Organization, org.space, org._id, update as any)
 
-  await client.updateDoc(contact.class.Organization, org.space, org._id, { description: uploadedId } as any)
-
-  return `✅ Organization **"${org.name}"** description updated.`
+  return `✅ Organization **"${String(args.name ?? org.name)}"** updated — changed: ${Object.keys(update).join(', ')}.`
 })

@@ -6,12 +6,12 @@
     "url": "https://github.com/JoKeks2023/huly-mcp",
     "source": "github"
   },
-  "version": "3.6.2",
+  "version": "3.7.0",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "huly-mcp-selfhost",
-      "version": "3.6.2",
+      "version": "3.7.0",
       "transport": {
         "type": "stdio"
       },
