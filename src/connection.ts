@@ -1,5 +1,6 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { recordingClient } from './utils/undo'
+import { cachingClient } from './utils/cache'
 import { getClient as getRawAccountClient, type AccountClient } from '@hcengineering/account-client'
 import { type Client, TxOperations, type PersonId, type WorkspaceInfoWithStatus } from '@hcengineering/core'
 import { createClient } from '@hcengineering/server-client'
@@ -77,7 +78,7 @@ export interface ConnectionManagerOptions {
 
 async function defaultOpenConnection (endpoint: string, token: string, socialId: PersonId): Promise<OpenConnection> {
   const raw: Client = await createClient(endpoint, token)
-  return { client: new TxOperations(raw, socialId), close: async () => await raw.close() }
+  return { client: new TxOperations(cachingClient(raw), socialId), close: async () => await raw.close() }
 }
 
 function toRef (ws: WorkspaceInfoWithStatus): WorkspaceRef {
