@@ -115,7 +115,7 @@
             <span class="copy-label">Copy</span>
           </button>
         </div>
-<pre><code id="setup-code">claude mcp add huly \
+<pre tabindex="0"><code id="setup-code">claude mcp add huly \
   -e HULY_EMAIL=you@example.com \
   -e HULY_PASSWORD=your-password \
   -- npx -y huly-mcp-selfhost</code></pre>
@@ -189,7 +189,7 @@
 
         <div class="term" style="margin-top:2.5rem">
           <div class="term-head"><span class="file">agent ↔ huly-mcp-selfhost</span></div>
-<pre><code><span class="p">› </span>list_workspaces()
+<pre tabindex="0"><code><span class="p">› </span>list_workspaces()
 <span class="c">- **Acme Team** — slug: `acmeteam` — id: `3f2b9c1e-…`
 - **Personal** — slug: `personal` — id: `8a41d7e0-…`</span>
 
@@ -292,7 +292,7 @@
         </div>
       </div>
 
-      <div class="table-wrap">
+      <div class="table-wrap" tabindex="0" role="region" aria-label="Blob operations with and without HULY_FRONT_URL">
         <table>
           <thead><tr><th>Blob operation</th><th>HULY_FRONT_URL set</th><th>HULY_FRONT_URL unset (Cloud)</th></tr></thead>
           <tbody>
@@ -327,7 +327,7 @@
       <div>
         <div class="term">
           <div class="term-head"><span class="file">server</span><button class="copy" type="button" data-copy="c-team"><span class="copy-label">Copy</span></button></div>
-<pre><code id="c-team">docker run -d -p 8000:8000 \
+<pre tabindex="0"><code id="c-team">docker run -d -p 8000:8000 \
   -e MCP_TRANSPORT=http \
   -e MCP_OAUTH_SECRET="$(openssl rand -hex 32)" \
   -e MCP_PUBLIC_URL=https://huly-mcp.example.com \
@@ -337,7 +337,7 @@
         </div>
         <div class="term" style="margin-top:1.5rem">
           <div class="term-head"><span class="file">each person</span></div>
-<pre><code>claude mcp add --transport http huly \
+<pre tabindex="0"><code>claude mcp add --transport http huly \
   https://huly-mcp.example.com/mcp
 <span class="c"># → browser: "Log in with Huly"</span></code></pre>
         </div>
@@ -370,7 +370,7 @@
           <h3>npm</h3>
           <p>Launched by your MCP client over stdio. Node.js ≥ 20, ~4 MB.</p>
           <div class="term"><div class="term-head"><span class="file">terminal</span><button class="copy" type="button" data-copy="c-npm"><span class="copy-label">Copy</span></button></div>
-<pre><code id="c-npm">npx -y huly-mcp-selfhost</code></pre></div>
+<pre tabindex="0"><code id="c-npm">npx -y huly-mcp-selfhost</code></pre></div>
         </div>
         <div class="col">
           <h3>Claude Desktop extension</h3>
@@ -381,21 +381,21 @@
           <h3>Claude Code plugin</h3>
           <p>Server, skill, hooks and <code>/huly:*</code> commands.</p>
           <div class="term"><div class="term-head"><span class="file">claude code</span><button class="copy" type="button" data-copy="c-plugin"><span class="copy-label">Copy</span></button></div>
-<pre><code id="c-plugin">/plugin marketplace add JoKeks2023/huly-mcp
+<pre tabindex="0"><code id="c-plugin">/plugin marketplace add JoKeks2023/huly-mcp
 /plugin install huly@huly-mcp</code></pre></div>
         </div>
         <div class="col">
           <h3>Docker</h3>
           <p>The team server above, or classic mode via mcp-proxy (<code>/mcp</code>, <code>/sse</code>). amd64 + arm64.</p>
           <div class="term"><div class="term-head"><span class="file">terminal</span><button class="copy" type="button" data-copy="c-docker"><span class="copy-label">Copy</span></button></div>
-<pre><code id="c-docker">docker run -d --name huly-mcp -p 127.0.0.1:8000:8000 \
+<pre tabindex="0"><code id="c-docker">docker run -d --name huly-mcp -p 127.0.0.1:8000:8000 \
   --env-file .env jokeks2023/huly-mcp:latest</code></pre></div>
         </div>
         <div class="col">
           <h3>Command line</h3>
           <p>Every tool from the terminal, for scripts and CI.</p>
           <div class="term"><div class="term-head"><span class="file">terminal</span><button class="copy" type="button" data-copy="c-cli"><span class="copy-label">Copy</span></button></div>
-<pre><code id="c-cli">npm i -g huly-mcp-selfhost
+<pre tabindex="0"><code id="c-cli">npm i -g huly-mcp-selfhost
 huly-mcp help list_issues</code></pre></div>
         </div>
       </div>
