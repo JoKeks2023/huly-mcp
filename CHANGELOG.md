@@ -2,6 +2,12 @@
 
 All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mcp-selfhost). Versions follow [semver](https://semver.org).
 
+### Unreleased
+
+- **Team server (OAuth): the token key is derived from `MCP_OAUTH_SECRET` with scrypt** instead of a single SHA-256 — a passphrase used as secret no longer makes guessing it from a stolen token cheap. **Everyone logs in once more after the update** (existing tokens were sealed with the old key).
+- **Team server: rate limits per client IP** — `/oauth/login` 30 per minute (on top of the per-failure throttle), `/mcp` 600 per minute; standard `RateLimit` headers, 429 when exceeded.
+- Code scanning no longer scans the plugin's bundled server (its source in `src/` is scanned); 436 of 447 alerts came from third-party code in that build.
+
 ### 3.7.0 — 2026-11-14
 
 - **Agent evals** (`evals/`, `npm run evals`): Haiku solves 12 typical Huly tasks through the server, with and without the skill; success is checked in Huly, calls/tokens/cost recorded. Findings and numbers: `evals/RESULTS.md`.

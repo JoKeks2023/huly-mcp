@@ -1,0 +1,6 @@
+# plugin/server/index.js is the bundled build (src/ plus third-party libraries) that the Claude plugin
+# ships. Its source is scanned in src/; the libraries' own findings are not ours to fix here and buried
+# the real ones (436 of 447 alerts on 2026-11-14).
+paths-ignore:
+  - plugin/server/**
+  - dist/**

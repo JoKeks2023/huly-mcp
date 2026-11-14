@@ -120,3 +120,13 @@ test('oauth: tampered or foreign tokens are refused; the login page cannot be fr
     assert.equal(bogus.status, 401)
   })
 })
+
+test('oauth: /oauth/login is rate-limited per client (30 per minute), with standard headers', async () => {
+  await withOAuthServer(async (base) => {
+    const post = async (): Promise<Response> => await fetch(new URL('/oauth/login', base), { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: 'pending=x' })
+    const first = await post()
+    assert.match(first.headers.get('ratelimit-policy') ?? first.headers.get('ratelimit') ?? '', /30/)
+    for (let i = 0; i < 29; i++) await post()
+    assert.equal((await post()).status, 429)
+  })
+})

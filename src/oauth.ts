@@ -6,7 +6,7 @@
 // MCP_OAUTH_SECRET: clients, pending logins, codes and tokens carry their own data, so no database
 // is needed and logins survive restarts. The Huly password is never stored — only the Huly
 // account token from the login, and only inside the sealed tokens.
-import { createCipheriv, createDecipheriv, createHash, randomBytes, randomUUID } from 'node:crypto'
+import { createCipheriv, createDecipheriv, createHash, randomBytes, randomUUID, scryptSync } from 'node:crypto'
 import type { Request, Response } from 'express'
 import type { OAuthServerProvider, AuthorizationParams } from '@modelcontextprotocol/sdk/server/auth/provider.js'
 import type { OAuthRegisteredClientsStore } from '@modelcontextprotocol/sdk/server/auth/clients.js'
@@ -25,7 +25,9 @@ type Kind = 'client' | 'pending' | 'code' | 'access' | 'refresh'
 /** Seal/open small JSON payloads; the kind is part of the payload so a code is never accepted as a token. */
 export class Sealer {
   private readonly key: Buffer
-  constructor (secret: string) { this.key = createHash('sha256').update(`huly-mcp-oauth:${secret}`).digest() }
+  // scrypt, not a plain hash: MCP_OAUTH_SECRET should be random, but if someone uses a passphrase,
+  // a stolen token must not make guessing it cheap. Runs once at start-up (~50 ms).
+  constructor (secret: string) { this.key = scryptSync(secret, 'huly-mcp-oauth/v2', 32, { N: 2 ** 15, r: 8, p: 1, maxmem: 64 * 1024 * 1024 }) }
 
   seal (kind: Kind, data: Record<string, unknown>, ttlS?: number): string {
     const iv = randomBytes(12)
