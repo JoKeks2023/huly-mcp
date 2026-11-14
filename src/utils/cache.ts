@@ -7,6 +7,7 @@
 // (client.notify), also those of other people and apps — or when this server writes one itself.
 // A query is never older than MAX_AGE_MS even if an event was missed (e.g. during a reconnect).
 // HULY_CACHE=0 turns it off.
+import { txHub } from './txhub'
 
 const CACHED = [
   'core:class:Status',
@@ -72,15 +73,12 @@ export function cachingClient<T extends object> (raw: T, env: NodeJS.ProcessEnv 
   }
 
   // Changes from anyone (pushed by Huly) and from this server (its own transactions).
-  const previous = r.notify
-  r.notify = (...txes: any[]) => {
-    for (const tx of txes) invalidate(tx)
-    previous?.(...txes)
-  }
+  txHub(r).listeners.add(invalidate)
 
   return new Proxy(r, {
     get (target, prop, receiver) {
       if (prop === 'cacheStats') return stats
+      if (prop === '__hulyRaw') return target
       const orig = Reflect.get(target, prop, receiver)
       if (prop === 'tx' && typeof orig === 'function') {
         return async (tx: any, ...rest: unknown[]) => {

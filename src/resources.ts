@@ -9,6 +9,7 @@ import { join } from 'path'
 import tracker from '@hcengineering/tracker'
 import task from '@hcengineering/task'
 import { SortingOrder } from '@hcengineering/core'
+import { onTx, touchedIds } from './utils/txhub'
 import { getConnection, listWorkspaces } from './connection'
 import { currentPerson } from './utils/people'
 import { issueContext } from './tools/agent'
@@ -204,42 +205,74 @@ export function registerPrompts (server: McpServer): void {
 }
 
 // ── Resource subscriptions (resources/subscribe → notifications/resources/updated) ──
-// Subscribed issues/documents are polled for a newer modifiedOn; the timer only runs while
-// something is subscribed. (Huly does push every workspace transaction to the connection —
-// client.notify, used by the reference cache — so this could become push-based.)
+// Huly pushes every workspace transaction to the connection; a change to a subscribed issue or
+// document (or something attached to it: comments, sub-issues, files) is reported at once.
+// A slow poll for a newer modifiedOn stays as a safety net (events missed during a reconnect).
 
-/** modifiedOn of the object behind a huly:// URI, or undefined if it cannot be read. */
-export async function modifiedOn (uri: string): Promise<number | undefined> {
+/** Workspace and document id behind a huly:// URI, or undefined if it cannot be resolved. */
+async function resolveUri (uri: string): Promise<{ workspace: string, id: string, modifiedOn?: number } | undefined> {
   const m = /^huly:\/\/([^/]+)\/(issue|document)\/(.+)$/.exec(uri)
   if (m == null) return undefined
   try {
-    const client: any = await getConnection(decodeURIComponent(m[1]))
-    const id = decodeURIComponent(m[3])
+    const workspace = decodeURIComponent(m[1])
+    const client: any = await getConnection(workspace)
+    const ref = decodeURIComponent(m[3])
     const doc = m[2] === 'issue'
-      ? await client.findOne(tracker.class.Issue, { identifier: id })
-      : await client.findOne('document:class:Document', { _id: id })
-    return doc?.modifiedOn
+      ? await client.findOne(tracker.class.Issue, { identifier: ref })
+      : await client.findOne('document:class:Document', { _id: ref })
+    return doc == null ? undefined : { workspace, id: String(doc._id), modifiedOn: doc.modifiedOn }
   } catch {
     return undefined
   }
 }
 
-export function registerSubscriptions (server: McpServer, pollMs = Number(process.env.HULY_SUBSCRIBE_POLL_MS ?? 30_000)): { poll: () => Promise<void>, subscriptions: Map<string, number | undefined> } {
+/** modifiedOn of the object behind a huly:// URI, or undefined if it cannot be read. */
+export async function modifiedOn (uri: string): Promise<number | undefined> {
+  return (await resolveUri(uri))?.modifiedOn
+}
+
+interface Subscription { last?: number, id?: string, workspace?: string }
+
+export function registerSubscriptions (server: McpServer, pollMs = Number(process.env.HULY_SUBSCRIBE_POLL_MS ?? 300_000)): { poll: () => Promise<void>, subscriptions: Map<string, number | undefined>, pushed: (uri: string) => void } {
+  const subs = new Map<string, Subscription>()
+  // Kept for callers/tests that read the last seen modifiedOn per URI.
   const subscriptions = new Map<string, number | undefined>()
+  const listeners = new Map<string, () => void>() // workspace → unsubscribe from its transactions
+  const pending = new Map<string, NodeJS.Timeout>()
   let timer: NodeJS.Timeout | undefined
   let polling = false
+
+  /** Debounced: a burst of transactions (an edit with comments, a bulk update) is one notification. */
+  const pushed = (uri: string): void => {
+    if (pending.has(uri)) return
+    const t = setTimeout(() => {
+      pending.delete(uri)
+      if (subs.has(uri)) void server.server.sendResourceUpdated({ uri }).catch(() => {})
+    }, 750)
+    t.unref()
+    pending.set(uri, t)
+  }
+
+  const listen = async (workspace: string): Promise<void> => {
+    if (listeners.has(workspace)) return
+    const client = await getConnection(workspace)
+    listeners.set(workspace, onTx(client, (tx) => {
+      const ids = touchedIds(tx)
+      for (const [uri, s] of subs) if (s.workspace === workspace && s.id != null && ids.has(s.id)) pushed(uri)
+    }))
+  }
 
   const poll = async (): Promise<void> => {
     if (polling) return
     polling = true
     try {
-      for (const [uri, last] of subscriptions) {
+      for (const [uri, s] of subs) {
         const now = await modifiedOn(uri)
-        if (now != null && last != null && now > last) {
-          subscriptions.set(uri, now)
+        if (now != null && s.last != null && now > s.last) {
+          s.last = now; subscriptions.set(uri, now)
           await server.server.sendResourceUpdated({ uri }).catch(() => {})
-        } else if (last == null && now != null) {
-          subscriptions.set(uri, now)
+        } else if (s.last == null && now != null) {
+          s.last = now; subscriptions.set(uri, now)
         }
       }
     } finally {
@@ -247,26 +280,33 @@ export function registerSubscriptions (server: McpServer, pollMs = Number(proces
     }
   }
   const sync = (): void => {
-    if (subscriptions.size > 0 && timer == null) {
+    if (subs.size > 0 && timer == null) {
       timer = setInterval(() => { void poll() }, Math.max(5_000, pollMs))
       timer.unref()
-    } else if (subscriptions.size === 0 && timer != null) {
+    } else if (subs.size === 0 && timer != null) {
       clearInterval(timer)
       timer = undefined
+    }
+    for (const [ws, stop] of listeners) {
+      if (![...subs.values()].some((s) => s.workspace === ws)) { stop(); listeners.delete(ws) }
     }
   }
 
   server.server.registerCapabilities({ resources: { subscribe: true, listChanged: true } })
   server.server.setRequestHandler(SubscribeRequestSchema, async (req) => {
-    subscriptions.set(req.params.uri, await modifiedOn(req.params.uri))
+    const r = await resolveUri(req.params.uri)
+    subs.set(req.params.uri, { last: r?.modifiedOn, id: r?.id, workspace: r?.workspace })
+    subscriptions.set(req.params.uri, r?.modifiedOn)
+    if (r != null) await listen(r.workspace).catch(() => {})
     sync()
     return {}
   })
   server.server.setRequestHandler(UnsubscribeRequestSchema, async (req) => {
+    subs.delete(req.params.uri)
     subscriptions.delete(req.params.uri)
     sync()
     return {}
   })
-  server.server.onclose = () => { subscriptions.clear(); sync() }
-  return { poll, subscriptions }
+  server.server.onclose = () => { subs.clear(); subscriptions.clear(); sync() }
+  return { poll, subscriptions, pushed }
 }
