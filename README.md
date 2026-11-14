@@ -1015,10 +1015,7 @@ Security reports: see [SECURITY.md](https://github.com/JoKeks2023/huly-mcp/blob/
 
 `test/repo.test.ts` keeps the docs honest: tool counts in this README, the site and `DOCKERHUB.md` must match the registry, the version must match everywhere, and the plugin must be well-formed.
 
-**Releasing:**
-1. Move the `Unreleased` entries in `CHANGELOG.md` under `### X.Y.Z — date`.
-2. Bump the version in `package.json`, `server.json`, `plugin/.claude-plugin/plugin.json`, `plugin/.mcp.json` (exact npx version) and `src/server.ts`. The tests check that they agree.
-3. Merge, then tag `vX.Y.Z` on `main`. The rest runs by itself.
+**Contributing and releasing:** see [CONTRIBUTING.md](CONTRIBUTING.md) — set-up, how tools are added, tests and evals, the release steps. Please follow the [Code of Conduct](CODE_OF_CONDUCT.md); accessibility: [ACCESSIBILITY.md](ACCESSIBILITY.md).
 
 **Environments and secrets:**
 - Environment `release` (tags `v*` only): used by `release.yml`. npm Trusted Publishing names this environment.

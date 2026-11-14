@@ -5,7 +5,7 @@
   --bg-sunken: #f2f2f0;
   --fg: #171717;
   --fg-2: #4d4d4b;
-  --fg-3: #737370;
+  --fg-3: #6b6b68;
   --line: #e2e2df;
   --line-strong: #cfcfcb;
   --accent: #b5522f;
@@ -406,7 +406,7 @@ footer { border-top: 1px solid var(--line); padding: 2.5rem 0 3rem; font: 400 0.
 footer .wrap { display: flex; flex-wrap: wrap; align-items: baseline; gap: 1rem 2rem; }
 footer .name { color: var(--fg); font-weight: 500; }
 footer nav { display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; }
-footer nav a { text-decoration: none; }
+footer nav a { text-decoration: none; display: inline-block; padding: 0.35rem 0; min-height: 24px; }
 footer nav a:hover { color: var(--fg); }
 footer .sig { margin-left: auto; }
 footer .sig em { font-style: normal; color: var(--accent); }
