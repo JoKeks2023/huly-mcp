@@ -22,7 +22,7 @@ async function main () {
     outfile: path.join(dist, 'index.js'),
     bundle: true,
     platform: 'node',
-    target: 'node20',
+    target: 'node22',
     format: 'cjs',
     minify: false,
     legalComments: 'eof',
