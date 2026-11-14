@@ -95,7 +95,7 @@ export function isLegacyLink (issue: Issue): boolean {
  * Links `child` under `parent` (or detaches it for null) the way Huly's UI does: only
  * attachedTo and rank are written, the server derives parents/subIssues/childInfo.
  */
-async function linkToParent (client: Client, child: Issue, parent: Issue | null): Promise<'linked' | 'repaired' | 'cleared' | 'unchanged'> {
+export async function linkToParent (client: Client, child: Issue, parent: Issue | null): Promise<'linked' | 'repaired' | 'cleared' | 'unchanged'> {
   const legacy = isLegacyLink(child)
 
   // Linked by set_parent <= 2.1: parents/childInfo/subIssues were written by hand while

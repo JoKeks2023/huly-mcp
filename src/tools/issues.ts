@@ -1,3 +1,4 @@
+import { linkToParent } from './relations'
 import tracker, { IssuePriority, type Issue, type Project } from '@hcengineering/tracker'
 import tags from '@hcengineering/tags'
 import task from '@hcengineering/task'
@@ -43,7 +44,7 @@ export const listIssues = wrapToolHandler<z.infer<typeof ListIssuesSchema>>(asyn
     query.status = { $in: statuses.filter((s) => s.category !== task.statusCategory.Won && s.category !== task.statusCategory.Lost).map((s) => s._id) }
   } else if (scope !== 'all') {
     const status = statuses.find((s) => s.name.toLowerCase() === scope.toLowerCase())
-    if (status == null) throw new Error(`Status '${scope}' not found. Use a status name, "open" or "all".`)
+    if (status == null) throw new Error(`Status '${scope}' not found. Use a status name (${[...new Set(statuses.map((x) => x.name))].join(', ')}), "open" or "all".${/block/i.test(scope) ? ' Blocked is not a status: pass blocked: true.' : ''}`)
     query.status = status._id
   }
 
@@ -99,14 +100,27 @@ export const listIssues = wrapToolHandler<z.infer<typeof ListIssuesSchema>>(asyn
   }
 
   const offset = args.offset ?? 0
-  const found = await client.findAll(
-    tracker.class.Issue,
-    query as any,
-    { limit: args.limit + offset, sort: { modifiedOn: SortingOrder.Descending }, total: true }
-  )
-  const total: number = (found as any).total ?? found.length
+  let found: any[]
+  let total: number
+  if (args.blocked === true) {
+    // "Blocked" is a relation, not a status: keep issues with at least one blocker that is still open.
+    const candidates = (await client.findAll(tracker.class.Issue, query as any, { sort: { modifiedOn: SortingOrder.Descending } })).filter((i) => (i.blockedBy ?? []).length > 0)
+    const blockerIds = [...new Set(candidates.flatMap((i) => (i.blockedBy ?? []).map((b: any) => b._id)))]
+    const closed = new Set(statuses.filter((x) => x.category === task.statusCategory.Won || x.category === task.statusCategory.Lost).map((x) => x._id))
+    const openBlockers = new Set((blockerIds.length > 0 ? await client.findAll(tracker.class.Issue, { _id: { $in: blockerIds } } as any) : []).filter((b) => !closed.has(b.status)).map((b) => b._id))
+    const blocked = candidates.filter((i) => (i.blockedBy ?? []).some((b: any) => openBlockers.has(b._id)))
+    total = blocked.length
+    found = blocked.slice(0, args.limit + offset)
+  } else {
+    found = await client.findAll(
+      tracker.class.Issue,
+      query as any,
+      { limit: args.limit + offset, sort: { modifiedOn: SortingOrder.Descending }, total: true }
+    )
+    total = (found as any).total ?? found.length
+  }
   const issues = found.slice(offset)
-  const what = scope === 'open' ? 'open issues' : scope === 'all' ? 'issues' : `issues in status ${scope}`
+  const what = `${args.blocked === true ? 'blocked ' : ''}${scope === 'open' ? 'open issues' : scope === 'all' ? 'issues' : `issues in status ${scope}`}`
   if (issues.length === 0) return `No ${what} in project ${args.projectIdentifier}${offset > 0 ? ` after offset ${offset}` : ''}.${scope === 'open' ? ' (status: "all" includes done ones.)' : ''}`
 
   const lines = issues.map((issue) => {
@@ -217,6 +231,8 @@ export const createIssue = wrapToolHandler<z.infer<typeof CreateIssueSchema>>(as
   const fields = await resolveFieldUpdates(client, { space: project._id } as unknown as Issue, {
     assignee: args.assignee, componentLabel: args.componentLabel, milestoneLabel: args.milestoneLabel
   })
+  const parent = args.parentIdentifier != null ? await client.findOne(tracker.class.Issue, { identifier: args.parentIdentifier }) : undefined
+  if (args.parentIdentifier != null && parent == null) throw new Error(`Parent issue '${args.parentIdentifier}' not found.`)
 
   // 2. Increment sequence counter
   const incResult = await client.updateDoc(
@@ -298,7 +314,12 @@ export const createIssue = wrapToolHandler<z.infer<typeof CreateIssueSchema>>(as
     issueId
   )
 
-  const extra = [args.assignee != null ? `Assignee: ${args.assignee}` : '', args.componentLabel != null ? `Component: ${args.componentLabel}` : '', args.milestoneLabel != null ? `Milestone: ${args.milestoneLabel}` : ''].filter((x) => x !== '')
+  if (parent != null) {
+    const created = await client.findOne(tracker.class.Issue, { _id: issueId })
+    if (created != null) await linkToParent(client, created, parent)
+  }
+
+  const extra = [parent != null ? `Sub-issue of ${parent.identifier}` : '', args.assignee != null ? `Assignee: ${args.assignee}` : '', args.componentLabel != null ? `Component: ${args.componentLabel}` : '', args.milestoneLabel != null ? `Milestone: ${args.milestoneLabel}` : ''].filter((x) => x !== '')
   return `✅ Created **${identifier}**: ${args.title}\nStatus: ${status.name} | Priority: ${priorityLabel(IssuePriority[args.priority as keyof typeof IssuePriority])}${extra.length > 0 ? ` | ${extra.join(' | ')}` : ''}`
 })
 

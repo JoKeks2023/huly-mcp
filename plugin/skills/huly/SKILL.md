@@ -1,64 +1,100 @@
 ---
 name: huly
-description: How to work with Huly while coding, at the lowest token cost — follow the repo's Huly rules, find the project for the repo, pick up and hand back issues, keep status/component/milestone/PR links current, create issues without duplicates, turn plans and documents into epics, and pick the cheapest call for each question. Use whenever a task touches Huly (issues, epics, milestones, documents, inbox) or the user mentions an issue id like PROJ-12.
+description: Keeps Huly (issues, epics, milestones, components, documents, inbox) in step with the code — finds the issue, picks it up, tracks side findings, hands it back with the PR, plans epics, and answers status questions in one call each. Use for any Huly request or Huly issue id (PROJ-12), and whenever coding work starts, finishes or opens a PR in a repository that uses Huly.
 ---
 
 # Working with Huly
 
-Keep Huly current as you work, in the same turn as the action. Every call costs a round trip and its output stays in context: **one call per question, one call per change.**
+The Huly tools come from this plugin's MCP server. Keep Huly current **in the same turn** as the work, with as few calls as possible: one call per question, one call per change.
 
-## 0. This repo's rules come first
+## Rules that come first
 
-- `CLAUDE.md`, `CLAUDE.local.md` or `AGENTS.md` may have a `## Huly` section (workspace, project, where new issues go, initiative, how token-saving). **It overrides everything below.** "Not used in this repository" = no Huly calls unless asked.
-- No section and the user works with Huly here: offer `/huly:setup` once.
-- Setting up or importing a project: [onboarding.md](onboarding.md). Using all of Huly (labels, templates, test management, documents, drive, custom fields, …) and which toolsets that needs: [features.md](features.md).
+1. The repo's `CLAUDE.md`, `CLAUDE.local.md` or `AGENTS.md` may have a `## Huly` section (workspace, project, where new issues go, how much initiative). **It overrides this skill.** "Not used in this repository" → no Huly calls unless asked.
+2. No such section but the user works with Huly here → offer `/huly:setup` once.
+3. Unsure which workspace or project → `find_project_for_repo` with the git remote, or ask. Never guess a workspace for a change.
 
-## 1. Know where you are — one call each
+## The coding workflow
+
+Recognize the moment — act on it even when the user only tells you, without asking:
+
+| The user says … | Do |
+|---|---|
+| "I'm working on / fixing / starting X now" | `start_work` on X's issue |
+| "I noticed Y while doing X" | `create_issue` for Y with `parentIdentifier` = X's issue |
+| "X is done, PR is …" | `finish_work` with the PR |
+| "plan X", "break X down" | `create_issue_tree` (dry run, then real) |
+
+Copy the checklist that fits and tick it off as you go.
+
+**Start work on an issue**
+```
+- [ ] Find it: the id from the user or the branch (proj-12-…); otherwise search_issues with words from the request
+- [ ] start_work PROJ-12 → In Progress, assigned to me, full context (description, sub-issues, blockers, PRs)
+- [ ] Open blockers in the context? Tell the user before coding
+- [ ] Branch name carries the id: proj-12-short-title
+- [ ] The user asked to note something ("starting with X") → add_comment
+```
+
+**While working**
+```
+- [ ] Side finding (bug, missing test, TODO) that belongs to this work → search_issues first, then
+      create_issue with parentIdentifier: PROJ-12 (one call, sub-issue)
+- [ ] Unrelated finding → follow the repo's "where new issues go" rule; without one, create_issue and mention it
+- [ ] Scope grows beyond ~3 steps → propose an epic (create_issue_tree, see "Plan")
+```
+
+**Pull request and hand-back**
+```
+- [ ] PR title or body contains the issue id (PROJ-12) so GitHub sync links them
+- [ ] finish_work PROJ-12 with summary + pullRequest (URL or #number) → comment, PR linked, Review in progress
+      The summary says what is NOT verified. A PR that is not synced yet is fine: the link goes into the comment.
+- [ ] After merge: Done / Merged usually arrives through GitHub sync — check, don't double-set
+```
+
+**Plan a feature**
+```
+- [ ] search_issues for existing work (reuse, don't duplicate)
+- [ ] create_issue_tree: epic + sub-issues, order via blockedBy ("B only after A" → B blockedBy A)
+- [ ] Dry run first, show the plan; then the same call once with dryRun: false
+- [ ] Spec or meeting notes already in a Huly document → issues_from_document / issues_from_meeting
+```
+
+## One call per question
 
 | Question | Call |
 |---|---|
-| Which project is this repo? | `find_project_for_repo` with `git remote get-url origin` (never guess a workspace) |
-| My work today / since yesterday | `my_day` / `standup` |
-| What needs my attention? | `triage_inbox` (small `limit`) |
-| How is the project doing? | `project_report` |
-| Everything about PROJ-12 | `get_issue_context` (just status/assignee: `get_issue`) |
-| Find something | `search_issues`, `search` — not `list_issues status=all` |
+| Everything about PROJ-12 (what does it ask for?) | `get_issue_context` |
+| Just status or assignee of PROJ-12 | `get_issue` |
+| How is the project doing — overdue, blocked, done | `project_report` |
+| My day / since yesterday / what needs me | `my_day` / `standup` / `triage_inbox` |
+| Which issues match X | `search_issues`, or `list_issues` with `title`, `status`, `assignee`, `milestoneLabel`, `componentLabel`, `due: overdue` |
+| What's in a release | `release_notes` |
 
-Narrow lists with filters (`status`, `assignee`, `milestoneLabel`, `componentLabel`, `parentIdentifier`, `title`, `due: overdue`, `limit`). More questions with measured sizes: [costs.md](costs.md).
+Measured sizes and more pairs: [costs.md](costs.md).
 
-## 2. Pick up and hand back
+## One call per change
 
-- Branch names like `proj-12-short-title` carry the issue id; the session hook reports it.
-- `start_work` = In Progress + assign + full context. Blocked by open issues → say so first. Parallel agents: `claimAs` / `claim_issue`; never `force` without the user.
-- `finish_work` = comment + PR link + status. Summary must say what is **not** verified. The auto-created PR issue goes under the feature issue it implements.
+- **New issue with everything at once:** `create_issue` takes `priority`, `dueDate`, `assignee`, `statusName`, `componentLabel`, `milestoneLabel`, `parentIdentifier`. No follow-up `update_issue`, no re-read to confirm — the answer says what was set.
+- **Same change on several issues:** `bulk_update_issues` with all ids, not N × `update_issue`.
+- **Before creating:** `search_issues` once. An issue for the same thing exists → update or comment on it instead.
+- Every new issue gets a component, and a milestone if it belongs to a release. Nothing fits → say so; don't create components or milestones unasked.
 
-| Moment | Status |
-|---|---|
-| Work starts | In Progress (`start_work`) |
-| PR open | Review in progress (`finish_work`) |
-| PR merged | Done / Merged — usually via GitHub sync |
+## When a call fails
 
-## 3. Create — after a duplicate check, in one call
+- **"… not found. Available: …"** → pick from the list in the error and retry once; don't list statuses or components beforehand "to be sure".
+- **"Unknown parameter(s) … Valid: …"** → nothing was done; retry with a valid name.
+- **Login or connection errors** → `check_setup`, then tell the user what it says.
+- **Refused by `HULY_WRITE_PROJECTS`** or declined by the user → stop and tell the user; don't work around it.
+- **A change was wrong** → `undo_changes` (dry run first), not manual repair.
+- **A tool is missing** → it is in a disabled toolset: `enable_toolsets` if offered, otherwise name the toolset ([features.md](features.md)).
 
-- `search_issues` first; comment on an existing issue instead of creating a near-duplicate.
-- `create_issue` takes `componentLabel`, `milestoneLabel`, `assignee`, `statusName`, `priority`, `dueDate` — no follow-up `update_issue`. Every issue gets a component, and a milestone if it belongs to a release. Nothing fits → say so; don't create components/milestones silently.
-- Plans → `create_issue_tree` (epic + sub-issues + `blockedBy`), dry run first, then once with `dryRun: false`.
-- Spec or meeting notes in a Huly document → `issues_from_document` / `issues_from_meeting`; don't retype the tasks.
-- Same change on many issues → `bulk_update_issues`.
-- Bugs/TODOs you notice while working: follow the repo's initiative rule; without one, create the issue (after the duplicate check) and mention it in your reply.
-- Milestones are releases, not phases; phases are epics. Never create Huly projects — the user does that.
+## Careful with
 
-## 4. Don't spend calls on checks the tools do
+- Deletes, `move_issue` and bulk changes: show what will change first.
+- GitHub-synced projects: every change also appears on GitHub; don't cross-post.
+- Milestones are releases, phases are epics. Huly projects are created by the user, never by you.
 
-- Names (status, component, milestone, person) are validated before anything is written; a wrong name returns a clear error. Don't list "just to be sure".
-- Unknown parameters are rejected with the valid list, nothing is done. Write tools report what changed — don't re-read to confirm.
-- Independent reads go in one turn, in parallel. Issue ids and names work everywhere; no `_id` lookups.
+## More
 
-## 5. Be careful with
-
-- Bulk changes, `move_issue`, deletes: show what will change first.
-- A change went wrong: `undo_changes` (dry run first) reverses your last changes through this server — don't repair by hand.
-- GitHub-synced projects: every change appears on GitHub too; don't cross-post.
-- `HULY_WRITE_PROJECTS` refusals: tell the user, don't work around them.
-- Huly calls fail with login/connection errors: run `check_setup` and show the user what it says.
-- A tool you need is missing: it is in a disabled toolset — `enable_toolsets` if available, otherwise tell the user which toolset to enable ([features.md](features.md)).
+- Setting up or importing a project (statuses, components, milestones, TODO scan): [onboarding.md](onboarding.md)
+- All of Huly — labels, templates, test management, documents, drive, custom fields — and which toolsets they need: [features.md](features.md)

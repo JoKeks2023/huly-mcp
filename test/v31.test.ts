@@ -99,9 +99,14 @@ test('finish_work: summary comment, PR by number under the issue, status', async
   assert.ok(m.some((x) => (x.data as any)?.status === 'st-rev'))
 })
 
-test('finish_work: unknown PR is a clear error', async () => {
-  await assert.rejects(finishWork({ workspace: W, identifier: 'PROJ-1', summary: 'x', pullRequest: '#99', statusName: null }), /not synced to this project yet/)
-  assert.equal(env.clients.get(W)!.mutations.length, 0, 'nothing posted when the PR cannot be resolved')
+test('finish_work: a PR not synced yet does not block the hand-back — link in the comment, a note', async () => {
+  const out = text(await finishWork({ workspace: W, identifier: 'PROJ-1', summary: 'Fixed it', pullRequest: 'https://github.com/o/r/pull/99', statusName: 'Review in progress' }))
+  assert.match(out, /summary comment added/)
+  assert.match(out, /status → Review in progress/)
+  assert.match(out, /not synced to this project yet.*run finish_work again later/s)
+  const m = env.clients.get(W)!.mutations
+  assert.ok(m.some((x) => x._class === chunter.class.ChatMessage && String((x.data as any).message).includes('Pull request: https://github.com/o/r/pull/99')))
+  assert.ok(!m.some((x) => x._class === C.PullRequest), 'nothing linked')
 })
 
 test('create_issue_tree dry run: reuses same-title issues, validates #refs, writes nothing', async () => {

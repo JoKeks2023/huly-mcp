@@ -24,7 +24,7 @@ Every Huly call costs a round trip and its output stays in context. Aim for **on
 
 ## Writing: one call per change
 
-- **New issue with everything:** `create_issue` takes `statusName`, `priority`, `assignee`, `componentLabel`, `milestoneLabel`, `dueDate` — no follow-up `update_issue`.
+- **New issue with everything:** `create_issue` takes `statusName`, `priority`, `assignee`, `componentLabel`, `milestoneLabel`, `dueDate`, `parentIdentifier` (sub-issue) — no follow-up `update_issue` or `set_parent`.
 - **Many issues:** `create_issue_tree` (epic + children + blockers), dry run first.
 - **From a document:** `issues_from_document` (spec → epic + sub-issues) or `issues_from_meeting` (action items with `@assignee` and dates). Do not read the document and retype the tasks.
 - **Same change on many issues:** `bulk_update_issues` instead of N × `update_issue`.

@@ -52,6 +52,7 @@ export const ListIssuesSchema = z.object({
   parentIdentifier: z.string().min(1).nullable().optional().describe('Direct sub-issues of this issue; null = top-level only'),
   title: z.string().min(1).optional().describe('Title contains this text'),
   due: z.enum(['overdue', 'set', 'none']).optional().describe('Due date: overdue, set or none'),
+  blocked: z.boolean().optional().describe('true: only issues waiting for an open blocker'),
   limit: z.number().int().min(1).max(250).default(50),
   offset: z.number().int().min(0).optional()
 })
@@ -71,7 +72,8 @@ export const CreateIssueSchema = z.object({
   dueDate: z.string().optional().describe('Due date as ISO 8601 string, e.g. "2026-04-01"'),
   assignee: z.string().optional(),
   componentLabel: z.string().optional(),
-  milestoneLabel: z.string().optional()
+  milestoneLabel: z.string().optional(),
+  parentIdentifier: z.string().optional().describe('Create as sub-issue of this issue (e.g. PROJ-12)')
 })
 
 export const DeleteIssueSchema = z.object({

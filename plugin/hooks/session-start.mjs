@@ -13,6 +13,6 @@ lines.push(issue != null
   ? `The branch name points to Huly issue ${issue}. Before working on it, load it with get_issue_context (or start_work).`
   : 'To find its Huly workspace and project, call find_project_for_repo when Huly is relevant.')
 const rules = hulyRules(git(cwd, ['rev-parse', '--show-toplevel']) ?? cwd)
-if (rules === 'set') lines.push('Follow the "## Huly" section of CLAUDE.md/CLAUDE.local.md/AGENTS.md for how Huly is used here (skill: huly).')
+if (rules === 'set') lines.push('Follow the "## Huly" section of CLAUDE.md/CLAUDE.local.md/AGENTS.md for how Huly is used here. Load the huly skill before your first Huly call.')
 else lines.push('This repo has no Huly rules yet (no "## Huly" section in CLAUDE.md). If the user works with Huly here, offer /huly:setup once.')
 emit('SessionStart', lines.join(' '))

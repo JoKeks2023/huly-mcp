@@ -152,9 +152,14 @@ export const finishWork = wrapToolHandler<z.infer<typeof FinishWorkSchema>>(asyn
   const done: string[] = []
   const notes: string[] = []
 
-  // Resolve everything that can fail before changing anything.
-  const pr = args.pullRequest != null ? await findPullRequest(client, issue.space, args.pullRequest) : undefined
-  await addComment({ workspace: args.workspace, identifier: args.identifier, message: `🤖 **Work summary**\n\n${args.summary}` } as any)
+  // A PR that GitHub sync has not brought over yet (or a project without sync) must not block the
+  // hand-back: the link goes into the summary comment and the PR is linked once it is there.
+  let pr: any
+  if (args.pullRequest != null) {
+    try { pr = await findPullRequest(client, issue.space, args.pullRequest) } catch (e) { notes.push(`${(e as Error).message} The link is in the comment; run finish_work again later to put the PR under ${args.identifier}.`) }
+  }
+  const prLine = args.pullRequest != null && !args.summary.includes(args.pullRequest) ? `\n\nPull request: ${args.pullRequest}` : ''
+  await addComment({ workspace: args.workspace, identifier: args.identifier, message: `🤖 **Work summary**\n\n${args.summary}${prLine}` } as any)
   done.push('summary comment added')
 
   if (pr != null) {
