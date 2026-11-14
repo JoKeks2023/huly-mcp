@@ -1,3 +1,4 @@
+import { allowedIssueStatuses, resolveIssueStatus } from '../utils/statuses'
 import { linkToParent } from './relations'
 import tracker, { IssuePriority, type Issue, type Project } from '@hcengineering/tracker'
 import tags from '@hcengineering/tags'
@@ -224,10 +225,10 @@ export const createIssue = wrapToolHandler<z.infer<typeof CreateIssueSchema>>(as
   if (project == null) throw new Error(`Project '${args.projectIdentifier}' not found.`)
 
   // Resolve everything that can fail before the sequence number is taken.
-  const statuses = await client.findAll(tracker.class.IssueStatus, {})
-  if (args.statusName != null && !statuses.some((s) => s.name === args.statusName)) {
-    throw new Error(`Status '${args.statusName}' not found. Available: ${[...new Set(statuses.map((s) => s.name))].join(', ')}.`)
-  }
+  const kind = await client.findOne(task.class.TaskType, project.type != null ? { parent: project.type } : {})
+  if (kind == null) throw new Error('Could not find a TaskType for this project.')
+  const statuses = await allowedIssueStatuses(client, project, kind._id)
+  const chosen = args.statusName != null ? await resolveIssueStatus(client, project, kind._id, args.statusName) : undefined
   const fields = await resolveFieldUpdates(client, { space: project._id } as unknown as Issue, {
     assignee: args.assignee, componentLabel: args.componentLabel, milestoneLabel: args.milestoneLabel
   })
@@ -246,16 +247,13 @@ export const createIssue = wrapToolHandler<z.infer<typeof CreateIssueSchema>>(as
   const identifier = `${project.identifier}-${issueNumber}`
 
   // 3. Resolve status
-  const status = args.statusName != null
-    ? (statuses.find((s) => s.name === args.statusName) ?? statuses[0])
+  const status = chosen != null
+    ? chosen
     : (project.defaultIssueStatus != null
         ? (statuses.find((s) => s._id === project.defaultIssueStatus) ?? statuses[0])
         : statuses[0])
   if (status == null) throw new Error(`No statuses found in project '${args.projectIdentifier}'.`)
 
-  // 4. Find TaskType (kind field — required)
-  const kind = await client.findOne(task.class.TaskType, project.type != null ? { parent: project.type } : {})
-  if (kind == null) throw new Error('Could not find a TaskType for this project.')
 
   // 5. Compute rank (append after last issue)
   const lastIssue = await client.findOne(
@@ -348,9 +346,8 @@ async function resolveFieldUpdates (client: TxOperations, issue: Issue, args: Fi
   const updates: DocumentUpdate<Issue> = {}
 
   if (args.statusName != null) {
-    const status = await client.findOne(tracker.class.IssueStatus, { name: args.statusName })
-    if (status == null) throw new Error(`Status '${args.statusName}' not found.`)
-    updates.status = status._id
+    const project = await client.findOne(tracker.class.Project, { _id: issue.space })
+    updates.status = (await resolveIssueStatus(client, project, issue.kind as string | undefined, args.statusName))._id
   }
 
   if (args.priority != null) {

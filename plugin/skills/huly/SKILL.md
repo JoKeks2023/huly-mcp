@@ -46,7 +46,8 @@ Copy the checklist that fits and tick it off as you go.
 **Pull request and hand-back**
 ```
 - [ ] PR title or body contains the issue id (PROJ-12) so GitHub sync links them
-- [ ] finish_work PROJ-12 with summary + pullRequest (URL or #number) → comment, PR linked, Review in progress
+- [ ] finish_work PROJ-12 with summary + pullRequest (URL or #number) → comment, PR linked, review status
+      ("Review in progress" where the project's issue workflow has it — otherwise the status stays and the answer says so)
       The summary says what is NOT verified. A PR that is not synced yet is fine: the link goes into the comment.
 - [ ] After merge: Done / Merged usually arrives through GitHub sync — check, don't double-set
 ```

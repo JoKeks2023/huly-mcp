@@ -4,6 +4,8 @@ All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mc
 
 ### Unreleased
 
+- **Fixed: issue statuses that the issue's workflow does not allow were set anyway.** Statuses are workspace-wide, but each project type allows some per task type — Huly's GitHub sync, for example, adds "Review in progress" and "Merged" for pull requests only. `update_issue`, `bulk_update_issues`, `create_issue`, `start_work` and `finish_work` took the first status with the name, and Huly later reset such issues to Backlog. Now only allowed statuses are accepted; otherwise the error names the ones that work. `finish_work` hands back anyway and says when there is no review status for issues.
+- **`create_issue_status` adds the status to the issue workflow** of a project type (`projectIdentifier`, default: all tracker project types) and reuses an existing status of that name — before, it only created the status document, which no issue could use.
 - **Trainings can be written** (toolset `qms`): `create_training` makes a draft `TR-n` with questions in one call — single choice, multiple choice, ordering; with `correct` they are scored, without they are open (e.g. feedback); `add_training_questions` for drafts; `release_training` (archives the earlier released revision and releases the questions, like Huly's "Release"); `assign_training` to people with due date and max attempts (released trainings only); `cancel_training_request`. `get_training` shows assignment ids. Same data as Huly's own UI; verified live (create → release → assign → results → cancel), test data removed.
 - **Fixed: `get_training` showed the correct order of ordering questions wrong** — Huly stores each option's position, the output read it as an index.
 

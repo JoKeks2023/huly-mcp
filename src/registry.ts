@@ -127,7 +127,7 @@ export const TOOLS: ToolDef[] = [
   { name: 'list_attachments', toolset: 'tracker', description: 'List files attached to an issue', schema: S.ListAttachmentsSchema, handler: listAttachments },
   { name: 'delete_attachment', toolset: 'tracker', description: 'Permanently delete a file attached to an issue (attachmentId from list_attachments)', schema: S.DeleteAttachmentSchema, handler: deleteAttachment },
   { name: 'list_issue_statuses', toolset: 'tracker', description: 'List all issue statuses (workflow states), grouped by phase', schema: S.ListIssueStatusesSchema, handler: listIssueStatuses },
-  { name: 'create_issue_status', toolset: 'tracker-admin', description: 'Create a workspace-wide issue status', schema: S.CreateIssueStatusSchema, handler: createIssueStatus },
+  { name: 'create_issue_status', toolset: 'tracker-admin', description: 'Add an issue status to the workflow of a project type (creates it or reuses one of that name)', schema: S.CreateIssueStatusSchema, handler: createIssueStatus },
   { name: 'list_organizations', toolset: 'contacts', description: 'List all organizations (companies) in the workspace', schema: S.ListOrganizationsSchema, handler: listOrganizations },
   { name: 'get_organization', toolset: 'contacts', description: 'Organization (company) by id from list_organizations: city, linked members, description', schema: S.GetOrganizationSchema, handler: getOrganization },
   { name: 'create_organization', toolset: 'contacts', description: 'Create a new organization (company contact)', schema: S.CreateOrganizationSchema, handler: createOrganization },

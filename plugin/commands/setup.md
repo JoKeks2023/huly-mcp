@@ -36,7 +36,7 @@ Use what step 1 found to pick the recommendation: put it first and mark it "(Rec
 2. **What to import** (multiSelect; offer only what applies, see the skill's onboarding guide for how; no "nothing" option — selecting none means no import):
    - Components from the repo's modules/packages (paths in the description)
    - Milestones from releases/tags (real delivery targets, not phases)
-   - Status set aligned to: Backlog, Todo, In Progress, Done, Canceled, Review in progress, Merged
+   - Status set aligned to: Backlog, Todo, In Progress, Done, Canceled, Review in progress, Merged — for **issues** (see onboarding guide: statuses are per project type and task type)
    - TODO/FIXME comments as a **proposal list** (issues only after the user picks)
    - Architecture/status document as a Huly document
    - Labels for kinds of work (bug, feature, tech debt, …), with categories

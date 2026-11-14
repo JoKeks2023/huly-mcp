@@ -370,7 +370,8 @@ export const CreateIssueStatusSchema = z.object({
   workspace: WorkspaceArg,
   name: z.string().min(1).describe('Status name'),
   category: StatusCategoryEnum.describe('Status phase'),
-  color: z.string().optional().describe('Hex color, e.g. #FF6B6B')
+  color: z.string().optional().describe('Hex color, e.g. #FF6B6B'),
+  projectIdentifier: z.string().optional().describe('Add it to this project\'s workflow (its project type); default: every tracker project type')
 })
 
 // ── Organizations (contacts/CRM) ────────────────────────────────────────────
