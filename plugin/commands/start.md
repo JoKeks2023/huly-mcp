@@ -6,8 +6,7 @@ allowed-tools: Bash(git remote get-url:*), Bash(git branch --show-current)
 Start work on a Huly issue.
 
 - Issue: `$ARGUMENTS` (if empty, take it from the branch name)
-- Branch: !`git branch --show-current`
-- Remote: !`git remote get-url origin`
+- Branch and remote: run `git branch --show-current` and `git remote get-url origin`
 
 Steps:
 1. If no issue id is given and the branch has none, call `find_project_for_repo` with the remote and ask which issue to take (offer my open ones).

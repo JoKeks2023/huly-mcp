@@ -5,8 +5,7 @@ allowed-tools: Bash(git remote get-url:*), Bash(git tag:*), Bash(git shortlog:*)
 ---
 Set up how Huly is used in this repository. Workspace hint: `$ARGUMENTS`.
 
-Remote: !`git remote get-url origin 2>/dev/null || echo none`
-Active contributors (90 days): !`git shortlog -sn --all --since=90.days`
+First run `git remote get-url origin` (the remote; none → no GitHub link) and `git shortlog -sn --all --since=90.days` (active contributors).
 
 The result is a short `## Huly` section that every later session follows without asking again. Keep it short — it is loaded into every session.
 

@@ -31375,7 +31375,7 @@ var require_utils6 = __commonJS({
     var import_platform = require_lib();
     var import__ = __toESM2(require_lib15());
     var import_types9 = require_types5();
-    var import_cache = __toESM2(require_cache());
+    var import_cache2 = __toESM2(require_cache());
     var currentEmployee;
     var currentEmployeeSpace;
     var employeeListeners = [];
@@ -31749,7 +31749,7 @@ var require_utils6 = __commonJS({
       return personRef;
     }
     __name(ensureEmployeeForPerson, "ensureEmployeeForPerson");
-    var contactCache = import_cache.default.instance;
+    var contactCache = import_cache2.default.instance;
     async function loadCachesForPersonId(client, personId) {
       if (personId == null || personId === "") return;
       const sidObj = await client.findOne(
@@ -51010,22 +51010,22 @@ var require_utils10 = __commonJS({
           return "";
         }
         ancestors.set(value, true);
-        var copy;
+        var copy2;
         for (var i = 0; i < value.length; i += 1) {
           var item = value[i];
           var coerced = toCoercible2(item, ancestors);
-          if (!copy && coerced !== item) {
-            copy = [];
+          if (!copy2 && coerced !== item) {
+            copy2 = [];
             for (var j = 0; j < i; j += 1) {
-              copy[j] = value[j];
+              copy2[j] = value[j];
             }
           }
-          if (copy) {
-            copy[i] = coerced;
+          if (copy2) {
+            copy2[i] = coerced;
           }
         }
         ancestors["delete"](value);
-        return copy || value;
+        return copy2 || value;
       }
       if (typeof value.toString === "function") {
         return value;
@@ -51514,9 +51514,9 @@ var require_parse2 = __commonJS({
           var value = source[keys[j]];
           if (isPlainContainer(value)) {
             if (!copies.has(value)) {
-              var copy = emptyCopyOf(value);
-              copies.set(value, copy);
-              queue[queue.length] = { source: value, target: copy };
+              var copy2 = emptyCopyOf(value);
+              copies.set(value, copy2);
+              queue[queue.length] = { source: value, target: copy2 };
             }
             utils.setProperty(target, keys[j], copies.get(value));
           } else {
@@ -90047,6 +90047,115 @@ function addEntry(owner, entry) {
   return full;
 }
 
+// src/utils/cache.ts
+var CACHED = [
+  "core:class:Status",
+  "tracker:class:IssueStatus",
+  "contact:class:Person",
+  "contact:mixin:Employee",
+  "contact:class:SocialIdentity",
+  "tracker:class:Project",
+  "tracker:class:Milestone",
+  "tracker:class:Component",
+  "tags:class:TagElement"
+];
+var LINKED = {
+  "contact:class:Person": ["contact:mixin:Employee"],
+  "contact:mixin:Employee": ["contact:class:Person"],
+  "tracker:class:IssueStatus": ["core:class:Status"],
+  "core:class:Status": ["tracker:class:IssueStatus"]
+};
+var MAX_AGE_MS = 10 * 6e4;
+var MAX_ENTRIES2 = 500;
+function copy(value) {
+  if (!Array.isArray(value)) return value;
+  let docs;
+  try {
+    docs = structuredClone([...value]);
+  } catch {
+    docs = value.map((d) => ({ ...d }));
+  }
+  return Object.assign(docs, { total: value.total, lookupMap: value.lookupMap });
+}
+function cachingClient(raw, env = process.env) {
+  const stats = { hits: 0, misses: 0, invalidations: 0 };
+  if (["0", "false", "no", "off"].includes(String(env.HULY_CACHE ?? "").toLowerCase())) return Object.assign(raw, { cacheStats: stats });
+  const r = raw;
+  const entries = /* @__PURE__ */ new Map();
+  const derived2 = (cls, base) => {
+    if (cls === base) return true;
+    try {
+      return r.getHierarchy?.().isDerived(cls, base) === true;
+    } catch {
+      return false;
+    }
+  };
+  const generation = /* @__PURE__ */ new Map();
+  const drop = (cls) => {
+    generation.set(cls, (generation.get(cls) ?? 0) + 1);
+    if (entries.delete(cls)) stats.invalidations++;
+  };
+  const invalidate = (tx) => {
+    if (tx == null) return;
+    for (const inner of tx.txes ?? []) invalidate(inner);
+    if (tx.tx != null) invalidate(tx.tx);
+    const touched = [tx.objectClass, tx.mixin].filter((c) => typeof c === "string");
+    if (touched.length === 0) return;
+    for (const c of CACHED) {
+      if (touched.some((t) => derived2(t, c))) {
+        drop(c);
+        for (const l of LINKED[c] ?? []) drop(l);
+      }
+    }
+  };
+  const previous = r.notify;
+  r.notify = (...txes) => {
+    for (const tx of txes) invalidate(tx);
+    previous?.(...txes);
+  };
+  return new Proxy(r, {
+    get(target, prop, receiver) {
+      if (prop === "cacheStats") return stats;
+      const orig = Reflect.get(target, prop, receiver);
+      if (prop === "tx" && typeof orig === "function") {
+        return async (tx, ...rest) => {
+          try {
+            return await orig.call(target, tx, ...rest);
+          } finally {
+            invalidate(tx);
+          }
+        };
+      }
+      if (prop !== "findAll" || typeof orig !== "function") return orig;
+      return async (_class, query, options, ...rest) => {
+        if (!CACHED.includes(_class) || options?.lookup != null || rest.length > 0) {
+          return await orig.call(receiver, _class, query, options, ...rest);
+        }
+        const key = JSON.stringify([query, options ?? null]);
+        const now = Date.now();
+        const hit = entries.get(_class)?.get(key);
+        if (hit != null && now - hit.at < MAX_AGE_MS) {
+          stats.hits++;
+          return copy(hit.value);
+        }
+        stats.misses++;
+        const gen = generation.get(_class) ?? 0;
+        const value = await orig.call(receiver, _class, query, options);
+        if ((generation.get(_class) ?? 0) === gen) {
+          if ([...entries.values()].reduce((n, m) => n + m.size, 0) >= MAX_ENTRIES2) entries.clear();
+          let byQuery = entries.get(_class);
+          if (byQuery == null) {
+            byQuery = /* @__PURE__ */ new Map();
+            entries.set(_class, byQuery);
+          }
+          byQuery.set(key, { at: now, value });
+        }
+        return copy(value);
+      };
+    }
+  });
+}
+
 // src/connection.ts
 var import_account_client = __toESM(require_lib5());
 var import_core10 = __toESM(require_lib4());
@@ -90064,7 +90173,7 @@ function tokenClaims(token) {
 var TOKEN_HELP = "API token: create a new one in Huly \u2192 Settings \u2192 API tokens. Account token: npx huly-mcp-selfhost setup.";
 async function defaultOpenConnection(endpoint, token, socialId) {
   const raw = await (0, import_server_client.createClient)(endpoint, token);
-  return { client: new import_core10.TxOperations(raw, socialId), close: async () => await raw.close() };
+  return { client: new import_core10.TxOperations(cachingClient(raw), socialId), close: async () => await raw.close() };
 }
 function toRef(ws2) {
   return {
@@ -90373,7 +90482,7 @@ Pass the slug (or name/id) as \`workspace\` to other tools.`;
 var import_fs = require("fs");
 
 // src/version.ts
-var VERSION = "3.6.2";
+var VERSION = "3.7.0";
 
 // src/tools/diagnostics.ts
 var import_path = require("path");
@@ -90722,12 +90831,155 @@ var updateProject = wrapToolHandler(async (args) => {
   return `\u2705 Project **${args.identifier}** updated (${Object.keys(updates).join(", ")}).`;
 });
 
-// src/tools/issues.ts
-var import_tracker3 = __toESM(require_lib11());
-var import_tags = __toESM(require_lib16());
-var import_task2 = __toESM(require_lib14());
+// src/tools/relations.ts
+var import_tracker2 = __toESM(require_lib11());
 var import_core13 = __toESM(require_lib4());
 var import_rank = __toESM(require_lib13());
+var addRelation = wrapToolHandler(async (args) => {
+  const client = await getConnection(args.workspace);
+  const issueA = await client.findOne(import_tracker2.default.class.Issue, { identifier: args.identifier });
+  if (issueA == null) throw new Error(`Issue '${args.identifier}' not found.`);
+  const issueB = await client.findOne(import_tracker2.default.class.Issue, { identifier: args.relatedTo });
+  if (issueB == null) throw new Error(`Issue '${args.relatedTo}' not found.`);
+  const relA = { _id: issueB._id, _class: issueB._class };
+  const relB = { _id: issueA._id, _class: issueA._class };
+  const existingRels = issueA.relations ?? [];
+  if (existingRels.some((r) => r._id === issueB._id)) {
+    return `**${args.identifier}** is already related to **${args.relatedTo}**.`;
+  }
+  await client.updateDoc(import_tracker2.default.class.Issue, issueA.space, issueA._id, {
+    relations: [...existingRels, relA]
+  });
+  await client.updateDoc(import_tracker2.default.class.Issue, issueB.space, issueB._id, {
+    relations: [...issueB.relations ?? [], relB]
+  });
+  return `\u2705 **${args.identifier}** is now related to **${args.relatedTo}**`;
+});
+var addBlockedBy = wrapToolHandler(async (args) => {
+  const client = await getConnection(args.workspace);
+  const issue2 = await client.findOne(import_tracker2.default.class.Issue, { identifier: args.identifier });
+  if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
+  const blocker = await client.findOne(import_tracker2.default.class.Issue, { identifier: args.blockedBy });
+  if (blocker == null) throw new Error(`Issue '${args.blockedBy}' not found.`);
+  const blockerRef = { _id: blocker._id, _class: blocker._class };
+  const existing = issue2.blockedBy ?? [];
+  if (existing.some((r) => r._id === blocker._id)) {
+    return `**${args.identifier}** is already blocked by **${args.blockedBy}**.`;
+  }
+  await client.updateDoc(import_tracker2.default.class.Issue, issue2.space, issue2._id, {
+    blockedBy: [...existing, blockerRef]
+  });
+  return `\u2705 **${args.identifier}** is now blocked by **${args.blockedBy}**`;
+});
+var setParent = wrapToolHandler(async (args) => {
+  const client = await getConnection(args.workspace);
+  const child = await client.findOne(import_tracker2.default.class.Issue, { identifier: args.identifier });
+  if (child == null) throw new Error(`Issue '${args.identifier}' not found.`);
+  if (args.parentIdentifier == null) {
+    const result2 = await linkToParent(client, child, null);
+    return result2 === "unchanged" ? `**${args.identifier}** has no parent.` : `\u2705 Cleared parent from **${args.identifier}**`;
+  }
+  const parent = await client.findOne(import_tracker2.default.class.Issue, { identifier: args.parentIdentifier });
+  if (parent == null) throw new Error(`Parent issue '${args.parentIdentifier}' not found.`);
+  const result = await linkToParent(client, child, parent);
+  if (result === "unchanged") return `**${args.identifier}** is already a sub-issue of **${args.parentIdentifier}**.`;
+  return `\u2705 **${args.identifier}** is now a sub-issue of **${args.parentIdentifier}**${result === "repaired" ? " (repaired link from an older version)" : ""}`;
+});
+function isLegacyLink(issue2) {
+  return issue2.attachedTo === import_tracker2.default.ids.NoParent && (issue2.parents ?? []).length > 0;
+}
+async function linkToParent(client, child, parent) {
+  const legacy = isLegacyLink(child);
+  const undoLegacy = async () => {
+    const old = await client.findOne(import_tracker2.default.class.Issue, { _id: child.parents[0].parentId });
+    if (old == null) return;
+    const childInfo = (old.childInfo ?? []).filter((c) => c.childId !== child._id);
+    const removed = (old.childInfo ?? []).length - childInfo.length;
+    await client.updateDoc(import_tracker2.default.class.Issue, old.space, old._id, {
+      childInfo,
+      subIssues: Math.max(0, (old.subIssues ?? 0) - Math.max(removed, 1))
+    });
+  };
+  if (parent == null) {
+    if (child.attachedTo === import_tracker2.default.ids.NoParent && (child.parents ?? []).length === 0) return "unchanged";
+    if (legacy) await undoLegacy();
+    await client.update(child, { attachedTo: import_tracker2.default.ids.NoParent, parents: [] });
+    return "cleared";
+  }
+  if (parent._id === child._id) throw new Error("An issue cannot be its own parent.");
+  if ((parent.parents ?? []).some((p) => p.parentId === child._id)) {
+    throw new Error(`${parent.identifier} is a sub-issue of ${child.identifier} \u2014 that would create a cycle.`);
+  }
+  if (child.attachedTo === parent._id) return "unchanged";
+  const lastSibling = await client.findOne(import_tracker2.default.class.Issue, { attachedTo: parent._id }, { sort: { rank: import_core13.SortingOrder.Descending } });
+  if (legacy) await undoLegacy();
+  await client.update(child, { attachedTo: parent._id, rank: (0, import_rank.makeRank)(lastSibling?.rank, void 0) });
+  return legacy ? "repaired" : "linked";
+}
+var repairParentLinks = wrapToolHandler(async (args) => {
+  const client = await getConnection(args.workspace);
+  const project = await client.findOne(import_tracker2.default.class.Project, { identifier: args.projectIdentifier });
+  if (project == null) throw new Error(`Project '${args.projectIdentifier}' not found.`);
+  const issues = await client.findAll(import_tracker2.default.class.Issue, { space: project._id });
+  const byId = new Map(issues.map((i) => [i._id, i]));
+  const legacy = issues.filter(isLegacyLink);
+  if (legacy.length === 0) return `No broken parent links in ${args.projectIdentifier}.`;
+  const lines = [];
+  let repaired = 0;
+  let skipped = 0;
+  for (const child of legacy) {
+    const parentRef = child.parents[0];
+    const parent = byId.get(parentRef.parentId) ?? await client.findOne(import_tracker2.default.class.Issue, { _id: parentRef.parentId });
+    if (parent == null) {
+      skipped++;
+      lines.push(`- ${child.identifier}: parent ${parentRef.identifier} no longer exists \u2014 skipped`);
+      continue;
+    }
+    if (args.dryRun) {
+      lines.push(`- ${child.identifier} \u2192 under ${parent.identifier}`);
+      continue;
+    }
+    await linkToParent(client, child, parent);
+    repaired++;
+    lines.push(`- ${child.identifier} \u2192 under ${parent.identifier} \u2705`);
+  }
+  const head = args.dryRun ? `## Dry run: ${legacy.length - skipped} sub-issue(s) in ${args.projectIdentifier} would be re-linked${skipped > 0 ? `, ${skipped} skipped` : ""}
+Run again with dryRun=false to apply.` : `## Repaired ${repaired} sub-issue link(s) in ${args.projectIdentifier}${skipped > 0 ? `, ${skipped} skipped` : ""}`;
+  return `${head}
+
+${lines.join("\n")}`;
+});
+var removeRelation = wrapToolHandler(async (args) => {
+  const client = await getConnection(args.workspace);
+  const issueA = await client.findOne(import_tracker2.default.class.Issue, { identifier: args.identifier });
+  if (issueA == null) throw new Error(`Issue '${args.identifier}' not found.`);
+  const issueB = await client.findOne(import_tracker2.default.class.Issue, { identifier: args.relatedTo });
+  if (issueB == null) throw new Error(`Issue '${args.relatedTo}' not found.`);
+  const aHas = (issueA.relations ?? []).some((r) => r._id === issueB._id);
+  const bHas = (issueB.relations ?? []).some((r) => r._id === issueA._id);
+  if (!aHas && !bHas) return `**${args.identifier}** and **${args.relatedTo}** are not related.`;
+  if (aHas) await client.updateDoc(import_tracker2.default.class.Issue, issueA.space, issueA._id, { relations: (issueA.relations ?? []).filter((r) => r._id !== issueB._id) });
+  if (bHas) await client.updateDoc(import_tracker2.default.class.Issue, issueB.space, issueB._id, { relations: (issueB.relations ?? []).filter((r) => r._id !== issueA._id) });
+  return `\u2705 **${args.identifier}** and **${args.relatedTo}** are no longer related`;
+});
+var removeBlockedBy = wrapToolHandler(async (args) => {
+  const client = await getConnection(args.workspace);
+  const issue2 = await client.findOne(import_tracker2.default.class.Issue, { identifier: args.identifier });
+  if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
+  const blocker = await client.findOne(import_tracker2.default.class.Issue, { identifier: args.blockedBy });
+  if (blocker == null) throw new Error(`Issue '${args.blockedBy}' not found.`);
+  const existing = issue2.blockedBy ?? [];
+  if (!existing.some((r) => r._id === blocker._id)) return `**${args.identifier}** is not blocked by **${args.blockedBy}**.`;
+  await client.updateDoc(import_tracker2.default.class.Issue, issue2.space, issue2._id, { blockedBy: existing.filter((r) => r._id !== blocker._id) });
+  return `\u2705 **${args.identifier}** is no longer blocked by **${args.blockedBy}**`;
+});
+
+// src/tools/issues.ts
+var import_tracker4 = __toESM(require_lib11());
+var import_tags = __toESM(require_lib16());
+var import_task2 = __toESM(require_lib14());
+var import_core14 = __toESM(require_lib4());
+var import_rank2 = __toESM(require_lib13());
 
 // src/utils/markdown.ts
 function markdownToProseMirror(md) {
@@ -90852,13 +91104,13 @@ function extractText(node2) {
 }
 
 // src/utils/format.ts
-var import_tracker2 = __toESM(require_lib11());
+var import_tracker3 = __toESM(require_lib11());
 var PRIORITY_LABELS = {
-  [import_tracker2.IssuePriority.NoPriority]: "No Priority",
-  [import_tracker2.IssuePriority.Urgent]: "Urgent",
-  [import_tracker2.IssuePriority.High]: "High",
-  [import_tracker2.IssuePriority.Medium]: "Medium",
-  [import_tracker2.IssuePriority.Low]: "Low"
+  [import_tracker3.IssuePriority.NoPriority]: "No Priority",
+  [import_tracker3.IssuePriority.Urgent]: "Urgent",
+  [import_tracker3.IssuePriority.High]: "High",
+  [import_tracker3.IssuePriority.Medium]: "Medium",
+  [import_tracker3.IssuePriority.Low]: "Low"
 };
 var MILESTONE_STATUS_LABELS = {
   0: "Planned",
@@ -91017,26 +91269,26 @@ async function findMemberId(client, name2) {
 }
 var listIssues = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const project = await client.findOne(import_tracker3.default.class.Project, { identifier: args.projectIdentifier });
+  const project = await client.findOne(import_tracker4.default.class.Project, { identifier: args.projectIdentifier });
   if (project == null) throw new Error(`Project '${args.projectIdentifier}' not found.`);
   const query = { space: project._id };
-  const statuses = await client.findAll(import_tracker3.default.class.IssueStatus, {});
+  const statuses = await client.findAll(import_tracker4.default.class.IssueStatus, {});
   const statusMap = new Map(statuses.map((s) => [s._id, s.name]));
   const scope = args.status ?? "open";
   if (scope === "open") {
     query.status = { $in: statuses.filter((s) => s.category !== import_task2.default.statusCategory.Won && s.category !== import_task2.default.statusCategory.Lost).map((s) => s._id) };
   } else if (scope !== "all") {
     const status = statuses.find((s) => s.name.toLowerCase() === scope.toLowerCase());
-    if (status == null) throw new Error(`Status '${scope}' not found. Use a status name, "open" or "all".`);
+    if (status == null) throw new Error(`Status '${scope}' not found. Use a status name (${[...new Set(statuses.map((x) => x.name))].join(", ")}), "open" or "all".${/block/i.test(scope) ? " Blocked is not a status: pass blocked: true." : ""}`);
     query.status = status._id;
   }
   if (args.priority != null) {
-    query.priority = import_tracker3.IssuePriority[args.priority];
+    query.priority = import_tracker4.IssuePriority[args.priority];
   }
   if (args.milestoneLabel !== void 0) {
     if (args.milestoneLabel === null) query.milestone = null;
     else {
-      const m = await client.findOne(import_tracker3.default.class.Milestone, { space: project._id, label: args.milestoneLabel });
+      const m = await client.findOne(import_tracker4.default.class.Milestone, { space: project._id, label: args.milestoneLabel });
       if (m == null) throw new Error(`Milestone '${args.milestoneLabel}' not found in project ${args.projectIdentifier}.`);
       query.milestone = m._id;
     }
@@ -91044,7 +91296,7 @@ var listIssues = wrapToolHandler(async (args) => {
   if (args.componentLabel !== void 0) {
     if (args.componentLabel === null) query.component = null;
     else {
-      const c = await client.findOne(import_tracker3.default.class.Component, { space: project._id, label: args.componentLabel });
+      const c = await client.findOne(import_tracker4.default.class.Component, { space: project._id, label: args.componentLabel });
       if (c == null) throw new Error(`Component '${args.componentLabel}' not found in project ${args.projectIdentifier}.`);
       query.component = c._id;
     }
@@ -91053,9 +91305,9 @@ var listIssues = wrapToolHandler(async (args) => {
     query.assignee = args.assignee === null ? null : await findMemberId(client, args.assignee);
   }
   if (args.parentIdentifier !== void 0) {
-    if (args.parentIdentifier === null) query.attachedTo = import_tracker3.default.ids.NoParent;
+    if (args.parentIdentifier === null) query.attachedTo = import_tracker4.default.ids.NoParent;
     else {
-      const parent = await client.findOne(import_tracker3.default.class.Issue, { identifier: args.parentIdentifier });
+      const parent = await client.findOne(import_tracker4.default.class.Issue, { identifier: args.parentIdentifier });
       if (parent == null) throw new Error(`Issue '${args.parentIdentifier}' not found.`);
       query.attachedTo = parent._id;
     }
@@ -91067,24 +91319,36 @@ var listIssues = wrapToolHandler(async (args) => {
   else if (args.due === "set") query.dueDate = { $ne: null };
   else if (args.due === "none") query.dueDate = null;
   if (args.labelName != null) {
-    const label2 = await client.findOne(import_tags.default.class.TagElement, { targetClass: import_tracker3.default.class.Issue, title: args.labelName });
+    const label2 = await client.findOne(import_tags.default.class.TagElement, { targetClass: import_tracker4.default.class.Issue, title: args.labelName });
     if (label2 == null) throw new Error(`Label '${args.labelName}' not found.`);
     const refs = await client.findAll(import_tags.default.class.TagReference, { tag: label2._id });
     query._id = { $in: refs.map((r) => r.attachedTo) };
   }
   const offset = args.offset ?? 0;
-  const found = await client.findAll(
-    import_tracker3.default.class.Issue,
-    query,
-    { limit: args.limit + offset, sort: { modifiedOn: import_core13.SortingOrder.Descending }, total: true }
-  );
-  const total = found.total ?? found.length;
+  let found;
+  let total;
+  if (args.blocked === true) {
+    const candidates = (await client.findAll(import_tracker4.default.class.Issue, query, { sort: { modifiedOn: import_core14.SortingOrder.Descending } })).filter((i) => (i.blockedBy ?? []).length > 0);
+    const blockerIds = [...new Set(candidates.flatMap((i) => (i.blockedBy ?? []).map((b) => b._id)))];
+    const closed = new Set(statuses.filter((x) => x.category === import_task2.default.statusCategory.Won || x.category === import_task2.default.statusCategory.Lost).map((x) => x._id));
+    const openBlockers = new Set((blockerIds.length > 0 ? await client.findAll(import_tracker4.default.class.Issue, { _id: { $in: blockerIds } }) : []).filter((b) => !closed.has(b.status)).map((b) => b._id));
+    const blocked = candidates.filter((i) => (i.blockedBy ?? []).some((b) => openBlockers.has(b._id)));
+    total = blocked.length;
+    found = blocked.slice(0, args.limit + offset);
+  } else {
+    found = await client.findAll(
+      import_tracker4.default.class.Issue,
+      query,
+      { limit: args.limit + offset, sort: { modifiedOn: import_core14.SortingOrder.Descending }, total: true }
+    );
+    total = found.total ?? found.length;
+  }
   const issues = found.slice(offset);
-  const what = scope === "open" ? "open issues" : scope === "all" ? "issues" : `issues in status ${scope}`;
+  const what = `${args.blocked === true ? "blocked " : ""}${scope === "open" ? "open issues" : scope === "all" ? "issues" : `issues in status ${scope}`}`;
   if (issues.length === 0) return `No ${what} in project ${args.projectIdentifier}${offset > 0 ? ` after offset ${offset}` : ""}.${scope === "open" ? ' (status: "all" includes done ones.)' : ""}`;
   const lines = issues.map((issue2) => {
     const statusName2 = statusMap.get(issue2.status) ?? "Unknown";
-    const prio = issue2.priority !== import_tracker3.IssuePriority.NoPriority ? ` \xB7 ${priorityLabel(issue2.priority)}` : "";
+    const prio = issue2.priority !== import_tracker4.IssuePriority.NoPriority ? ` \xB7 ${priorityLabel(issue2.priority)}` : "";
     const due2 = issue2.dueDate != null ? ` \xB7 due ${formatDate(issue2.dueDate)}` : "";
     return `- **${issue2.identifier}** ${issue2.title} \u2014 ${statusName2}${prio}${due2}`;
   });
@@ -91098,24 +91362,24 @@ ${lines.join("\n")}${more}`;
 });
 var getIssue = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const issue2 = await client.findOne(import_tracker3.default.class.Issue, { identifier: args.identifier });
+  const issue2 = await client.findOne(import_tracker4.default.class.Issue, { identifier: args.identifier });
   if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
-  const status = await client.findOne(import_tracker3.default.class.IssueStatus, { _id: issue2.status });
-  const milestone = issue2.milestone != null ? await client.findOne(import_tracker3.default.class.Milestone, { _id: issue2.milestone }) : void 0;
-  const component = issue2.component != null ? await client.findOne(import_tracker3.default.class.Component, { _id: issue2.component }) : void 0;
+  const status = await client.findOne(import_tracker4.default.class.IssueStatus, { _id: issue2.status });
+  const milestone = issue2.milestone != null ? await client.findOne(import_tracker4.default.class.Milestone, { _id: issue2.milestone }) : void 0;
+  const component = issue2.component != null ? await client.findOne(import_tracker4.default.class.Component, { _id: issue2.component }) : void 0;
   const assignee = issue2.assignee != null ? (await peopleNames(client)).get(issue2.assignee) ?? String(issue2.assignee) : "Unassigned";
   const labelRefs = await client.findAll(import_tags.default.class.TagReference, { attachedTo: issue2._id });
   const refIds = async (list) => {
     if (list == null || list.length === 0) return "None";
     const names2 = [];
     for (const r of list) {
-      if (r._class != null && r._class !== import_tracker3.default.class.Issue) {
+      if (r._class != null && r._class !== import_tracker4.default.class.Issue) {
         const doc = await client.findOne(r._class, { _id: r._id });
         const kind = String(r._class).split(":").pop()?.replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase() ?? "doc";
         names2.push(`${kind} "${String(doc?.name ?? doc?.title ?? "?")}" \`${String(r._id)}\``);
         continue;
       }
-      const other = await client.findOne(import_tracker3.default.class.Issue, { _id: r._id });
+      const other = await client.findOne(import_tracker4.default.class.Issue, { _id: r._id });
       names2.push(other?.identifier ?? String(r._id));
     }
     return names2.join(", ");
@@ -91176,9 +91440,9 @@ ${text3.substring(0, 2e3)}`);
 });
 var createIssue = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const project = await client.findOne(import_tracker3.default.class.Project, { identifier: args.projectIdentifier });
+  const project = await client.findOne(import_tracker4.default.class.Project, { identifier: args.projectIdentifier });
   if (project == null) throw new Error(`Project '${args.projectIdentifier}' not found.`);
-  const statuses = await client.findAll(import_tracker3.default.class.IssueStatus, {});
+  const statuses = await client.findAll(import_tracker4.default.class.IssueStatus, {});
   if (args.statusName != null && !statuses.some((s) => s.name === args.statusName)) {
     throw new Error(`Status '${args.statusName}' not found. Available: ${[...new Set(statuses.map((s) => s.name))].join(", ")}.`);
   }
@@ -91187,8 +91451,10 @@ var createIssue = wrapToolHandler(async (args) => {
     componentLabel: args.componentLabel,
     milestoneLabel: args.milestoneLabel
   });
+  const parent = args.parentIdentifier != null ? await client.findOne(import_tracker4.default.class.Issue, { identifier: args.parentIdentifier }) : void 0;
+  if (args.parentIdentifier != null && parent == null) throw new Error(`Parent issue '${args.parentIdentifier}' not found.`);
   const incResult = await client.updateDoc(
-    import_tracker3.default.class.Project,
+    import_tracker4.default.class.Project,
     project.space,
     project._id,
     { $inc: { sequence: 1 } },
@@ -91201,12 +91467,12 @@ var createIssue = wrapToolHandler(async (args) => {
   const kind = await client.findOne(import_task2.default.class.TaskType, project.type != null ? { parent: project.type } : {});
   if (kind == null) throw new Error("Could not find a TaskType for this project.");
   const lastIssue = await client.findOne(
-    import_tracker3.default.class.Issue,
+    import_tracker4.default.class.Issue,
     { space: project._id },
-    { sort: { rank: import_core13.SortingOrder.Descending } }
+    { sort: { rank: import_core14.SortingOrder.Descending } }
   );
-  const rank = (0, import_rank.makeRank)(lastIssue?.rank, void 0);
-  const issueId = (0, import_core13.generateId)();
+  const rank = (0, import_rank2.makeRank)(lastIssue?.rank, void 0);
+  const issueId = (0, import_core14.generateId)();
   let descriptionBlobId = null;
   if (args.description != null && args.description !== "") {
     const { wsToken, workspaceUuid } = await getWorkspaceInfo(args.workspace);
@@ -91219,16 +91485,16 @@ var createIssue = wrapToolHandler(async (args) => {
     );
   }
   await client.addCollection(
-    import_tracker3.default.class.Issue,
+    import_tracker4.default.class.Issue,
     project._id,
-    import_tracker3.default.ids.NoParent,
-    import_tracker3.default.class.Issue,
+    import_tracker4.default.ids.NoParent,
+    import_tracker4.default.class.Issue,
     "subIssues",
     {
       title: args.title,
       description: descriptionBlobId,
       status: status._id,
-      priority: import_tracker3.IssuePriority[args.priority],
+      priority: import_tracker4.IssuePriority[args.priority],
       number: issueNumber,
       identifier,
       rank,
@@ -91249,16 +91515,20 @@ var createIssue = wrapToolHandler(async (args) => {
     },
     issueId
   );
-  const extra = [args.assignee != null ? `Assignee: ${args.assignee}` : "", args.componentLabel != null ? `Component: ${args.componentLabel}` : "", args.milestoneLabel != null ? `Milestone: ${args.milestoneLabel}` : ""].filter((x) => x !== "");
+  if (parent != null) {
+    const created = await client.findOne(import_tracker4.default.class.Issue, { _id: issueId });
+    if (created != null) await linkToParent(client, created, parent);
+  }
+  const extra = [parent != null ? `Sub-issue of ${parent.identifier}` : "", args.assignee != null ? `Assignee: ${args.assignee}` : "", args.componentLabel != null ? `Component: ${args.componentLabel}` : "", args.milestoneLabel != null ? `Milestone: ${args.milestoneLabel}` : ""].filter((x) => x !== "");
   return `\u2705 Created **${identifier}**: ${args.title}
-Status: ${status.name} | Priority: ${priorityLabel(import_tracker3.IssuePriority[args.priority])}${extra.length > 0 ? ` | ${extra.join(" | ")}` : ""}`;
+Status: ${status.name} | Priority: ${priorityLabel(import_tracker4.IssuePriority[args.priority])}${extra.length > 0 ? ` | ${extra.join(" | ")}` : ""}`;
 });
 var deleteIssue = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const issue2 = await client.findOne(import_tracker3.default.class.Issue, { identifier: args.identifier });
+  const issue2 = await client.findOne(import_tracker4.default.class.Issue, { identifier: args.identifier });
   if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
   await client.removeCollection(
-    import_tracker3.default.class.Issue,
+    import_tracker4.default.class.Issue,
     issue2.space,
     issue2._id,
     issue2.attachedTo,
@@ -91270,12 +91540,12 @@ var deleteIssue = wrapToolHandler(async (args) => {
 async function resolveFieldUpdates(client, issue2, args) {
   const updates = {};
   if (args.statusName != null) {
-    const status = await client.findOne(import_tracker3.default.class.IssueStatus, { name: args.statusName });
+    const status = await client.findOne(import_tracker4.default.class.IssueStatus, { name: args.statusName });
     if (status == null) throw new Error(`Status '${args.statusName}' not found.`);
     updates.status = status._id;
   }
   if (args.priority != null) {
-    updates.priority = import_tracker3.IssuePriority[args.priority];
+    updates.priority = import_tracker4.IssuePriority[args.priority];
   }
   if (args.dueDate !== void 0) {
     if (args.dueDate != null && isNaN(new Date(args.dueDate).getTime())) throw new Error(`Invalid date: '${args.dueDate}'`);
@@ -91292,7 +91562,7 @@ async function resolveFieldUpdates(client, issue2, args) {
     if (args.componentLabel === null) {
       updates.component = null;
     } else {
-      const component = await client.findOne(import_tracker3.default.class.Component, { space: issue2.space, label: args.componentLabel });
+      const component = await client.findOne(import_tracker4.default.class.Component, { space: issue2.space, label: args.componentLabel });
       if (component == null) throw new Error(`Component '${args.componentLabel}' not found in this project.`);
       updates.component = component._id;
     }
@@ -91301,7 +91571,7 @@ async function resolveFieldUpdates(client, issue2, args) {
     if (args.milestoneLabel === null) {
       updates.milestone = null;
     } else {
-      const milestone = await client.findOne(import_tracker3.default.class.Milestone, { space: issue2.space, label: args.milestoneLabel });
+      const milestone = await client.findOne(import_tracker4.default.class.Milestone, { space: issue2.space, label: args.milestoneLabel });
       if (milestone == null) throw new Error(`Milestone '${args.milestoneLabel}' not found in this project.`);
       updates.milestone = milestone._id;
     }
@@ -91310,7 +91580,7 @@ async function resolveFieldUpdates(client, issue2, args) {
 }
 var updateIssue = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const issue2 = await client.findOne(import_tracker3.default.class.Issue, { identifier: args.identifier });
+  const issue2 = await client.findOne(import_tracker4.default.class.Issue, { identifier: args.identifier });
   if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
   const updates = {};
   if (args.title != null) updates.title = args.title;
@@ -91327,7 +91597,7 @@ var updateIssue = wrapToolHandler(async (args) => {
   }
   Object.assign(updates, await resolveFieldUpdates(client, issue2, args));
   if (Object.keys(updates).length === 0) return `No changes made to ${args.identifier}.`;
-  await client.updateDoc(import_tracker3.default.class.Issue, issue2.space, issue2._id, updates);
+  await client.updateDoc(import_tracker4.default.class.Issue, issue2.space, issue2._id, updates);
   const changed = Object.keys(updates).join(", ");
   return `\u2705 Updated **${args.identifier}** \u2014 changed: ${changed}`;
 });
@@ -91336,13 +91606,13 @@ var bulkUpdateIssues = wrapToolHandler(async (args) => {
   const identifiers = [...new Set(args.identifiers)];
   const planned = [];
   for (const identifier of identifiers) {
-    const issue2 = await client.findOne(import_tracker3.default.class.Issue, { identifier });
+    const issue2 = await client.findOne(import_tracker4.default.class.Issue, { identifier });
     if (issue2 == null) throw new Error(`Issue '${identifier}' not found. Nothing was changed.`);
     planned.push({ issue: issue2, updates: await resolveFieldUpdates(client, issue2, args) });
   }
   if (planned.every((p) => Object.keys(p.updates).length === 0)) return "No changes requested.";
   for (const { issue: issue2, updates } of planned) {
-    await client.updateDoc(import_tracker3.default.class.Issue, issue2.space, issue2._id, updates);
+    await client.updateDoc(import_tracker4.default.class.Issue, issue2.space, issue2._id, updates);
   }
   const changed = Object.keys(planned[0].updates).join(", ");
   return `\u2705 Updated ${planned.length} issue(s) \u2014 changed: ${changed}
@@ -91350,13 +91620,13 @@ ${planned.map((p) => `- ${p.issue.identifier}`).join("\n")}`;
 });
 var listSubIssues = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const root = await client.findOne(import_tracker3.default.class.Issue, { identifier: args.identifier });
+  const root = await client.findOne(import_tracker4.default.class.Issue, { identifier: args.identifier });
   if (root == null) throw new Error(`Issue '${args.identifier}' not found.`);
-  const statuses = await client.findAll(import_tracker3.default.class.IssueStatus, {});
+  const statuses = await client.findAll(import_tracker4.default.class.IssueStatus, {});
   const statusById = new Map(statuses.map((s) => [s._id, s]));
   const isDone = (i) => statusById.get(i.status)?.category === import_task2.default.statusCategory.Won;
   const isCanceled = (i) => statusById.get(i.status)?.category === import_task2.default.statusCategory.Lost;
-  const projectIssues = await client.findAll(import_tracker3.default.class.Issue, { space: root.space });
+  const projectIssues = await client.findAll(import_tracker4.default.class.Issue, { space: root.space });
   const childrenOf2 = (id) => projectIssues.filter((i) => i._id !== id && (i.attachedTo === id || i.parents?.[0]?.parentId === id));
   let total = 0;
   let done = 0;
@@ -91382,34 +91652,34 @@ ${lines.join("\n")}`;
 });
 var moveIssue = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const issue2 = await client.findOne(import_tracker3.default.class.Issue, { identifier: args.identifier });
+  const issue2 = await client.findOne(import_tracker4.default.class.Issue, { identifier: args.identifier });
   if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
-  const target = await client.findOne(import_tracker3.default.class.Project, { identifier: args.targetProjectIdentifier });
+  const target = await client.findOne(import_tracker4.default.class.Project, { identifier: args.targetProjectIdentifier });
   if (target == null) throw new Error(`Project '${args.targetProjectIdentifier}' not found.`);
   if (target._id === issue2.space) throw new Error(`${args.identifier} is already in project ${args.targetProjectIdentifier}.`);
   let statusUpdate = {};
   if (args.statusName != null) {
-    const status = await client.findOne(import_tracker3.default.class.IssueStatus, { name: args.statusName });
+    const status = await client.findOne(import_tracker4.default.class.IssueStatus, { name: args.statusName });
     if (status == null) throw new Error(`Status '${args.statusName}' not found.`);
     statusUpdate = { status: status._id };
   }
   const hierarchy = client.getHierarchy();
   const renamed = [];
-  const lastRank = async () => (await client.findOne(import_tracker3.default.class.Issue, { space: target._id }, { sort: { rank: import_core13.SortingOrder.Descending } }))?.rank;
+  const lastRank = async () => (await client.findOne(import_tracker4.default.class.Issue, { space: target._id }, { sort: { rank: import_core14.SortingOrder.Descending } }))?.rank;
   const nextNumber2 = async () => {
-    const inc = await client.updateDoc(import_tracker3.default.class.Project, import_core13.default.space.Space, target._id, { $inc: { sequence: 1 } }, true);
+    const inc = await client.updateDoc(import_tracker4.default.class.Project, import_core14.default.space.Space, target._id, { $inc: { sequence: 1 } }, true);
     return inc?.object?.sequence ?? target.sequence + 1;
   };
   const moveDoc = async (doc, extra) => {
     for (const attribute of hierarchy.getAllAttributes(doc._class).values()) {
-      if (!hierarchy.isDerived(attribute.type._class, import_core13.default.class.Collection)) continue;
+      if (!hierarchy.isDerived(attribute.type._class, import_core14.default.class.Collection)) continue;
       const of = attribute.type.of;
       const attached = await client.findAll(of, { attachedTo: doc._id });
       for (const child of attached) {
-        if (hierarchy.isDerived(of, import_tracker3.default.class.Issue)) {
+        if (hierarchy.isDerived(of, import_tracker4.default.class.Issue)) {
           const number5 = await nextNumber2();
           renamed.push(`${child.identifier} \u2192 ${target.identifier}-${number5}`);
-          await moveDoc(child, { number: number5, identifier: `${target.identifier}-${number5}`, rank: (0, import_rank.makeRank)(await lastRank(), void 0), component: null, milestone: null });
+          await moveDoc(child, { number: number5, identifier: `${target.identifier}-${number5}`, rank: (0, import_rank2.makeRank)(await lastRank(), void 0), component: null, milestone: null });
         } else {
           await moveDoc(child, {});
         }
@@ -91420,24 +91690,24 @@ var moveIssue = wrapToolHandler(async (args) => {
   const number4 = await nextNumber2();
   const newIdentifier = `${target.identifier}-${number4}`;
   renamed.unshift(`${issue2.identifier} \u2192 ${newIdentifier}`);
-  await moveDoc(issue2, { ...statusUpdate, number: number4, identifier: newIdentifier, rank: (0, import_rank.makeRank)(await lastRank(), void 0), component: null, milestone: null });
+  await moveDoc(issue2, { ...statusUpdate, number: number4, identifier: newIdentifier, rank: (0, import_rank2.makeRank)(await lastRank(), void 0), component: null, milestone: null });
   return `\u2705 Moved to project **${target.identifier}** (component and milestone cleared):
 ${renamed.map((r) => `- ${r}`).join("\n")}`;
 });
 
 // src/tools/comments.ts
-var import_tracker4 = __toESM(require_lib11());
+var import_tracker5 = __toESM(require_lib11());
 var import_chunter = __toESM(require_lib17());
-var import_core14 = __toESM(require_lib4());
+var import_core15 = __toESM(require_lib4());
 var addComment = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const issue2 = await client.findOne(import_tracker4.default.class.Issue, { identifier: args.identifier });
+  const issue2 = await client.findOne(import_tracker5.default.class.Issue, { identifier: args.identifier });
   if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
   await client.addCollection(
     import_chunter.default.class.ChatMessage,
     issue2.space,
     issue2._id,
-    import_tracker4.default.class.Issue,
+    import_tracker5.default.class.Issue,
     "comments",
     { message: args.message }
   );
@@ -91445,12 +91715,12 @@ var addComment = wrapToolHandler(async (args) => {
 });
 var listComments = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const issue2 = await client.findOne(import_tracker4.default.class.Issue, { identifier: args.identifier });
+  const issue2 = await client.findOne(import_tracker5.default.class.Issue, { identifier: args.identifier });
   if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
   const newest2 = await client.findAll(
     import_chunter.default.class.ChatMessage,
     { attachedTo: issue2._id },
-    { limit: args.limit, sort: { createdOn: import_core14.SortingOrder.Descending }, total: true }
+    { limit: args.limit, sort: { createdOn: import_core15.SortingOrder.Descending }, total: true }
   );
   const total = newest2.total ?? newest2.length;
   const comments = [...newest2].sort((a, b) => (a.createdOn ?? 0) - (b.createdOn ?? 0));
@@ -91473,7 +91743,7 @@ ${lines.join("\n\n")}`;
 });
 var deleteComment = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const issue2 = await client.findOne(import_tracker4.default.class.Issue, { identifier: args.identifier });
+  const issue2 = await client.findOne(import_tracker5.default.class.Issue, { identifier: args.identifier });
   if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
   const comment = await client.findOne(import_chunter.default.class.ChatMessage, {
     _id: args.commentId,
@@ -91485,14 +91755,14 @@ var deleteComment = wrapToolHandler(async (args) => {
     issue2.space,
     comment._id,
     issue2._id,
-    import_tracker4.default.class.Issue,
+    import_tracker5.default.class.Issue,
     "comments"
   );
   return `\u2705 Comment \`${args.commentId}\` deleted from **${args.identifier}**.`;
 });
 var updateComment = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const issue2 = await client.findOne(import_tracker4.default.class.Issue, { identifier: args.identifier });
+  const issue2 = await client.findOne(import_tracker5.default.class.Issue, { identifier: args.identifier });
   if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
   const comment = await client.findOne(import_chunter.default.class.ChatMessage, {
     _id: args.commentId,
@@ -91504,7 +91774,7 @@ var updateComment = wrapToolHandler(async (args) => {
     issue2.space,
     comment._id,
     issue2._id,
-    import_tracker4.default.class.Issue,
+    import_tracker5.default.class.Issue,
     "comments",
     { message: args.message, editedOn: Date.now() }
   );
@@ -91512,20 +91782,20 @@ var updateComment = wrapToolHandler(async (args) => {
 });
 
 // src/tools/log-time.ts
-var import_tracker5 = __toESM(require_lib11());
-var import_core15 = __toESM(require_lib4());
+var import_tracker6 = __toESM(require_lib11());
+var import_core16 = __toESM(require_lib4());
 var logTime = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const issue2 = await client.findOne(import_tracker5.default.class.Issue, { identifier: args.identifier });
+  const issue2 = await client.findOne(import_tracker6.default.class.Issue, { identifier: args.identifier });
   if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
   const me = await currentPerson(client);
   const now = (/* @__PURE__ */ new Date()).getTime();
   const valueInHours = args.hours;
   await client.addCollection(
-    import_tracker5.default.class.TimeSpendReport,
+    import_tracker6.default.class.TimeSpendReport,
     issue2.space,
     issue2._id,
-    import_tracker5.default.class.Issue,
+    import_tracker6.default.class.Issue,
     "reports",
     {
       employee: me._id,
@@ -91533,7 +91803,7 @@ var logTime = wrapToolHandler(async (args) => {
       value: valueInHours,
       description: args.description ?? ""
     },
-    (0, import_core15.generateId)()
+    (0, import_core16.generateId)()
   );
   return `\u2705 Logged **${args.hours}h** on **${args.identifier}**${args.description ? ` \u2014 "${args.description}"` : ""}`;
 });
@@ -91545,12 +91815,12 @@ var listTimeReports = wrapToolHandler(async (args) => {
   const query = {};
   let scope;
   if (args.identifier != null) {
-    const issue2 = await client.findOne(import_tracker5.default.class.Issue, { identifier: args.identifier });
+    const issue2 = await client.findOne(import_tracker6.default.class.Issue, { identifier: args.identifier });
     if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
     query.attachedTo = issue2._id;
     scope = args.identifier;
   } else {
-    const project = await client.findOne(import_tracker5.default.class.Project, { identifier: args.projectIdentifier });
+    const project = await client.findOne(import_tracker6.default.class.Project, { identifier: args.projectIdentifier });
     if (project == null) throw new Error(`Project '${args.projectIdentifier}' not found.`);
     query.space = project._id;
     scope = args.projectIdentifier;
@@ -91565,11 +91835,11 @@ var listTimeReports = wrapToolHandler(async (args) => {
   };
   const from = parse4(args.from, false);
   const to = parse4(args.to, true);
-  const all = await client.findAll(import_tracker5.default.class.TimeSpendReport, query);
+  const all = await client.findAll(import_tracker6.default.class.TimeSpendReport, query);
   const reports = all.filter((r) => (from == null || (r.date ?? 0) >= from) && (to == null || (r.date ?? 0) <= to)).sort((a, b) => (b.date ?? 0) - (a.date ?? 0));
   if (reports.length === 0) return `No time reports found for ${scope}.`;
   const issueIds = [...new Set(reports.map((r) => r.attachedTo))];
-  const issues = await client.findAll(import_tracker5.default.class.Issue, { _id: { $in: issueIds } });
+  const issues = await client.findAll(import_tracker6.default.class.Issue, { _id: { $in: issueIds } });
   const issueId = new Map(issues.map((i) => [i._id, i.identifier]));
   const totalHours = reports.reduce((sum, r) => sum + (r.value ?? 0), 0);
   const byMember = /* @__PURE__ */ new Map();
@@ -91596,11 +91866,11 @@ _${reports.length - shown.length} more not shown (raise limit)._` : ""
 
 // src/tools/labels.ts
 var import_tags2 = __toESM(require_lib16());
-var import_tracker6 = __toESM(require_lib11());
-var import_core16 = __toESM(require_lib4());
+var import_tracker7 = __toESM(require_lib11());
+var import_core17 = __toESM(require_lib4());
 var listLabels = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const allLabels = await client.findAll(import_tags2.default.class.TagElement, { targetClass: import_tracker6.default.class.Issue });
+  const allLabels = await client.findAll(import_tags2.default.class.TagElement, { targetClass: import_tracker7.default.class.Issue });
   if (allLabels.length === 0) return "No labels found in this workspace.";
   const lines = allLabels.map((l) => {
     const color = l.color != null ? ` (color: #${l.color.toString(16).padStart(6, "0")})` : "";
@@ -91613,22 +91883,22 @@ ${lines.join("\n")}`;
 var createLabel = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
   const existing = await client.findOne(import_tags2.default.class.TagElement, {
-    targetClass: import_tracker6.default.class.Issue,
+    targetClass: import_tracker7.default.class.Issue,
     title: args.title
   });
   if (existing != null) {
     return `Label **${args.title}** already exists (id: \`${existing._id}\`).`;
   }
   const category = await client.findOne(import_tags2.default.class.TagCategory, {
-    targetClass: import_tracker6.default.class.Issue
+    targetClass: import_tracker7.default.class.Issue
   });
-  const labelId = (0, import_core16.generateId)();
+  const labelId = (0, import_core17.generateId)();
   await client.createDoc(
     import_tags2.default.class.TagElement,
-    import_core16.default.space.Workspace,
+    import_core17.default.space.Workspace,
     {
       title: args.title,
-      targetClass: import_tracker6.default.class.Issue,
+      targetClass: import_tracker7.default.class.Issue,
       description: "",
       color: args.color != null ? parseInt(args.color.replace("#", ""), 16) : 8,
       category: category?._id ?? import_tags2.default.category.NoCategory,
@@ -91640,23 +91910,23 @@ var createLabel = wrapToolHandler(async (args) => {
 });
 var addLabel = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const issue2 = await client.findOne(import_tracker6.default.class.Issue, { identifier: args.identifier });
+  const issue2 = await client.findOne(import_tracker7.default.class.Issue, { identifier: args.identifier });
   if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
   let label2 = await client.findOne(import_tags2.default.class.TagElement, {
-    targetClass: import_tracker6.default.class.Issue,
+    targetClass: import_tracker7.default.class.Issue,
     title: args.labelName
   });
   if (label2 == null) {
     const category = await client.findOne(import_tags2.default.class.TagCategory, {
-      targetClass: import_tracker6.default.class.Issue
+      targetClass: import_tracker7.default.class.Issue
     });
-    const labelId = (0, import_core16.generateId)();
+    const labelId = (0, import_core17.generateId)();
     await client.createDoc(
       import_tags2.default.class.TagElement,
-      import_core16.default.space.Workspace,
+      import_core17.default.space.Workspace,
       {
         title: args.labelName,
-        targetClass: import_tracker6.default.class.Issue,
+        targetClass: import_tracker7.default.class.Issue,
         description: "",
         color: 8,
         category: category?._id ?? import_tags2.default.category.NoCategory,
@@ -91678,7 +91948,7 @@ var addLabel = wrapToolHandler(async (args) => {
     import_tags2.default.class.TagReference,
     issue2.space,
     issue2._id,
-    import_tracker6.default.class.Issue,
+    import_tracker7.default.class.Issue,
     "labels",
     {
       tag: label2._id,
@@ -91690,10 +91960,10 @@ var addLabel = wrapToolHandler(async (args) => {
 });
 var removeLabel = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const issue2 = await client.findOne(import_tracker6.default.class.Issue, { identifier: args.identifier });
+  const issue2 = await client.findOne(import_tracker7.default.class.Issue, { identifier: args.identifier });
   if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
   const label2 = await client.findOne(import_tags2.default.class.TagElement, {
-    targetClass: import_tracker6.default.class.Issue,
+    targetClass: import_tracker7.default.class.Issue,
     title: args.labelName
   });
   if (label2 == null) throw new Error(`Label '${args.labelName}' not found.`);
@@ -91709,13 +91979,13 @@ var removeLabel = wrapToolHandler(async (args) => {
     issue2.space,
     ref._id,
     issue2._id,
-    import_tracker6.default.class.Issue,
+    import_tracker7.default.class.Issue,
     "labels"
   );
   return `\u2705 Removed label **${args.labelName}** from **${args.identifier}**`;
 });
 async function findLabel(client, title) {
-  const label2 = await client.findOne(import_tags2.default.class.TagElement, { targetClass: import_tracker6.default.class.Issue, title });
+  const label2 = await client.findOne(import_tags2.default.class.TagElement, { targetClass: import_tracker7.default.class.Issue, title });
   if (label2 == null) throw new Error(`Label '${title}' not found.`);
   return label2;
 }
@@ -91724,7 +91994,7 @@ var updateLabel = wrapToolHandler(async (args) => {
   const label2 = await findLabel(client, args.labelName);
   const updates = {};
   if (args.newName !== void 0 && args.newName !== label2.title) {
-    const clash = await client.findOne(import_tags2.default.class.TagElement, { targetClass: import_tracker6.default.class.Issue, title: args.newName });
+    const clash = await client.findOne(import_tags2.default.class.TagElement, { targetClass: import_tracker7.default.class.Issue, title: args.newName });
     if (clash != null) throw new Error(`A label named '${args.newName}' already exists.`);
     updates.title = args.newName;
   }
@@ -91757,8 +92027,8 @@ var deleteLabel = wrapToolHandler(async (args) => {
 });
 var listLabelCategories = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const categories = await client.findAll(import_tags2.default.class.TagCategory, { targetClass: import_tracker6.default.class.Issue });
-  const labels = await client.findAll(import_tags2.default.class.TagElement, { targetClass: import_tracker6.default.class.Issue });
+  const categories = await client.findAll(import_tags2.default.class.TagCategory, { targetClass: import_tracker7.default.class.Issue });
+  const labels = await client.findAll(import_tags2.default.class.TagElement, { targetClass: import_tracker7.default.class.Issue });
   if (categories.length === 0) return "No label categories.";
   const lines = categories.map((c) => {
     const own2 = labels.filter((l) => l.category === c._id).map((l) => l.title);
@@ -91773,164 +92043,21 @@ Without category: ${loose.join(", ")}` : ""}`;
 });
 var createLabelCategory = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const existing = await client.findAll(import_tags2.default.class.TagCategory, { targetClass: import_tracker6.default.class.Issue });
+  const existing = await client.findAll(import_tags2.default.class.TagCategory, { targetClass: import_tracker7.default.class.Issue });
   const same = existing.find((c) => String(c.label).toLowerCase() === args.name.toLowerCase());
   if (same != null) return `\u2139\uFE0F Category **${String(same.label)}** already exists \u2014 \`${String(same._id)}\`.`;
-  const id = await client.createDoc(import_tags2.default.class.TagCategory, import_core16.default.space.Workspace, { label: args.name, targetClass: import_tracker6.default.class.Issue, icon: import_tags2.default.icon.Tags, tags: [], default: false });
+  const id = await client.createDoc(import_tags2.default.class.TagCategory, import_core17.default.space.Workspace, { label: args.name, targetClass: import_tracker7.default.class.Issue, icon: import_tags2.default.icon.Tags, tags: [], default: false });
   return `\u2705 Label category **${args.name}** created \u2014 \`${String(id)}\`.`;
 });
 var setLabelCategory = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const label2 = await client.findOne(import_tags2.default.class.TagElement, { targetClass: import_tracker6.default.class.Issue, title: args.labelName });
+  const label2 = await client.findOne(import_tags2.default.class.TagElement, { targetClass: import_tracker7.default.class.Issue, title: args.labelName });
   if (label2 == null) throw new Error(`Label '${args.labelName}' not found.`);
-  const categories = await client.findAll(import_tags2.default.class.TagCategory, { targetClass: import_tracker6.default.class.Issue });
+  const categories = await client.findAll(import_tags2.default.class.TagCategory, { targetClass: import_tracker7.default.class.Issue });
   const cat = categories.find((c) => c._id === args.category || String(c.label).toLowerCase() === args.category.toLowerCase());
   if (cat == null) throw new Error(`Category '${args.category}' not found. Available: ${categories.map((c) => c.label).join(", ")}.`);
   await client.updateDoc(import_tags2.default.class.TagElement, label2.space, label2._id, { category: cat._id });
   return `\u2705 Label **${args.labelName}** is now in category **${String(cat.label)}**.`;
-});
-
-// src/tools/relations.ts
-var import_tracker7 = __toESM(require_lib11());
-var import_core17 = __toESM(require_lib4());
-var import_rank2 = __toESM(require_lib13());
-var addRelation = wrapToolHandler(async (args) => {
-  const client = await getConnection(args.workspace);
-  const issueA = await client.findOne(import_tracker7.default.class.Issue, { identifier: args.identifier });
-  if (issueA == null) throw new Error(`Issue '${args.identifier}' not found.`);
-  const issueB = await client.findOne(import_tracker7.default.class.Issue, { identifier: args.relatedTo });
-  if (issueB == null) throw new Error(`Issue '${args.relatedTo}' not found.`);
-  const relA = { _id: issueB._id, _class: issueB._class };
-  const relB = { _id: issueA._id, _class: issueA._class };
-  const existingRels = issueA.relations ?? [];
-  if (existingRels.some((r) => r._id === issueB._id)) {
-    return `**${args.identifier}** is already related to **${args.relatedTo}**.`;
-  }
-  await client.updateDoc(import_tracker7.default.class.Issue, issueA.space, issueA._id, {
-    relations: [...existingRels, relA]
-  });
-  await client.updateDoc(import_tracker7.default.class.Issue, issueB.space, issueB._id, {
-    relations: [...issueB.relations ?? [], relB]
-  });
-  return `\u2705 **${args.identifier}** is now related to **${args.relatedTo}**`;
-});
-var addBlockedBy = wrapToolHandler(async (args) => {
-  const client = await getConnection(args.workspace);
-  const issue2 = await client.findOne(import_tracker7.default.class.Issue, { identifier: args.identifier });
-  if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
-  const blocker = await client.findOne(import_tracker7.default.class.Issue, { identifier: args.blockedBy });
-  if (blocker == null) throw new Error(`Issue '${args.blockedBy}' not found.`);
-  const blockerRef = { _id: blocker._id, _class: blocker._class };
-  const existing = issue2.blockedBy ?? [];
-  if (existing.some((r) => r._id === blocker._id)) {
-    return `**${args.identifier}** is already blocked by **${args.blockedBy}**.`;
-  }
-  await client.updateDoc(import_tracker7.default.class.Issue, issue2.space, issue2._id, {
-    blockedBy: [...existing, blockerRef]
-  });
-  return `\u2705 **${args.identifier}** is now blocked by **${args.blockedBy}**`;
-});
-var setParent = wrapToolHandler(async (args) => {
-  const client = await getConnection(args.workspace);
-  const child = await client.findOne(import_tracker7.default.class.Issue, { identifier: args.identifier });
-  if (child == null) throw new Error(`Issue '${args.identifier}' not found.`);
-  if (args.parentIdentifier == null) {
-    const result2 = await linkToParent(client, child, null);
-    return result2 === "unchanged" ? `**${args.identifier}** has no parent.` : `\u2705 Cleared parent from **${args.identifier}**`;
-  }
-  const parent = await client.findOne(import_tracker7.default.class.Issue, { identifier: args.parentIdentifier });
-  if (parent == null) throw new Error(`Parent issue '${args.parentIdentifier}' not found.`);
-  const result = await linkToParent(client, child, parent);
-  if (result === "unchanged") return `**${args.identifier}** is already a sub-issue of **${args.parentIdentifier}**.`;
-  return `\u2705 **${args.identifier}** is now a sub-issue of **${args.parentIdentifier}**${result === "repaired" ? " (repaired link from an older version)" : ""}`;
-});
-function isLegacyLink(issue2) {
-  return issue2.attachedTo === import_tracker7.default.ids.NoParent && (issue2.parents ?? []).length > 0;
-}
-async function linkToParent(client, child, parent) {
-  const legacy = isLegacyLink(child);
-  const undoLegacy = async () => {
-    const old = await client.findOne(import_tracker7.default.class.Issue, { _id: child.parents[0].parentId });
-    if (old == null) return;
-    const childInfo = (old.childInfo ?? []).filter((c) => c.childId !== child._id);
-    const removed = (old.childInfo ?? []).length - childInfo.length;
-    await client.updateDoc(import_tracker7.default.class.Issue, old.space, old._id, {
-      childInfo,
-      subIssues: Math.max(0, (old.subIssues ?? 0) - Math.max(removed, 1))
-    });
-  };
-  if (parent == null) {
-    if (child.attachedTo === import_tracker7.default.ids.NoParent && (child.parents ?? []).length === 0) return "unchanged";
-    if (legacy) await undoLegacy();
-    await client.update(child, { attachedTo: import_tracker7.default.ids.NoParent, parents: [] });
-    return "cleared";
-  }
-  if (parent._id === child._id) throw new Error("An issue cannot be its own parent.");
-  if ((parent.parents ?? []).some((p) => p.parentId === child._id)) {
-    throw new Error(`${parent.identifier} is a sub-issue of ${child.identifier} \u2014 that would create a cycle.`);
-  }
-  if (child.attachedTo === parent._id) return "unchanged";
-  const lastSibling = await client.findOne(import_tracker7.default.class.Issue, { attachedTo: parent._id }, { sort: { rank: import_core17.SortingOrder.Descending } });
-  if (legacy) await undoLegacy();
-  await client.update(child, { attachedTo: parent._id, rank: (0, import_rank2.makeRank)(lastSibling?.rank, void 0) });
-  return legacy ? "repaired" : "linked";
-}
-var repairParentLinks = wrapToolHandler(async (args) => {
-  const client = await getConnection(args.workspace);
-  const project = await client.findOne(import_tracker7.default.class.Project, { identifier: args.projectIdentifier });
-  if (project == null) throw new Error(`Project '${args.projectIdentifier}' not found.`);
-  const issues = await client.findAll(import_tracker7.default.class.Issue, { space: project._id });
-  const byId = new Map(issues.map((i) => [i._id, i]));
-  const legacy = issues.filter(isLegacyLink);
-  if (legacy.length === 0) return `No broken parent links in ${args.projectIdentifier}.`;
-  const lines = [];
-  let repaired = 0;
-  let skipped = 0;
-  for (const child of legacy) {
-    const parentRef = child.parents[0];
-    const parent = byId.get(parentRef.parentId) ?? await client.findOne(import_tracker7.default.class.Issue, { _id: parentRef.parentId });
-    if (parent == null) {
-      skipped++;
-      lines.push(`- ${child.identifier}: parent ${parentRef.identifier} no longer exists \u2014 skipped`);
-      continue;
-    }
-    if (args.dryRun) {
-      lines.push(`- ${child.identifier} \u2192 under ${parent.identifier}`);
-      continue;
-    }
-    await linkToParent(client, child, parent);
-    repaired++;
-    lines.push(`- ${child.identifier} \u2192 under ${parent.identifier} \u2705`);
-  }
-  const head = args.dryRun ? `## Dry run: ${legacy.length - skipped} sub-issue(s) in ${args.projectIdentifier} would be re-linked${skipped > 0 ? `, ${skipped} skipped` : ""}
-Run again with dryRun=false to apply.` : `## Repaired ${repaired} sub-issue link(s) in ${args.projectIdentifier}${skipped > 0 ? `, ${skipped} skipped` : ""}`;
-  return `${head}
-
-${lines.join("\n")}`;
-});
-var removeRelation = wrapToolHandler(async (args) => {
-  const client = await getConnection(args.workspace);
-  const issueA = await client.findOne(import_tracker7.default.class.Issue, { identifier: args.identifier });
-  if (issueA == null) throw new Error(`Issue '${args.identifier}' not found.`);
-  const issueB = await client.findOne(import_tracker7.default.class.Issue, { identifier: args.relatedTo });
-  if (issueB == null) throw new Error(`Issue '${args.relatedTo}' not found.`);
-  const aHas = (issueA.relations ?? []).some((r) => r._id === issueB._id);
-  const bHas = (issueB.relations ?? []).some((r) => r._id === issueA._id);
-  if (!aHas && !bHas) return `**${args.identifier}** and **${args.relatedTo}** are not related.`;
-  if (aHas) await client.updateDoc(import_tracker7.default.class.Issue, issueA.space, issueA._id, { relations: (issueA.relations ?? []).filter((r) => r._id !== issueB._id) });
-  if (bHas) await client.updateDoc(import_tracker7.default.class.Issue, issueB.space, issueB._id, { relations: (issueB.relations ?? []).filter((r) => r._id !== issueA._id) });
-  return `\u2705 **${args.identifier}** and **${args.relatedTo}** are no longer related`;
-});
-var removeBlockedBy = wrapToolHandler(async (args) => {
-  const client = await getConnection(args.workspace);
-  const issue2 = await client.findOne(import_tracker7.default.class.Issue, { identifier: args.identifier });
-  if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
-  const blocker = await client.findOne(import_tracker7.default.class.Issue, { identifier: args.blockedBy });
-  if (blocker == null) throw new Error(`Issue '${args.blockedBy}' not found.`);
-  const existing = issue2.blockedBy ?? [];
-  if (!existing.some((r) => r._id === blocker._id)) return `**${args.identifier}** is not blocked by **${args.blockedBy}**.`;
-  await client.updateDoc(import_tracker7.default.class.Issue, issue2.space, issue2._id, { blockedBy: existing.filter((r) => r._id !== blocker._id) });
-  return `\u2705 **${args.identifier}** is no longer blocked by **${args.blockedBy}**`;
 });
 
 // src/tools/members.ts
@@ -92748,6 +92875,21 @@ async function loadLabel(client, _class, _id) {
   } catch {
     return String(_id);
   }
+}
+async function loadLabels(client, refs) {
+  const byClass = /* @__PURE__ */ new Map();
+  for (const r of refs) byClass.set(r._class, (byClass.get(r._class) ?? /* @__PURE__ */ new Set()).add(r._id));
+  const out = /* @__PURE__ */ new Map();
+  await Promise.all([...byClass].map(async ([cls, ids]) => {
+    let docs = [];
+    try {
+      docs = await client.findAll(cls, { _id: { $in: [...ids] } });
+    } catch {
+    }
+    const found = new Map(docs.map((d) => [String(d._id), d]));
+    for (const id of ids) out.set(`${cls}:${id}`, found.has(id) ? labelOf2(found.get(id)) : "(deleted)");
+  }));
+  return out;
 }
 async function resolveObject(client, ref) {
   if (TASK_ID.test(ref)) {
@@ -93689,11 +93831,16 @@ var updateOrganization = wrapToolHandler(async (args) => {
   const { wsToken, workspaceUuid } = await getWorkspaceInfo(args.workspace);
   const org = await client.findOne(import_contact5.default.class.Organization, { _id: args.organizationId });
   if (org == null) throw new Error(`Organization '${args.organizationId}' not found.`);
-  const prosemirror = markdownToProseMirror(args.description);
-  const blobId = `${org._id}-description-${Date.now()}`;
-  const uploadedId = await uploadMarkupBlob(wsToken, workspaceUuid, blobId, JSON.stringify(prosemirror));
-  await client.updateDoc(import_contact5.default.class.Organization, org.space, org._id, { description: uploadedId });
-  return `\u2705 Organization **"${org.name}"** description updated.`;
+  const update = {};
+  if (args.name != null) update.name = args.name;
+  if (args.city != null) update.city = args.city;
+  if (args.description != null) {
+    const prosemirror = markdownToProseMirror(args.description);
+    update.description = await uploadMarkupBlob(wsToken, workspaceUuid, `${org._id}-description-${Date.now()}`, JSON.stringify(prosemirror));
+  }
+  if (Object.keys(update).length === 0) throw new Error("Nothing to change: pass name, city or description.");
+  await client.updateDoc(import_contact5.default.class.Organization, org.space, org._id, update);
+  return `\u2705 Organization **"${String(args.name ?? org.name)}"** updated \u2014 changed: ${Object.keys(update).join(", ")}.`;
 });
 
 // src/tools/agent.ts
@@ -93986,10 +94133,20 @@ var finishWork = wrapToolHandler(async (args) => {
   const issue2 = await findIssue(client, args.identifier);
   const done = [];
   const notes = [];
-  const pr = args.pullRequest != null ? await findPullRequest(client, issue2.space, args.pullRequest) : void 0;
+  let pr;
+  if (args.pullRequest != null) {
+    try {
+      pr = await findPullRequest(client, issue2.space, args.pullRequest);
+    } catch (e) {
+      notes.push(`${e.message} The link is in the comment; run finish_work again later to put the PR under ${args.identifier}.`);
+    }
+  }
+  const prLine = args.pullRequest != null && !args.summary.includes(args.pullRequest) ? `
+
+Pull request: ${args.pullRequest}` : "";
   await addComment({ workspace: args.workspace, identifier: args.identifier, message: `\u{1F916} **Work summary**
 
-${args.summary}` });
+${args.summary}${prLine}` });
   done.push("summary comment added");
   if (pr != null) {
     if (pr.attachedTo === issue2._id) {
@@ -97154,12 +97311,12 @@ async function myDayText(client, date5, limit) {
   out.push("", `## Inbox (${unread.length}${unread.length === 500 ? "+" : ""} unread on ${groups.size} item(s))`);
   if (unread.length === 0) out.push("Inbox zero.");
   const ctxs = groups.size > 0 ? await client.findAll(C.DocNotifyContext, { _id: { $in: [...groups.keys()].slice(0, limit) } }) : [];
-  for (const [ctxId, notes] of [...groups.entries()].slice(0, limit)) {
+  const shown = [...groups.entries()].slice(0, limit).map(([ctxId, notes]) => {
     const ctx = ctxs.find((c) => c._id === ctxId);
-    const cls = ctx?.objectClass ?? notes[0].objectClass;
-    const label2 = cls != null ? await loadLabel(client, cls, ctx?.objectId ?? notes[0].objectId) : "(unknown)";
-    out.push(`- **${label2}** \u2014 ${notes.length} unread`);
-  }
+    return { notes, cls: ctx?.objectClass ?? notes[0].objectClass, id: ctx?.objectId ?? notes[0].objectId };
+  });
+  const labels = await loadLabels(client, shown.filter((x) => x.cls != null).map((x) => ({ _class: x.cls, _id: x.id })));
+  for (const x of shown) out.push(`- **${x.cls != null ? labels.get(`${String(x.cls)}:${String(x.id)}`) ?? String(x.id) : "(unknown)"}** \u2014 ${x.notes.length} unread`);
   if (unread.length > 0) out.push(`_${groups.size > limit ? `${groups.size - limit} more. ` : ""}Work through them: triage_inbox._`);
   return out.join("\n");
 }
@@ -97346,7 +97503,7 @@ var triageInbox = wrapToolHandler(async (args) => {
       client.findAll(C.ActivityMessage, { attachedTo: objectId, createdOn: { $gt: since } }, { sort: { createdOn: import_core48.SortingOrder.Descending }, limit: 50 })
     ]);
     const msgs = found.filter((m) => (m.createdOn ?? 0) > since).sort((a, b) => (b.createdOn ?? 0) - (a.createdOn ?? 0));
-    const label2 = objectClass != null ? await loadLabel(client, objectClass, objectId) : "(unknown)";
+    const label2 = doc != null ? labelOf2(doc) : objectClass != null ? await loadLabel(client, objectClass, objectId) : "(unknown)";
     const state2 = doc?.status != null ? ` \u2014 ${String(statuses.get(doc.status) ?? "?")}${doc.assignee != null ? ` \xB7 ${names2.get(doc.assignee) ?? "?"}` : ""}` : "";
     out.push("", `## ${label2}${state2} (${notes.length} unread)`);
     const who = await socialIdNames(client, [...new Set(msgs.map((m) => m.createdBy).filter((x) => x != null))]);
@@ -97487,6 +97644,7 @@ var ListIssuesSchema = external_exports.object({
   parentIdentifier: external_exports.string().min(1).nullable().optional().describe("Direct sub-issues of this issue; null = top-level only"),
   title: external_exports.string().min(1).optional().describe("Title contains this text"),
   due: external_exports.enum(["overdue", "set", "none"]).optional().describe("Due date: overdue, set or none"),
+  blocked: external_exports.boolean().optional().describe("true: only issues waiting for an open blocker"),
   limit: external_exports.number().int().min(1).max(250).default(50),
   offset: external_exports.number().int().min(0).optional()
 });
@@ -97504,7 +97662,8 @@ var CreateIssueSchema = external_exports.object({
   dueDate: external_exports.string().optional().describe('Due date as ISO 8601 string, e.g. "2026-04-01"'),
   assignee: external_exports.string().optional(),
   componentLabel: external_exports.string().optional(),
-  milestoneLabel: external_exports.string().optional()
+  milestoneLabel: external_exports.string().optional(),
+  parentIdentifier: external_exports.string().optional().describe("Create as sub-issue of this issue (e.g. PROJ-12)")
 });
 var DeleteIssueSchema = external_exports.object({
   workspace: WorkspaceArg,
@@ -97764,7 +97923,9 @@ var CreateOrganizationSchema = external_exports.object({
 var UpdateOrganizationSchema = external_exports.object({
   workspace: WorkspaceArg,
   organizationId: external_exports.string().describe("Organization id"),
-  description: external_exports.string().describe("Markdown, replaces existing")
+  name: external_exports.string().min(1).optional(),
+  city: external_exports.string().optional(),
+  description: external_exports.string().optional().describe("Markdown, replaces existing")
 });
 var IssueRef = external_exports.string().describe("Issue id");
 var BulkUpdateIssuesSchema = external_exports.object({
@@ -98528,8 +98689,8 @@ var TOOLS = [
   { name: "get_project", toolset: "tracker", description: 'Project by key (e.g. "PROJ"): name, description, issue count, statuses', schema: GetProjectSchema, handler: getProject },
   { name: "create_project", toolset: "tracker-admin", description: "Create a tracker project", schema: CreateProjectSchema, handler: createProject },
   { name: "update_project", toolset: "tracker-admin", description: "Update project name, description, default assignee/status", schema: UpdateProjectSchema, handler: updateProject },
-  { name: "list_issues", toolset: "tracker", description: "List issues of a project; filters: status, priority, milestone, component, label, assignee, parent", schema: ListIssuesSchema, handler: listIssues },
-  { name: "get_issue", toolset: "tracker", description: 'Get full details of an issue by identifier (e.g. "PROJ-123")', schema: GetIssueSchema, handler: getIssue },
+  { name: "list_issues", toolset: "tracker", description: "List issues of a project; filters: status, priority, milestone, component, label, assignee, parent, blocked, due", schema: ListIssuesSchema, handler: listIssues },
+  { name: "get_issue", toolset: "tracker", description: "Issue fields: status, assignee, priority, dates, description. Sub-issues, blockers, PRs, comments: get_issue_context", schema: GetIssueSchema, handler: getIssue },
   { name: "create_issue", toolset: "tracker", description: "Create a new issue in a project", schema: CreateIssueSchema, handler: createIssue },
   { name: "update_issue", toolset: "tracker", description: "Update issue fields", schema: UpdateIssueSchema, handler: updateIssue },
   { name: "delete_issue", toolset: "tracker", description: 'Permanently delete an issue by identifier (e.g. "PROJ-123")', schema: DeleteIssueSchema, handler: deleteIssue },
@@ -98574,7 +98735,7 @@ var TOOLS = [
   { name: "list_document_comments", toolset: "collaboration", description: "Comments on a document", schema: ListDocumentCommentsSchema, handler: listDocumentComments },
   { name: "add_document_comment", toolset: "collaboration", description: "Comment on a document", schema: AddDocumentCommentSchema, handler: addDocumentComment },
   { name: "link_document", toolset: "documents", description: "Link a document to an issue (Relations panel)", schema: LinkDocumentSchema, handler: linkDocument },
-  { name: "search_issues", toolset: "tracker", description: "Full-text search across all issues", schema: SearchIssuesSchema, handler: searchIssues },
+  { name: "search_issues", toolset: "tracker", description: "Full-text search in issues of all projects, with status. Docs, messages, files too: search", schema: SearchIssuesSchema, handler: searchIssues },
   { name: "list_channels", toolset: "chat", description: "List all channels in the workspace", schema: ListChannelsSchema, handler: listChannels },
   { name: "create_channel", toolset: "chat", description: "Create a new channel", schema: CreateChannelSchema, handler: createChannel },
   { name: "start_direct_message", toolset: "chat", description: "Start or find a 1:1 DM with a person", schema: StartDirectMessageSchema, handler: startDirectMessage },
@@ -98588,7 +98749,7 @@ var TOOLS = [
   { name: "list_organizations", toolset: "contacts", description: "List all organizations (companies) in the workspace", schema: ListOrganizationsSchema, handler: listOrganizations },
   { name: "get_organization", toolset: "contacts", description: "Organization (company) by id from list_organizations: city, linked members, description", schema: GetOrganizationSchema, handler: getOrganization },
   { name: "create_organization", toolset: "contacts", description: "Create a new organization (company contact)", schema: CreateOrganizationSchema, handler: createOrganization },
-  { name: "update_organization", toolset: "contacts", description: "Set the description of an organization from Markdown", schema: UpdateOrganizationSchema, handler: updateOrganization },
+  { name: "update_organization", toolset: "contacts", description: "Update an organization: name, city, description (Markdown)", schema: UpdateOrganizationSchema, handler: updateOrganization },
   // Chat: threads, editing, reactions, pins (channel messages and issue comments)
   { name: "list_thread", toolset: "chat", description: "Message with its thread replies", schema: ListThreadSchema, handler: listThread },
   { name: "reply_to_message", toolset: "chat", description: "Reply in the thread of a message or comment", schema: ReplyToMessageSchema, handler: replyToMessage },
@@ -98599,11 +98760,11 @@ var TOOLS = [
   { name: "pin_message", toolset: "chat", description: "Pin a message or comment in its channel; pinned=false unpins", schema: PinMessageSchema, handler: pinMessage },
   // Inbox
   { name: "list_notifications", toolset: "inbox", description: "Your inbox notifications, grouped by issue/PR/document", schema: ListNotificationsSchema, handler: listNotifications },
-  { name: "triage_inbox", toolset: "inbox", description: "Unread items with what changed since last read: new comments, fields, status", schema: TriageInboxSchema, handler: triageInbox },
+  { name: "triage_inbox", toolset: "inbox", description: "Unread items with what changed since last read: new comments, fields, status. Overview of my day: my_day", schema: TriageInboxSchema, handler: triageInbox },
   { name: "mark_notifications_read", toolset: "inbox", description: "Mark notifications read (by object, ids or all); optionally archive", schema: MarkNotificationsReadSchema, handler: markNotificationsRead },
   { name: "manage_notifications", toolset: "inbox", description: "Inbox for one object: pin, hide, mark unread, unarchive, follow/unfollow (and the undo of each)", schema: ManageNotificationsSchema, handler: manageNotifications },
   // Activity
-  { name: "get_activity", toolset: "activity", description: "Change history and comments of an issue or object", schema: GetActivitySchema, handler: getActivity },
+  { name: "get_activity", toolset: "activity", description: "Change history of an issue or object: who changed what and when, with comments. Current state: get_issue", schema: GetActivitySchema, handler: getActivity },
   // Planner
   { name: "list_todos", toolset: "planner", description: "List your own planner to-dos: open by default, in planner order; filter by status or due date", schema: ListTodosSchema, handler: listTodos },
   { name: "create_todo", toolset: "planner", description: "Create a to-do, optionally on an issue", schema: CreateTodoSchema, handler: createTodo },
@@ -98626,18 +98787,18 @@ var TOOLS = [
   { name: "add_contact_channel", toolset: "contacts", description: "Add email/phone/\u2026 to a person", schema: ContactChannelSchema, handler: addContactChannel },
   { name: "remove_contact_channel", toolset: "contacts", description: "Remove email/phone/\u2026 from a person", schema: ContactChannelSchema, handler: removeContactChannel },
   // Agent workflow
-  { name: "get_issue_context", toolset: "agent", description: "Issue with description, sub-issues, blockers, PRs, comments, branch name", schema: GetIssueContextSchema, handler: getIssueContext },
+  { name: "get_issue_context", toolset: "agent", description: "Everything before working on an issue: description, sub-issues, blockers, PRs, comments, branch name. Just the fields: get_issue", schema: GetIssueContextSchema, handler: getIssueContext },
   { name: "start_work", toolset: "agent", description: "Pick up issue: In Progress, assign me, return context", schema: StartWorkSchema, handler: startWork },
   { name: "finish_work", toolset: "agent", description: "Hand back: summary comment, link PR, status to review", schema: FinishWorkSchema, handler: finishWork },
   { name: "create_issue_tree", toolset: "agent", description: "Plan \u2192 epic + sub-issues with blockers; skips duplicates; dry run first", schema: CreateIssueTreeSchema, handler: createIssueTree },
-  { name: "my_day", toolset: "agent", description: "Today at a glance: calendar, to-dos, my issues, reviews, unread inbox", schema: MyDaySchema, handler: myDay },
+  { name: "my_day", toolset: "agent", description: "Today for me: calendar, to-dos, my issues, reviews, unread inbox. Since the last working day: standup", schema: MyDaySchema, handler: myDay },
   { name: "issues_from_document", toolset: "agent", description: "Spec \u2192 epic + sub-issues from a document's open checklist items (else its sections); links the doc. Dry run first", schema: IssuesFromDocumentSchema, handler: issuesFromDocument },
   { name: "issues_from_meeting", toolset: "agent", description: "Meeting notes \u2192 issues: action items with @assignee and due date; links the doc. Dry run first", schema: IssuesFromMeetingSchema, handler: issuesFromMeeting },
-  { name: "standup", toolset: "agent", description: "Standup: what I did since the last working day, today, blockers", schema: StandupSchema, handler: standup },
+  { name: "standup", toolset: "agent", description: "Standup: what I did since the last working day, today, blockers. Today's calendar and to-dos: my_day", schema: StandupSchema, handler: standup },
   { name: "release_notes", toolset: "agent", description: "Release notes from a milestone: features, fixes, PRs, still open", schema: ReleaseNotesSchema, handler: releaseNotes },
-  { name: "project_report", toolset: "agent", description: "Weekly report: done, new, blocked, overdue, PRs, milestones, time", schema: ProjectReportSchema, handler: projectReport },
+  { name: "project_report", toolset: "agent", description: "One project over a period: done, new, blocked, overdue, PRs, milestones, time. My own work: standup", schema: ProjectReportSchema, handler: projectReport },
   { name: "changes_since", toolset: "agent", description: "Issues/PRs changed since a time: fields, comments, who", schema: ChangesSinceSchema, handler: changesSince },
-  { name: "claim_issue", toolset: "agent", description: "Lease an issue so parallel agents skip it", schema: ClaimIssueSchema, handler: claimIssue },
+  { name: "claim_issue", toolset: "agent", description: "Lease an issue so parallel agents skip it. start_work with claimAs claims and picks up in one call", schema: ClaimIssueSchema, handler: claimIssue },
   { name: "find_project_for_repo", toolset: "agent", description: "Huly workspace + project linked to a GitHub repo", schema: FindProjectForRepoSchema, handler: findProjectForRepo },
   { name: "release_issue", toolset: "agent", description: "Release an agent claim", schema: ReleaseIssueSchema, handler: releaseIssue },
   // Generic access to any class
@@ -99149,6 +99310,7 @@ Huly workspaces (tracker, docs, chat, planner, \u2026), self-hosted or cloud.
 - Issue id PROJ-123; dates ISO 8601; people by name (ambiguous names are rejected); null clears a field; text is Markdown.
 - Start with one-call overviews: my_day, standup, triage_inbox, project_report, get_issue_context.
 - Agent work: start_work \u2192 work \u2192 finish_work; plans \u2192 create_issue_tree (dry run first); with parallel agents claim_issue first.
+  The user says they start or are working on an issue \u2192 start_work it, even unasked. A side finding for that work \u2192 create_issue with parentIdentifier.
 - Read before replacing: get_issue before update_issue description, get_document before update_document.
 - Risky tools may ask the user; if declined, do not retry. Login or setup problems: check_setup. A change was wrong: undo_changes (dry run first).
 - Missing tools may be in a disabled toolset (HULY_TOOLSETS).
@@ -104714,9 +104876,9 @@ var JWT = /eyJ[\w-]{5,}\.[\w-]{5,}\.[\w-]{5,}/g;
 function redactSecrets(value) {
   if (typeof value === "string") return value.replace(JWT, "***");
   if (value instanceof Error) {
-    const copy = new Error(redactSecrets(value.message));
-    copy.stack = value.stack != null ? redactSecrets(value.stack) : void 0;
-    return copy;
+    const copy2 = new Error(redactSecrets(value.message));
+    copy2.stack = value.stack != null ? redactSecrets(value.stack) : void 0;
+    return copy2;
   }
   return value;
 }
