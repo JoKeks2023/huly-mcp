@@ -11,7 +11,7 @@ How to set up or import a repository's project in Huly. `/huly:setup` asks the u
 
 ## Status set
 
-Align to: Backlog, Todo, In Progress, Done, Canceled, Review in progress, Merged (`list_issue_statuses`, then `create_issue_status` for what is missing). Don't delete or rename existing statuses without asking.
+Align to: Backlog, Todo, In Progress, Done, Canceled, Review in progress, Merged. Statuses are allowed **per project type and task type**: GitHub sync often creates "Review in progress" and "Merged" for pull requests only, so issues cannot use them yet. `create_issue_status` with `projectIdentifier` adds a missing status to the project's issue workflow (and reuses an existing one of that name) — it changes the project type, so every project of that type gets it: say so before. Don't delete or rename existing statuses without asking.
 
 ## Components = areas of the code
 

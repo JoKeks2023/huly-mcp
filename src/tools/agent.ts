@@ -1,3 +1,4 @@
+import { resolveIssueStatus } from '../utils/statuses'
 // Agent workflow: one call per step of "pick up → work → hand back" instead of five to ten
 // single-purpose calls. Built on the single tools, so their rules (ranks, parent bookkeeping,
 // status lookup) apply unchanged.
@@ -30,11 +31,10 @@ async function findIssue (client: any, identifier: string): Promise<Issue> {
   return issue
 }
 
-async function findStatus (client: any, name: string): Promise<any> {
-  const statuses: any[] = await client.findAll(tracker.class.IssueStatus, {})
-  const status = statuses.find((s) => s.name.toLowerCase() === name.toLowerCase())
-  if (status == null) throw new Error(`Status '${name}' not found. Available: ${[...new Set(statuses.map((s) => s.name))].join(', ')}.`)
-  return status
+/** A status this issue may have (its project type and task type decide). */
+async function findStatus (client: any, issue: any, name: string): Promise<any> {
+  const project = await client.findOne(tracker.class.Project, { _id: issue.space })
+  return await resolveIssueStatus(client, project, issue.kind, name)
 }
 
 export function branchName (identifier: string, title: string): string {
@@ -111,7 +111,7 @@ export const getIssueContext = wrapToolHandler<z.infer<typeof GetIssueContextSch
 export const startWork = wrapToolHandler<z.infer<typeof StartWorkSchema>>(async (args) => {
   const client: any = await getConnection(args.workspace)
   const issue: any = await findIssue(client, args.identifier)
-  const status = await findStatus(client, args.statusName)
+  const status = await findStatus(client, issue, args.statusName)
   const update: Record<string, unknown> = {}
   if (issue.status !== status._id) update.status = status._id
   let me: string | undefined
@@ -173,7 +173,7 @@ export const finishWork = wrapToolHandler<z.infer<typeof FinishWorkSchema>>(asyn
 
   if (args.statusName != null) {
     try {
-      const status = await findStatus(client, args.statusName)
+      const status = await findStatus(client, issue, args.statusName)
       if (issue.status !== status._id) await client.update(issue, { status: status._id })
       done.push(`status → ${status.name as string}`)
     } catch (e) { notes.push((e as Error).message) }

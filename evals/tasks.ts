@@ -97,7 +97,8 @@ export const TASKS: Task[] = [
       const st = await statusName(ctx, i.status)
       const cs = await comments(ctx, i)
       const linked = cs.some((c) => /123/.test(c))
-      return { ok: st === 'Review in progress' && linked, why: `status=${st} prLinked=${linked}` }
+      // "Review in progress" only where the project's issue workflow has it; otherwise the status stays.
+      return { ok: ['Review in progress', 'In Progress'].includes(st) && linked, why: `status=${st} prLinked=${linked}` }
     }
   },
   {
