@@ -1,3 +1,4 @@
+import { findByLabel } from '../utils/labels'
 import { allowedIssueStatuses, resolveIssueStatus } from '../utils/statuses'
 import { linkToParent } from './relations'
 import tracker, { IssuePriority, type Issue, type Project } from '@hcengineering/tracker'
@@ -56,18 +57,14 @@ export const listIssues = wrapToolHandler<z.infer<typeof ListIssuesSchema>>(asyn
   if (args.milestoneLabel !== undefined) {
     if (args.milestoneLabel === null) query.milestone = null
     else {
-      const m = await client.findOne(tracker.class.Milestone, { space: project._id, label: args.milestoneLabel })
-      if (m == null) throw new Error(`Milestone '${args.milestoneLabel}' not found in project ${args.projectIdentifier}.`)
-      query.milestone = m._id
+      query.milestone = (await findByLabel(client, 'milestone', project._id, args.milestoneLabel, args.projectIdentifier))._id
     }
   }
 
   if (args.componentLabel !== undefined) {
     if (args.componentLabel === null) query.component = null
     else {
-      const c = await client.findOne(tracker.class.Component, { space: project._id, label: args.componentLabel })
-      if (c == null) throw new Error(`Component '${args.componentLabel}' not found in project ${args.projectIdentifier}.`)
-      query.component = c._id
+      query.component = (await findByLabel(client, 'component', project._id, args.componentLabel, args.projectIdentifier))._id
     }
   }
 
@@ -318,7 +315,17 @@ export const createIssue = wrapToolHandler<z.infer<typeof CreateIssueSchema>>(as
   }
 
   const extra = [parent != null ? `Sub-issue of ${parent.identifier}` : '', args.assignee != null ? `Assignee: ${args.assignee}` : '', args.componentLabel != null ? `Component: ${args.componentLabel}` : '', args.milestoneLabel != null ? `Milestone: ${args.milestoneLabel}` : ''].filter((x) => x !== '')
-  return `✅ Created **${identifier}**: ${args.title}\nStatus: ${status.name} | Priority: ${priorityLabel(IssuePriority[args.priority as keyof typeof IssuePriority])}${extra.length > 0 ? ` | ${extra.join(' | ')}` : ''}`
+  // Nudge: the project organizes issues by component / open milestone, but none was given.
+  const hints: string[] = []
+  if (args.componentLabel == null) {
+    const comps: any[] = await client.findAll(tracker.class.Component, { space: project._id })
+    if (comps.length > 0) hints.push(`No component set — ${args.projectIdentifier} has: ${comps.map((c) => c.label).slice(0, 12).join(', ')} (update_issue componentLabel).`)
+  }
+  if (args.milestoneLabel == null) {
+    const open: any[] = (await client.findAll(tracker.class.Milestone, { space: project._id })).filter((m) => m.status === 0 || m.status === 1)
+    if (open.length > 0) hints.push(`No milestone set — open: ${open.map((m) => m.label).slice(0, 8).join(', ')}.`)
+  }
+  return `✅ Created **${identifier}**: ${args.title}\nStatus: ${status.name} | Priority: ${priorityLabel(IssuePriority[args.priority as keyof typeof IssuePriority])}${extra.length > 0 ? ` | ${extra.join(' | ')}` : ''}${hints.length > 0 ? `\n${hints.join('\n')}` : ''}`
 })
 
 export const deleteIssue = wrapToolHandler<z.infer<typeof DeleteIssueSchema>>(async (args) => {
@@ -371,9 +378,7 @@ async function resolveFieldUpdates (client: TxOperations, issue: Issue, args: Fi
     if (args.componentLabel === null) {
       updates.component = null
     } else {
-      const component = await client.findOne(tracker.class.Component, { space: issue.space, label: args.componentLabel })
-      if (component == null) throw new Error(`Component '${args.componentLabel}' not found in this project.`)
-      updates.component = component._id
+      updates.component = (await findByLabel(client, 'component', issue.space as string, args.componentLabel))._id
     }
   }
 
@@ -381,9 +386,7 @@ async function resolveFieldUpdates (client: TxOperations, issue: Issue, args: Fi
     if (args.milestoneLabel === null) {
       updates.milestone = null
     } else {
-      const milestone = await client.findOne(tracker.class.Milestone, { space: issue.space, label: args.milestoneLabel })
-      if (milestone == null) throw new Error(`Milestone '${args.milestoneLabel}' not found in this project.`)
-      updates.milestone = milestone._id
+      updates.milestone = (await findByLabel(client, 'milestone', issue.space as string, args.milestoneLabel))._id
     }
   }
 

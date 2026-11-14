@@ -2,6 +2,11 @@
 
 All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mcp-selfhost). Versions follow [semver](https://semver.org).
 
+### Unreleased
+
+- **Components and milestones by partial name** — "Backend" finds "API Backend" when that is the only match; an ambiguous name lists the candidates, an unknown one the available names (all tools that take `componentLabel` / `milestoneLabel`).
+- **`create_issue` points out a missing component or milestone** when the project has components or open milestones, with their names — one cheap correction instead of an unsorted issue.
+
 ### 3.8.0 — 2026-11-14
 
 - **Fixed: issue statuses that the issue's workflow does not allow were set anyway.** Statuses are workspace-wide, but each project type allows some per task type — Huly's GitHub sync, for example, adds "Review in progress" and "Merged" for pull requests only. `update_issue`, `bulk_update_issues`, `create_issue`, `start_work` and `finish_work` took the first status with the name, and Huly later reset such issues to Backlog. Now only allowed statuses are accepted; otherwise the error names the ones that work. `finish_work` hands back anyway and says when there is no review status for issues.

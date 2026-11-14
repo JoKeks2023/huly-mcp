@@ -1,3 +1,4 @@
+import { findByLabel } from '../utils/labels'
 import tracker from '@hcengineering/tracker'
 import { generateId, type Ref, type DocumentUpdate } from '@hcengineering/core'
 import type { Employee } from '@hcengineering/contact'
@@ -18,10 +19,7 @@ async function findProject (client: Client, identifier: string): Promise<any> {
 }
 
 async function findComponent (client: Client, project: any, label: string): Promise<Component> {
-  const matches = await client.findAll(tracker.class.Component, { space: project._id, label })
-  if (matches.length === 0) throw new Error(`Component '${label}' not found in project ${project.identifier as string}.`)
-  if (matches.length > 1) throw new Error(`Component name '${label}' is ambiguous in project ${project.identifier as string} (${matches.length} matches).`)
-  return matches[0]
+  return await findByLabel(client, 'component', project._id, label, project.identifier)
 }
 
 async function findMemberRef (client: Client, name: string): Promise<Ref<Employee>> {
