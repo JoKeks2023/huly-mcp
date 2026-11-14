@@ -12496,13 +12496,13 @@ var require_component = __commonJS({
     });
     module2.exports = __toCommonJS2(component_exports);
     var import_platform = require_lib();
-    var import_classes14 = require_classes();
+    var import_classes15 = require_classes();
     var coreId = "core";
     var systemAccountEmail = "anticrm@hc.engineering";
     var systemAccountUuid = "1749089e-22e6-48de-af4e-165e18fbd2f9";
     var systemAccount = {
       uuid: systemAccountUuid,
-      role: import_classes14.AccountRole.Owner,
+      role: import_classes15.AccountRole.Owner,
       primarySocialId: "",
       socialIds: [],
       fullSocialIds: []
@@ -14724,7 +14724,7 @@ var require_utils2 = __commonJS({
     var import_platform = require_lib();
     var import_fast_equals = require_cjs();
     var import_benchmark = require_benchmark();
-    var import_classes14 = require_classes();
+    var import_classes15 = require_classes();
     var import_component = __toESM2(require_component());
     var import_predicate = require_predicate();
     var import_tx = require_tx();
@@ -14794,11 +14794,11 @@ var require_utils2 = __commonJS({
     }
     __name(docKey, "docKey");
     function isFullTextAttribute(attr) {
-      return attr.index === import_classes14.IndexKind.FullText || attr.type._class === import_component.default.class.TypeBlob || attr.type._class === import_component.default.class.EnumOf || attr.type._class === import_component.default.class.TypeCollaborativeDoc;
+      return attr.index === import_classes15.IndexKind.FullText || attr.type._class === import_component.default.class.TypeBlob || attr.type._class === import_component.default.class.EnumOf || attr.type._class === import_component.default.class.TypeCollaborativeDoc;
     }
     __name(isFullTextAttribute, "isFullTextAttribute");
     function isIndexedAttribute(attr) {
-      return attr.index === import_classes14.IndexKind.Indexed || attr.index === import_classes14.IndexKind.IndexedDsc;
+      return attr.index === import_classes15.IndexKind.Indexed || attr.index === import_classes15.IndexKind.IndexedDsc;
     }
     __name(isIndexedAttribute, "isIndexedAttribute");
     function toIdMap(arr) {
@@ -15128,7 +15128,7 @@ var require_utils2 = __commonJS({
           result.push(attr);
         }
       }
-      hierarchy.getDescendants(clazz).filter((m) => hierarchy.getClass(m).kind === import_classes14.ClassifierKind.MIXIN).forEach((m) => {
+      hierarchy.getDescendants(clazz).filter((m) => hierarchy.getClass(m).kind === import_classes15.ClassifierKind.MIXIN).forEach((m) => {
         for (const [, v] of hierarchy.getAllAttributes(m, clazz)) {
           if (skipDocs && (v.attributeOf === import_component.default.class.Doc || v.attributeOf === import_component.default.class.AttachedDoc)) {
             continue;
@@ -15176,7 +15176,7 @@ var require_utils2 = __commonJS({
         hierarchy.setClassifierProp(c, "class_indexed", false);
         return false;
       }
-      if (domain2 === import_tx.DOMAIN_TX || domain2 === import_classes14.DOMAIN_MODEL || domain2 === import_classes14.DOMAIN_BLOB || domain2 === "preference" || domain2 === import_classes14.DOMAIN_TRANSIENT || domain2 === "settings" || domain2 === import_benchmark.DOMAIN_BENCHMARK) {
+      if (domain2 === import_tx.DOMAIN_TX || domain2 === import_classes15.DOMAIN_MODEL || domain2 === import_classes15.DOMAIN_BLOB || domain2 === "preference" || domain2 === import_classes15.DOMAIN_TRANSIENT || domain2 === "settings" || domain2 === import_benchmark.DOMAIN_BENCHMARK) {
         hierarchy.setClassifierProp(c, "class_indexed", false);
         return false;
       }
@@ -15237,11 +15237,11 @@ var require_utils2 = __commonJS({
     __name(reduceCalls, "reduceCalls");
     function isOwnerOrMaintainer() {
       const account = getCurrentAccount();
-      return hasAccountRole(account, import_classes14.AccountRole.Maintainer);
+      return hasAccountRole(account, import_classes15.AccountRole.Maintainer);
     }
     __name(isOwnerOrMaintainer, "isOwnerOrMaintainer");
     function hasAccountRole(acc, targerRole) {
-      return import_classes14.roleOrder[acc.role] >= import_classes14.roleOrder[targerRole];
+      return import_classes15.roleOrder[acc.role] >= import_classes15.roleOrder[targerRole];
     }
     __name(hasAccountRole, "hasAccountRole");
     function getBranding(brandings, key) {
@@ -15378,7 +15378,7 @@ var require_utils2 = __commonJS({
       if (type === void 0 || value === void 0) {
         throw new Error(`Social id is not valid: ${id}`);
       }
-      if (!Object.values(import_classes14.SocialIdType).includes(type)) {
+      if (!Object.values(import_classes15.SocialIdType).includes(type)) {
         throw new Error(`Social id type is not valid: ${id}`);
       }
       return { type, value };
@@ -15389,11 +15389,11 @@ var require_utils2 = __commonJS({
       if (activeSocialIds.length === 0) {
         throw new Error("No active social ids provided");
       }
-      const hulySocialIds = activeSocialIds.filter((si) => si.type === import_classes14.SocialIdType.HULY);
+      const hulySocialIds = activeSocialIds.filter((si) => si.type === import_classes15.SocialIdType.HULY);
       return hulySocialIds[0] ?? activeSocialIds[0];
     }
     __name(pickPrimarySocialId, "pickPrimarySocialId");
-    var loginSocialTypes = [import_classes14.SocialIdType.EMAIL, import_classes14.SocialIdType.GOOGLE, import_classes14.SocialIdType.GITHUB, import_classes14.SocialIdType.OIDC];
+    var loginSocialTypes = [import_classes15.SocialIdType.EMAIL, import_classes15.SocialIdType.GOOGLE, import_classes15.SocialIdType.GITHUB, import_classes15.SocialIdType.OIDC];
     function notEmpty(id) {
       return id !== void 0 && id !== null && id !== "";
     }
@@ -15723,7 +15723,7 @@ var require_hierarchy = __commonJS({
       Hierarchy: () => Hierarchy
     });
     module2.exports = __toCommonJS2(hierarchy_exports);
-    var import_classes14 = require_classes();
+    var import_classes15 = require_classes();
     var import_clone = require_clone();
     var import_component = __toESM2(require_component());
     var import_proxy = require_proxy();
@@ -15742,7 +15742,7 @@ var require_hierarchy = __commonJS({
       createMixinProxyHandler(mixin) {
         const value = this.getClass(mixin);
         const ancestor = this.getClass(value.extends);
-        const ancestorProxy = ancestor.kind === import_classes14.ClassifierKind.MIXIN ? this.getMixinProxyHandler(ancestor._id) : null;
+        const ancestorProxy = ancestor.kind === import_classes15.ClassifierKind.MIXIN ? this.getMixinProxyHandler(ancestor._id) : null;
         return (0, import_proxy._createMixinProxy)(value, ancestorProxy);
       }
       getMixinProxyHandler(mixin) {
@@ -16096,13 +16096,13 @@ var require_hierarchy = __commonJS({
         return result;
       }
       isClass(attrs2) {
-        return attrs2?.kind === import_classes14.ClassifierKind.CLASS;
+        return attrs2?.kind === import_classes15.ClassifierKind.CLASS;
       }
       _isMixin(attrs2) {
-        return attrs2?.kind === import_classes14.ClassifierKind.MIXIN;
+        return attrs2?.kind === import_classes15.ClassifierKind.MIXIN;
       }
       isInterface(attrs2) {
-        return attrs2?.kind === import_classes14.ClassifierKind.INTERFACE;
+        return attrs2?.kind === import_classes15.ClassifierKind.INTERFACE;
       }
       addAttribute(attribute) {
         const _class = attribute.attributeOf;
@@ -16856,7 +16856,7 @@ var require_client = __commonJS({
     });
     module2.exports = __toCommonJS2(client_exports);
     var import_analytics = require_lib2();
-    var import_classes14 = require_classes();
+    var import_classes15 = require_classes();
     var import_component = __toESM2(require_component());
     var import_hierarchy = require_hierarchy();
     var import_measurements = require_lib3();
@@ -16897,7 +16897,7 @@ var require_client = __commonJS({
       }
       async findAll(_class, query, options) {
         const domain2 = this.hierarchy.getDomain(_class);
-        const data = domain2 === import_classes14.DOMAIN_MODEL ? await this.model.findAll(_class, query, options) : await this.conn.findAll(_class, query, options);
+        const data = domain2 === import_classes15.DOMAIN_MODEL ? await this.model.findAll(_class, query, options) : await this.conn.findAll(_class, query, options);
         const result = data.map((v) => {
           return this.hierarchy.updateLookupMixin(_class, v, options);
         });
@@ -17721,15 +17721,15 @@ var require_storage = __commonJS({
     var __toCommonJS2 = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
     var storage_exports = {};
     __export2(storage_exports, {
-      SortingOrder: () => SortingOrder24,
+      SortingOrder: () => SortingOrder25,
       shouldShowArchived: () => shouldShowArchived
     });
     module2.exports = __toCommonJS2(storage_exports);
-    var SortingOrder24 = /* @__PURE__ */ ((SortingOrder25) => {
-      SortingOrder25[SortingOrder25["Ascending"] = 1] = "Ascending";
-      SortingOrder25[SortingOrder25["Descending"] = -1] = "Descending";
-      return SortingOrder25;
-    })(SortingOrder24 || {});
+    var SortingOrder25 = /* @__PURE__ */ ((SortingOrder26) => {
+      SortingOrder26[SortingOrder26["Ascending"] = 1] = "Ascending";
+      SortingOrder26[SortingOrder26["Descending"] = -1] = "Descending";
+      return SortingOrder26;
+    })(SortingOrder25 || {});
     function shouldShowArchived(query, options) {
       if (options?.showArchived !== void 0) {
         return options.showArchived;
@@ -18232,7 +18232,7 @@ var require_client2 = __commonJS({
       getClient: () => getClient
     });
     module2.exports = __toCommonJS2(client_exports);
-    var import_core51 = require_lib4();
+    var import_core52 = require_lib4();
     var import_platform = __toESM2(require_lib());
     var import_utils = require_utils3();
     function getClient(accountsUrl, token, retryTimeoutMs) {
@@ -18268,7 +18268,7 @@ var require_client2 = __commonJS({
       rpc;
       async getProviders() {
         return await withRetryUntilMaxAttempts(async () => {
-          const response = await fetch((0, import_core51.concatLink)(this.url, "/providers"));
+          const response = await fetch((0, import_core52.concatLink)(this.url, "/providers"));
           return await response.json();
         })();
       }
@@ -18923,7 +18923,7 @@ var require_client2 = __commonJS({
         await this.rpc(request);
       }
       async setCookie() {
-        const url2 = (0, import_core51.concatLink)(this.url, "/cookie");
+        const url2 = (0, import_core52.concatLink)(this.url, "/cookie");
         const response = await fetch(url2, { ...this.request, method: "PUT" });
         if (!response.ok) {
           const result = await response.json();
@@ -18933,7 +18933,7 @@ var require_client2 = __commonJS({
         }
       }
       async deleteCookie() {
-        const url2 = (0, import_core51.concatLink)(this.url, "/cookie");
+        const url2 = (0, import_core52.concatLink)(this.url, "/cookie");
         const response = await fetch(url2, { ...this.request, method: "DELETE" });
         if (!response.ok) {
           const result = await response.json();
@@ -26984,7 +26984,7 @@ var require_connection = __commonJS({
     module2.exports = __toCommonJS2(connection_exports);
     var import_analytics = require_lib2();
     var import_client = __toESM2(require_lib6());
-    var import_core51 = __toESM2(require_lib4());
+    var import_core52 = __toESM2(require_lib4());
     var import_platform = __toESM2(require_lib());
     var import_rpc = require_lib7();
     var import_snappyjs = require_snappyjs();
@@ -27028,7 +27028,7 @@ var require_connection = __commonJS({
           const sKey = "session.id." + this.url;
           let sessionId = sessionStorage.getItem(sKey) ?? void 0;
           if (sessionId === void 0) {
-            sessionId = (0, import_core51.generateId)();
+            sessionId = (0, import_core52.generateId)();
             console.log("Generate new SessionId", sessionId);
             this.sessionId = sessionId;
           } else {
@@ -27039,7 +27039,7 @@ var require_connection = __commonJS({
             sessionStorage.setItem(sKey, sessionId);
           });
         } else {
-          this.sessionId = (0, import_core51.generateId)();
+          this.sessionId = (0, import_core52.generateId)();
         }
         this.rpcHandler = opt?.useGlobalRPCHandler === true ? globalRPCHandler : new import_rpc.RPCHandler();
         this.pushHandler(handler);
@@ -27219,7 +27219,7 @@ var require_connection = __commonJS({
         if (resp.id === -1) {
           this.delay = 0;
           if (resp.result?.state === "upgrading") {
-            void this.onConnect?.(import_core51.ClientConnectEvent.Maintenance, void 0, resp.result.stats);
+            void this.onConnect?.(import_core52.ClientConnectEvent.Maintenance, void 0, resp.result.stats);
             this.upgrading = true;
             this.delay = 3;
             return;
@@ -27254,7 +27254,7 @@ var require_connection = __commonJS({
               v.reconnect?.();
             }
             void this.onConnect?.(
-              helloResp.reconnect === true ? import_core51.ClientConnectEvent.Reconnected : import_core51.ClientConnectEvent.Connected,
+              helloResp.reconnect === true ? import_core52.ClientConnectEvent.Reconnected : import_core52.ClientConnectEvent.Connected,
               helloResp.lastTx,
               this.sessionId
             )?.catch((err) => {
@@ -27304,7 +27304,7 @@ var require_connection = __commonJS({
                 }
                 result = result.concat(c.data);
               }
-              resp.result = (0, import_core51.toFindResult)(result, total, lookupMap);
+              resp.result = (0, import_core52.toFindResult)(result, total, lookupMap);
               resp.chunk = void 0;
             } else {
               return;
@@ -27348,7 +27348,7 @@ var require_connection = __commonJS({
         } else {
           const txArr = Array.isArray(resp.result) ? resp.result : [resp.result];
           for (const tx of txArr) {
-            if (tx?._class === import_core51.default.class.TxModelUpgrade) {
+            if (tx?._class === import_core52.default.class.TxModelUpgrade) {
               console.log("Processing upgrade", this.workspace, this.user);
               this.opt?.onUpgrade?.();
               return;
@@ -27578,7 +27578,7 @@ var require_connection = __commonJS({
       }
       getAccount() {
         if (this.account !== void 0) {
-          return Promise.resolve((0, import_core51.clone)(this.account));
+          return Promise.resolve((0, import_core52.clone)(this.account));
         }
         return this.sendRequest({ method: "getAccount", params: [] });
       }
@@ -27636,10 +27636,10 @@ var require_connection = __commonJS({
           method: "tx",
           params: [tx],
           retry: /* @__PURE__ */ __name(async () => {
-            if (tx._class === import_core51.default.class.TxApplyIf) {
-              return (await this.findAll(import_core51.default.class.Tx, { _id: tx.txes[0]._id }, { limit: 1 })).length === 0;
+            if (tx._class === import_core52.default.class.TxApplyIf) {
+              return (await this.findAll(import_core52.default.class.Tx, { _id: tx.txes[0]._id }, { limit: 1 })).length === 0;
             }
-            return (await this.findAll(import_core51.default.class.Tx, { _id: tx._id }, { limit: 1 })).length === 0;
+            return (await this.findAll(import_core52.default.class.Tx, { _id: tx._id }, { limit: 1 })).length === 0;
           }, "retry")
         });
       }
@@ -27679,7 +27679,7 @@ var require_connection = __commonJS({
     };
     function connect(url2, handler, workspace, user2, opt) {
       return new Connection(
-        opt?.ctx?.newChild?.("connection", {}) ?? new import_core51.MeasureMetricsContext("connection", {}),
+        opt?.ctx?.newChild?.("connection", {}) ?? new import_core52.MeasureMetricsContext("connection", {}),
         url2,
         handler,
         workspace,
@@ -27725,18 +27725,18 @@ var require_lib8 = __commonJS({
     var __toCommonJS2 = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
     var index_exports = {};
     __export2(index_exports, {
-      connect: () => import_connection55.connect,
+      connect: () => import_connection57.connect,
       default: () => index_default
     });
     module2.exports = __toCommonJS2(index_exports);
     var import_client = __toESM2(require_lib6());
-    var import_core51 = __toESM2(require_lib4());
+    var import_core52 = __toESM2(require_lib4());
     var import_platform = __toESM2(require_lib());
-    var import_connection55 = require_connection();
+    var import_connection57 = require_connection();
     var dbRequest;
     var dbPromise = Promise.resolve(void 0);
     if (typeof localStorage !== "undefined") {
-      const st = (0, import_core51.platformNow)();
+      const st = (0, import_core52.platformNow)();
       dbPromise = new Promise((resolve3) => {
         dbRequest = indexedDB.open("model.db.persistence", 2);
         dbRequest.onupgradeneeded = function() {
@@ -27747,7 +27747,7 @@ var require_lib8 = __commonJS({
         };
         dbRequest.onsuccess = function() {
           const db = dbRequest.result;
-          console.log("init DB complete", (0, import_core51.platformNow)() - st);
+          console.log("init DB complete", (0, import_core52.platformNow)() - st);
           resolve3(db);
         };
       });
@@ -27776,16 +27776,16 @@ var require_lib8 = __commonJS({
             const filterModel = (0, import_platform.getMetadata)(import_client.default.metadata.FilterModel) ?? "none";
             const extraFilter = (0, import_platform.getMetadata)(import_client.default.metadata.ExtraFilter) ?? [];
             const handler = /* @__PURE__ */ __name(async (handler2) => {
-              const url2 = (0, import_core51.concatLink)(endpoint, `/${token}`);
+              const url2 = (0, import_core52.concatLink)(endpoint, `/${token}`);
               const upgradeHandler = /* @__PURE__ */ __name((...txes) => {
                 for (const tx of txes) {
-                  if (tx?._class === import_core51.default.class.TxModelUpgrade) {
+                  if (tx?._class === import_core52.default.class.TxModelUpgrade) {
                     opt?.onUpgrade?.();
                     return;
                   }
-                  if (tx?._class === import_core51.default.class.TxWorkspaceEvent) {
+                  if (tx?._class === import_core52.default.class.TxWorkspaceEvent) {
                     const event = tx;
-                    if (event.event === import_core51.WorkspaceEvent.MaintenanceNotification) {
+                    if (event.event === import_core52.WorkspaceEvent.MaintenanceNotification) {
                       void (0, import_platform.setPlatformStatus)(
                         new import_platform.Status(import_platform.Severity.WARNING, import_platform.default.status.MaintenanceWarning, {
                           time: event.params.timeMinutes,
@@ -27823,14 +27823,14 @@ var require_lib8 = __commonJS({
                       reject(error62);
                       return;
                     }
-                    if (event !== import_core51.ClientConnectEvent.Maintenance) {
+                    if (event !== import_core52.ClientConnectEvent.Maintenance) {
                       clearTimeout(connectTO);
                       resolve3();
                     }
                   };
                 });
               }
-              const clientConnection = (0, import_connection55.connect)(url2, upgradeHandler, tokenPayload.workspace, tokenPayload.account, newOpt);
+              const clientConnection = (0, import_connection57.connect)(url2, upgradeHandler, tokenPayload.workspace, tokenPayload.account, newOpt);
               if (connectPromise !== void 0) {
                 await connectPromise;
               }
@@ -27845,7 +27845,7 @@ var require_lib8 = __commonJS({
               }
               return txes;
             }, "modelFilter");
-            const client = (0, import_core51.createClient)(handler, modelFilter, createModelPersistence(getWSFromToken(token)), opt?.ctx);
+            const client = (0, import_core52.createClient)(handler, modelFilter, createModelPersistence(getWSFromToken(token)), opt?.ctx);
             return await client;
           }, "GetClient")
         }
@@ -27853,17 +27853,17 @@ var require_lib8 = __commonJS({
     }, "default");
     function returnUITxes(txes, extraFilter) {
       const configs = /* @__PURE__ */ new Map();
-      (0, import_core51.fillConfiguration)(txes, configs);
+      (0, import_core52.fillConfiguration)(txes, configs);
       const allowedPlugins = [...(0, import_platform.getPlugins)(), ...(0, import_platform.getMetadata)(import_client.default.metadata.ExtraPlugins) ?? []];
       const excludedPlugins = Array.from(configs.values()).filter(
         (it) => !it.enabled || !allowedPlugins.includes(it.pluginId) || extraFilter.includes(it.pluginId)
       );
-      return (0, import_core51.pluginFilterTx)(excludedPlugins, configs, txes);
+      return (0, import_core52.pluginFilterTx)(excludedPlugins, configs, txes);
     }
     __name(returnUITxes, "returnUITxes");
     function returnClientTxes(txes) {
       const configs = /* @__PURE__ */ new Map();
-      (0, import_core51.fillConfiguration)(txes, configs);
+      (0, import_core52.fillConfiguration)(txes, configs);
       const excludedPlugins = Array.from(configs.values()).filter((it) => !it.enabled || it.pluginId.startsWith("server-"));
       const toExclude = /* @__PURE__ */ new Set([
         "workbench:class:Application",
@@ -27889,8 +27889,8 @@ var require_lib8 = __commonJS({
         "setting:class:WorkspaceSettingCategory",
         "notification:class:NotificationProvider"
       ]);
-      const result = (0, import_core51.pluginFilterTx)(excludedPlugins, configs, txes).filter((tx) => {
-        if (tx?._class === import_core51.default.class.TxCreateDoc || tx?._class === import_core51.default.class.TxUpdateDoc || tx?._class === import_core51.default.class.TxRemoveDoc) {
+      const result = (0, import_core52.pluginFilterTx)(excludedPlugins, configs, txes).filter((tx) => {
+        if (tx?._class === import_core52.default.class.TxCreateDoc || tx?._class === import_core52.default.class.TxUpdateDoc || tx?._class === import_core52.default.class.TxRemoveDoc) {
           const cud = tx;
           if (toExclude.has(cud.objectClass)) {
             return false;
@@ -30675,7 +30675,7 @@ var require_utils5 = __commonJS({
       updateProjectType: () => updateProjectType
     });
     module2.exports = __toCommonJS2(utils_exports);
-    var import_core51 = __toESM2(require_lib4());
+    var import_core52 = __toESM2(require_lib4());
     var import_platform = require_lib();
     var import__ = __toESM2(require_lib14());
     var import_rank6 = require_lib13();
@@ -30711,7 +30711,7 @@ var require_utils5 = __commonJS({
       if (exists !== void 0) {
         return exists._id;
       }
-      const res = await client.createDoc(_class, import_core51.default.space.Model, data);
+      const res = await client.createDoc(_class, import_core52.default.space.Model, data);
       return res;
     }
     __name(createState, "createState");
@@ -30741,7 +30741,7 @@ var require_utils5 = __commonJS({
     function findStatusAttr(h, _class) {
       const attrs2 = h.getAllAttributes(_class);
       for (const it of attrs2.values()) {
-        if (it.type._class === import_core51.default.class.RefTo && h.isDerived(it.type.to, import_core51.default.class.Status)) {
+        if (it.type._class === import_core52.default.class.RefTo && h.isDerived(it.type.to, import_core52.default.class.Status)) {
           return it;
         }
       }
@@ -30773,7 +30773,7 @@ var require_utils5 = __commonJS({
       const targetProjectClassId = `${_id}:type:mixin`;
       const tmpl = await client.createDoc(
         import__.default.class.ProjectType,
-        import_core51.default.space.Model,
+        import_core52.default.space.Model,
         {
           description: data.description,
           shortDescription: data.shortDescription,
@@ -30788,17 +30788,17 @@ var require_utils5 = __commonJS({
         _id
       );
       await client.createDoc(
-        import_core51.default.class.Mixin,
-        import_core51.default.space.Model,
+        import_core52.default.class.Mixin,
+        import_core52.default.space.Model,
         {
           extends: categoryObj.baseClass,
-          kind: import_core51.ClassifierKind.MIXIN,
+          kind: import_core52.ClassifierKind.MIXIN,
           label: (0, import_platform.getEmbeddedLabel)(data.name),
           icon: baseClassClass.icon
         },
         targetProjectClassId
       );
-      await client.createMixin(targetProjectClassId, import_core51.default.class.Mixin, import_core51.default.space.Model, import__.default.mixin.ProjectTypeClass, {
+      await client.createMixin(targetProjectClassId, import_core52.default.class.Mixin, import_core52.default.space.Model, import__.default.mixin.ProjectTypeClass, {
         projectType: _id
       });
       return tmpl;
@@ -30857,22 +30857,22 @@ var require_utils5 = __commonJS({
           const targetClassId = `${taskId}:type:mixin`;
           tdata.targetClass = targetClassId;
           await client.createDoc(
-            import_core51.default.class.Mixin,
-            import_core51.default.space.Model,
+            import_core52.default.class.Mixin,
+            import_core52.default.space.Model,
             {
               extends: data.ofClass,
-              kind: import_core51.ClassifierKind.MIXIN,
+              kind: import_core52.ClassifierKind.MIXIN,
               label: ofClassClass.label,
               icon: ofClassClass.icon
             },
             targetClassId
           );
-          await client.createMixin(targetClassId, import_core51.default.class.Mixin, import_core51.default.space.Model, import__.default.mixin.TaskTypeClass, {
+          await client.createMixin(targetClassId, import_core52.default.class.Mixin, import_core52.default.space.Model, import__.default.mixin.TaskTypeClass, {
             taskType: taskId,
             projectType: _id
           });
         }
-        await client.createDoc(import__.default.class.TaskType, import_core51.default.space.Model, tdata, taskId);
+        await client.createDoc(import__.default.class.TaskType, import_core52.default.space.Model, tdata, taskId);
         tasksData.set(taskId, tdata);
         _tasks.push(taskId);
       }
@@ -30921,7 +30921,7 @@ var require_lib14 = __commonJS({
       return TaskOrdering2;
     })(TaskOrdering || {});
     var taskId = "task";
-    var task9 = (0, import_platform.plugin)(taskId, {
+    var task10 = (0, import_platform.plugin)(taskId, {
       app: {
         Tasks: ""
       },
@@ -31013,7 +31013,7 @@ var require_lib14 = __commonJS({
         ProjectEditorExtension: ""
       }
     });
-    var index_default = task9;
+    var index_default = task10;
   }
 });
 
@@ -31109,18 +31109,18 @@ var require_cache = __commonJS({
       default: () => ContactCache
     });
     module2.exports = __toCommonJS2(cache_exports);
-    var import_core51 = __toESM2(require_lib4());
+    var import_core52 = __toESM2(require_lib4());
     var import__ = __toESM2(require_lib15());
     function isCreateTx(tx) {
-      return tx._class === import_core51.default.class.TxCreateDoc;
+      return tx._class === import_core52.default.class.TxCreateDoc;
     }
     __name(isCreateTx, "isCreateTx");
     function isUpdateTx(tx) {
-      return tx._class === import_core51.default.class.TxUpdateDoc;
+      return tx._class === import_core52.default.class.TxUpdateDoc;
     }
     __name(isUpdateTx, "isUpdateTx");
     function isMixinTx(tx) {
-      return tx._class === import_core51.default.class.TxMixin;
+      return tx._class === import_core52.default.class.TxMixin;
     }
     __name(isMixinTx, "isMixinTx");
     function isPersonTx(tx) {
@@ -31227,7 +31227,7 @@ var require_cache = __commonJS({
         const ref = tx.objectId;
         const person = this._personByRef.get(ref);
         if (person === void 0) return;
-        const createdPerson = import_core51.TxProcessor.createDoc2Doc(tx);
+        const createdPerson = import_core52.TxProcessor.createDoc2Doc(tx);
         this._personByRef.set(ref, createdPerson);
         const personIds = Array.from(this._personIdsByPersonRef.get(ref) ?? []);
         for (const personId of personIds) {
@@ -31245,7 +31245,7 @@ var require_cache = __commonJS({
         const newPersonRef = tx.attachedTo;
         this._personRefByPersonId.set(personId, newPersonRef);
         this.addPersonIdToPersonRef(newPersonRef, personId);
-        const createdSocialId = import_core51.TxProcessor.createDoc2Doc(tx);
+        const createdSocialId = import_core52.TxProcessor.createDoc2Doc(tx);
         this._socialIdByPersonId.set(personId, createdSocialId);
         this.broadcastChange({
           personRef: newPersonRef,
@@ -31256,7 +31256,7 @@ var require_cache = __commonJS({
         const ref = tx.objectId;
         const person = this._personByRef.get(ref);
         if (person == null) return;
-        const updatedPerson = isUpdateTx(tx) ? import_core51.TxProcessor.updateDoc2Doc(person, tx) : import_core51.TxProcessor.updateMixin4Doc(person, tx);
+        const updatedPerson = isUpdateTx(tx) ? import_core52.TxProcessor.updateDoc2Doc(person, tx) : import_core52.TxProcessor.updateMixin4Doc(person, tx);
         this._personByRef.set(ref, updatedPerson);
         const personIds = Array.from(this._personIdsByPersonRef.get(ref) ?? []);
         for (const personId of personIds) {
@@ -31371,7 +31371,7 @@ var require_utils6 = __commonJS({
       setCurrentEmployeeSpace: () => setCurrentEmployeeSpace
     });
     module2.exports = __toCommonJS2(utils_exports);
-    var import_core51 = require_lib4();
+    var import_core52 = require_lib4();
     var import_platform = require_lib();
     var import__ = __toESM2(require_lib15());
     var import_types9 = require_types5();
@@ -31575,7 +31575,7 @@ var require_utils6 = __commonJS({
       if (socialIds.length === 0) {
         return;
       }
-      return (0, import_core51.pickPrimarySocialId)(socialIds)._id;
+      return (0, import_core52.pickPrimarySocialId)(socialIds)._id;
     }
     __name(getPrimarySocialId, "getPrimarySocialId");
     async function getAllSocialStringsByPersonId(client, personId) {
@@ -31614,12 +31614,12 @@ var require_utils6 = __commonJS({
     __name(getSocialStringsByEmployee, "getSocialStringsByEmployee");
     async function getAllAccounts(client) {
       const employees = await client.findAll(import__.default.mixin.Employee, { active: true });
-      return employees.map((it) => it.personUuid).filter(import_core51.notEmpty);
+      return employees.map((it) => it.personUuid).filter(import_core52.notEmpty);
     }
     __name(getAllAccounts, "getAllAccounts");
     async function getAllUserAccounts(client) {
       const employees = await client.findAll(import__.default.mixin.Employee, { active: true });
-      return employees.map((it) => it.personUuid).filter(import_core51.notEmpty);
+      return employees.map((it) => it.personUuid).filter(import_core52.notEmpty);
     }
     __name(getAllUserAccounts, "getAllUserAccounts");
     async function ensureEmployee(ctx, me, client, socialIds, getGlobalPerson) {
@@ -31628,7 +31628,7 @@ var require_utils6 = __commonJS({
     }
     __name(ensureEmployee, "ensureEmployee");
     async function ensureEmployeeForPerson(ctx, me, person, client, socialIds, globalPerson) {
-      const txFactory = new import_core51.TxFactory(me.primarySocialId);
+      const txFactory = new import_core52.TxFactory(me.primarySocialId);
       const personByUuid = await client.findOne(import__.default.class.Person, { personUuid: person.uuid });
       let personRef = personByUuid?._id;
       if (personRef === void 0) {
@@ -31649,7 +31649,7 @@ var require_utils6 = __commonJS({
             city: globalPerson.city,
             avatarType: import__.AvatarType.COLOR
           };
-          personRef = (0, import_core51.generateId)();
+          personRef = (0, import_core52.generateId)();
           const createPersonTx = txFactory.createTxCreateDoc(import__.default.class.Person, import__.default.space.Contacts, data, personRef);
           await client.tx(createPersonTx);
         });
@@ -31659,7 +31659,7 @@ var require_utils6 = __commonJS({
         });
         await client.tx(updatePersonTx);
       }
-      const existingIdentifiers = (0, import_core51.toIdMap)(
+      const existingIdentifiers = (0, import_core52.toIdMap)(
         await client.findAll(import__.default.class.SocialIdentity, { _id: { $in: person.socialIds } })
       );
       for (const socialId of socialIds) {
@@ -31684,7 +31684,7 @@ var require_utils6 = __commonJS({
                   collection: "socialIds",
                   type: socialId.type,
                   value: socialId.value,
-                  key: (0, import_core51.buildSocialIdString)(socialId),
+                  key: (0, import_core52.buildSocialIdString)(socialId),
                   // TODO: fill it in trigger or on DB level as stored calculated column or smth?
                   verifiedOn: socialId.verifiedOn,
                   isDeleted: socialId.isDeleted
@@ -31725,9 +31725,9 @@ var require_utils6 = __commonJS({
           }
         }
       }
-      const employeeRole = person.role === import_core51.AccountRole.Guest || person.role === import_core51.AccountRole.ReadOnlyGuest ? "GUEST" : "USER";
+      const employeeRole = person.role === import_core52.AccountRole.Guest || person.role === import_core52.AccountRole.ReadOnlyGuest ? "GUEST" : "USER";
       const employee = await client.findOne(import__.default.mixin.Employee, { _id: personRef });
-      if (employee === void 0 || !import_core51.Hierarchy.hasMixin(employee, import__.default.mixin.Employee) || !employee.active || employee.role !== employeeRole) {
+      if (employee === void 0 || !import_core52.Hierarchy.hasMixin(employee, import__.default.mixin.Employee) || !employee.active || employee.role !== employeeRole) {
         await ctx.with("create-employee", {}, async () => {
           if (personRef === void 0) {
             console.error("Person not found");
@@ -31767,7 +31767,7 @@ var require_utils6 = __commonJS({
     }
     __name(loadCachesForPersonId, "loadCachesForPersonId");
     async function loadCachesForPersonIds(client, personIds) {
-      const sidObjsMap = (0, import_core51.toIdMap)(
+      const sidObjsMap = (0, import_core52.toIdMap)(
         await client.findAll(
           import__.default.class.SocialIdentity,
           {
@@ -31802,7 +31802,7 @@ var require_utils6 = __commonJS({
     }
     __name(loadCachesForPersonRef, "loadCachesForPersonRef");
     async function loadCachesForPersonRefs(client, personRefs) {
-      const persons = (0, import_core51.toIdMap)(
+      const persons = (0, import_core52.toIdMap)(
         await client.findAll(
           import__.default.class.Person,
           {
@@ -31845,7 +31845,7 @@ var require_utils6 = __commonJS({
         personIds.map((pid) => {
           const ref = contactCache.personRefByPersonId.get(pid);
           return ref != null ? [pid, ref] : void 0;
-        }).filter(import_core51.notEmpty)
+        }).filter(import_core52.notEmpty)
       );
     }
     __name(getPersonRefsByPersonIdsFromCache, "getPersonRefsByPersonIdsFromCache");
@@ -31892,7 +31892,7 @@ var require_utils6 = __commonJS({
         personIds.map((pid) => {
           const person = contactCache.personByPersonId.get(pid);
           return person != null ? [pid, person] : void 0;
-        }).filter(import_core51.notEmpty)
+        }).filter(import_core52.notEmpty)
       );
     }
     __name(getPersonsByPersonIdsFromCache, "getPersonsByPersonIdsFromCache");
@@ -31939,7 +31939,7 @@ var require_utils6 = __commonJS({
         personRefs.map((personRef) => {
           const person = contactCache.personByRef.get(personRef);
           return person != null ? [personRef, person] : void 0;
-        }).filter(import_core51.notEmpty)
+        }).filter(import_core52.notEmpty)
       );
     }
     __name(getPersonsByPersonRefsFromCache, "getPersonsByPersonRefsFromCache");
@@ -32518,7 +32518,7 @@ var require_utils7 = __commonJS({
     });
     module2.exports = __toCommonJS2(utils_exports);
     var import_fast_equals = require_cjs();
-    var import_core51 = __toESM2(require_lib4());
+    var import_core52 = __toESM2(require_lib4());
     var import__ = __toESM2(require_lib17());
     async function getDirectChannel(client, me, employeeAccount) {
       const accIds = [me, employeeAccount].sort();
@@ -32528,7 +32528,7 @@ var require_utils7 = __commonJS({
           return dm._id;
         }
       }
-      return await client.createDoc(import__.default.class.DirectMessage, import_core51.default.space.Space, {
+      return await client.createDoc(import__.default.class.DirectMessage, import_core52.default.space.Space, {
         name: "",
         description: "",
         private: true,
@@ -32930,9 +32930,9 @@ var require_utils8 = __commonJS({
       getFirstRank: () => getFirstRank2
     });
     module2.exports = __toCommonJS2(utils_exports);
-    var import_core51 = require_lib4();
+    var import_core52 = require_lib4();
     var import_plugin = __toESM2(require_plugin3());
-    async function getFirstRank2(client, space, parent, sort = import_core51.SortingOrder.Descending, extra = {}) {
+    async function getFirstRank2(client, space, parent, sort = import_core52.SortingOrder.Descending, extra = {}) {
       const doc = await client.findOne(
         import_plugin.default.class.Document,
         { space, parent, ...extra },
@@ -87058,12 +87058,12 @@ var Protocol = class {
     this._taskMessageQueue = _options?.taskMessageQueue;
     if (this._taskStore) {
       this.setRequestHandler(GetTaskRequestSchema, async (request, extra) => {
-        const task9 = await this._taskStore.getTask(request.params.taskId, extra.sessionId);
-        if (!task9) {
+        const task10 = await this._taskStore.getTask(request.params.taskId, extra.sessionId);
+        if (!task10) {
           throw new McpError(ErrorCode.InvalidParams, "Failed to retrieve task: Task not found");
         }
         return {
-          ...task9
+          ...task10
         };
       });
       this.setRequestHandler(GetTaskPayloadRequestSchema, async (request, extra) => {
@@ -87097,15 +87097,15 @@ var Protocol = class {
               await this._transport?.send(queuedMessage.message, { relatedRequestId: extra.requestId });
             }
           }
-          const task9 = await this._taskStore.getTask(taskId, extra.sessionId);
-          if (!task9) {
+          const task10 = await this._taskStore.getTask(taskId, extra.sessionId);
+          if (!task10) {
             throw new McpError(ErrorCode.InvalidParams, `Task not found: ${taskId}`);
           }
-          if (!isTerminal(task9.status)) {
+          if (!isTerminal(task10.status)) {
             await this._waitForTaskUpdate(taskId, extra.signal, extra.sessionId);
             return await handleTaskResult();
           }
-          if (isTerminal(task9.status)) {
+          if (isTerminal(task10.status)) {
             const result = await this._taskStore.getTaskResult(taskId, extra.sessionId);
             this._clearTaskQueue(taskId, extra.sessionId);
             return {
@@ -87136,12 +87136,12 @@ var Protocol = class {
       });
       this.setRequestHandler(CancelTaskRequestSchema, async (request, extra) => {
         try {
-          const task9 = await this._taskStore.getTask(request.params.taskId, extra.sessionId);
-          if (!task9) {
+          const task10 = await this._taskStore.getTask(request.params.taskId, extra.sessionId);
+          if (!task10) {
             throw new McpError(ErrorCode.InvalidParams, `Task not found: ${request.params.taskId}`);
           }
-          if (isTerminal(task9.status)) {
-            throw new McpError(ErrorCode.InvalidParams, `Cannot cancel task in terminal status: ${task9.status}`);
+          if (isTerminal(task10.status)) {
+            throw new McpError(ErrorCode.InvalidParams, `Cannot cancel task in terminal status: ${task10.status}`);
           }
           await this._taskStore.updateTaskStatus(request.params.taskId, "cancelled", "Client cancelled task execution.", extra.sessionId);
           this._clearTaskQueue(request.params.taskId, extra.sessionId);
@@ -87448,10 +87448,10 @@ var Protocol = class {
     if (isJSONRPCResultResponse(response) && response.result && typeof response.result === "object") {
       const result = response.result;
       if (result.task && typeof result.task === "object") {
-        const task9 = result.task;
-        if (typeof task9.taskId === "string") {
+        const task10 = result.task;
+        if (typeof task10.taskId === "string") {
           isTaskResponse = true;
-          this._taskProgressTokens.set(task9.taskId, messageId);
+          this._taskProgressTokens.set(task10.taskId, messageId);
         }
       }
     }
@@ -87502,8 +87502,8 @@ var Protocol = class {
    * @experimental Use `client.experimental.tasks.requestStream()` to access this method.
    */
   async *requestStream(request, resultSchema, options) {
-    const { task: task9 } = options ?? {};
-    if (!task9) {
+    const { task: task10 } = options ?? {};
+    if (!task10) {
       try {
         const result = await this.request(request, resultSchema, options);
         yield { type: "result", result };
@@ -87525,18 +87525,18 @@ var Protocol = class {
         throw new McpError(ErrorCode.InternalError, "Task creation did not return a task");
       }
       while (true) {
-        const task10 = await this.getTask({ taskId }, options);
-        yield { type: "taskStatus", task: task10 };
-        if (isTerminal(task10.status)) {
-          if (task10.status === "completed") {
+        const task11 = await this.getTask({ taskId }, options);
+        yield { type: "taskStatus", task: task11 };
+        if (isTerminal(task11.status)) {
+          if (task11.status === "completed") {
             const result = await this.getTaskResult({ taskId }, resultSchema, options);
             yield { type: "result", result };
-          } else if (task10.status === "failed") {
+          } else if (task11.status === "failed") {
             yield {
               type: "error",
               error: new McpError(ErrorCode.InternalError, `Task ${taskId} failed`)
             };
-          } else if (task10.status === "cancelled") {
+          } else if (task11.status === "cancelled") {
             yield {
               type: "error",
               error: new McpError(ErrorCode.InternalError, `Task ${taskId} was cancelled`)
@@ -87544,12 +87544,12 @@ var Protocol = class {
           }
           return;
         }
-        if (task10.status === "input_required") {
+        if (task11.status === "input_required") {
           const result = await this.getTaskResult({ taskId }, resultSchema, options);
           yield { type: "result", result };
           return;
         }
-        const pollInterval = task10.pollInterval ?? this._options?.defaultTaskPollInterval ?? 1e3;
+        const pollInterval = task11.pollInterval ?? this._options?.defaultTaskPollInterval ?? 1e3;
         await new Promise((resolve3) => setTimeout(resolve3, pollInterval));
         options?.signal?.throwIfAborted();
       }
@@ -87566,7 +87566,7 @@ var Protocol = class {
    * Do not use this method to emit notifications! Use notification() instead.
    */
   request(request, resultSchema, options) {
-    const { relatedRequestId, resumptionToken, onresumptiontoken, task: task9, relatedTask } = options ?? {};
+    const { relatedRequestId, resumptionToken, onresumptiontoken, task: task10, relatedTask } = options ?? {};
     return new Promise((resolve3, reject) => {
       const earlyReject = (error62) => {
         reject(error62);
@@ -87578,7 +87578,7 @@ var Protocol = class {
       if (this._options?.enforceStrictCapabilities === true) {
         try {
           this.assertCapabilityForMethod(request.method);
-          if (task9) {
+          if (task10) {
             this.assertTaskCapability(request.method);
           }
         } catch (e) {
@@ -87603,10 +87603,10 @@ var Protocol = class {
           }
         };
       }
-      if (task9) {
+      if (task10) {
         jsonrpcRequest.params = {
           ...jsonrpcRequest.params,
-          task: task9
+          task: task10
         };
       }
       if (relatedTask) {
@@ -87901,9 +87901,9 @@ var Protocol = class {
   async _waitForTaskUpdate(taskId, signal, sessionId) {
     let interval = this._options?.defaultTaskPollInterval ?? 1e3;
     try {
-      const task9 = await this._taskStore?.getTask(taskId, sessionId);
-      if (task9?.pollInterval) {
-        interval = task9.pollInterval;
+      const task10 = await this._taskStore?.getTask(taskId, sessionId);
+      if (task10?.pollInterval) {
+        interval = task10.pollInterval;
       }
     } catch {
     }
@@ -87935,22 +87935,22 @@ var Protocol = class {
         }, sessionId);
       },
       getTask: async (taskId) => {
-        const task9 = await taskStore.getTask(taskId, sessionId);
-        if (!task9) {
+        const task10 = await taskStore.getTask(taskId, sessionId);
+        if (!task10) {
           throw new McpError(ErrorCode.InvalidParams, "Failed to retrieve task: Task not found");
         }
-        return task9;
+        return task10;
       },
       storeTaskResult: async (taskId, status, result) => {
         await taskStore.storeTaskResult(taskId, status, result, sessionId);
-        const task9 = await taskStore.getTask(taskId, sessionId);
-        if (task9) {
+        const task10 = await taskStore.getTask(taskId, sessionId);
+        if (task10) {
           const notification = TaskStatusNotificationSchema.parse({
             method: "notifications/tasks/status",
-            params: task9
+            params: task10
           });
           await this.notification(notification);
-          if (isTerminal(task9.status)) {
+          if (isTerminal(task10.status)) {
             this._cleanupTaskProgressHandler(taskId);
           }
         }
@@ -87959,12 +87959,12 @@ var Protocol = class {
         return taskStore.getTaskResult(taskId, sessionId);
       },
       updateTaskStatus: async (taskId, status, statusMessage) => {
-        const task9 = await taskStore.getTask(taskId, sessionId);
-        if (!task9) {
+        const task10 = await taskStore.getTask(taskId, sessionId);
+        if (!task10) {
           throw new McpError(ErrorCode.InvalidParams, `Task "${taskId}" not found - it may have been cleaned up`);
         }
-        if (isTerminal(task9.status)) {
-          throw new McpError(ErrorCode.InvalidParams, `Cannot update task "${taskId}" from terminal status "${task9.status}" to "${status}". Terminal states (completed, failed, cancelled) cannot transition to other states.`);
+        if (isTerminal(task10.status)) {
+          throw new McpError(ErrorCode.InvalidParams, `Cannot update task "${taskId}" from terminal status "${task10.status}" to "${status}". Terminal states (completed, failed, cancelled) cannot transition to other states.`);
         }
         await taskStore.updateTaskStatus(taskId, status, statusMessage, sessionId);
         const updatedTask = await taskStore.getTask(taskId, sessionId);
@@ -89280,15 +89280,15 @@ var McpServer = class {
       await Promise.resolve(handler.createTask(taskExtra))
     );
     const taskId = createTaskResult.task.taskId;
-    let task9 = createTaskResult.task;
-    const pollInterval = task9.pollInterval ?? 5e3;
-    while (task9.status !== "completed" && task9.status !== "failed" && task9.status !== "cancelled") {
+    let task10 = createTaskResult.task;
+    const pollInterval = task10.pollInterval ?? 5e3;
+    while (task10.status !== "completed" && task10.status !== "failed" && task10.status !== "cancelled") {
       await new Promise((resolve3) => setTimeout(resolve3, pollInterval));
       const updatedTask = await extra.taskStore.getTask(taskId);
       if (!updatedTask) {
         throw new McpError(ErrorCode.InternalError, `Task ${taskId} not found during polling`);
       }
-      task9 = updatedTask;
+      task10 = updatedTask;
     }
     return await extra.taskStore.getTaskResult(taskId);
   }
@@ -90047,6 +90047,39 @@ function addEntry(owner, entry) {
   return full;
 }
 
+// src/utils/txhub.ts
+function txHub(raw) {
+  if (raw.__hulyTxHub != null) return raw.__hulyTxHub;
+  const hub = { listeners: /* @__PURE__ */ new Set() };
+  const previous = raw.notify;
+  raw.notify = (...txes) => {
+    for (const tx of txes) for (const l of hub.listeners) {
+      try {
+        l(tx);
+      } catch {
+      }
+    }
+    previous?.(...txes);
+  };
+  Object.defineProperty(raw, "__hulyTxHub", { value: hub, enumerable: false });
+  return hub;
+}
+function onTx(client, listener) {
+  const raw = client?.client ?? client;
+  const hub = txHub(raw.__hulyRaw ?? raw);
+  hub.listeners.add(listener);
+  return () => {
+    hub.listeners.delete(listener);
+  };
+}
+function touchedIds(tx, out = /* @__PURE__ */ new Set()) {
+  if (tx == null) return out;
+  for (const k of ["objectId", "attachedTo"]) if (typeof tx[k] === "string") out.add(tx[k]);
+  if (tx.tx != null) touchedIds(tx.tx, out);
+  for (const inner of tx.txes ?? []) touchedIds(inner, out);
+  return out;
+}
+
 // src/utils/cache.ts
 var CACHED = [
   "core:class:Status",
@@ -90108,14 +90141,11 @@ function cachingClient(raw, env = process.env) {
       }
     }
   };
-  const previous = r.notify;
-  r.notify = (...txes) => {
-    for (const tx of txes) invalidate(tx);
-    previous?.(...txes);
-  };
+  txHub(r).listeners.add(invalidate);
   return new Proxy(r, {
     get(target, prop, receiver) {
       if (prop === "cacheStats") return stats;
+      if (prop === "__hulyRaw") return target;
       const orig = Reflect.get(target, prop, receiver);
       if (prop === "tx" && typeof orig === "function") {
         return async (tx, ...rest) => {
@@ -90482,7 +90512,7 @@ Pass the slug (or name/id) as \`workspace\` to other tools.`;
 var import_fs = require("fs");
 
 // src/version.ts
-var VERSION = "3.8.0";
+var VERSION = "4.0.0";
 
 // src/tools/diagnostics.ts
 var import_path = require("path");
@@ -90536,7 +90566,7 @@ async function reachable(url2) {
 async function checkSetupReport(args, env) {
   const set2 = (k) => (env[k] ?? "").trim() !== "";
   const lines = [];
-  const ok = (t) => {
+  const ok2 = (t) => {
     lines.push(`\u2705 ${t}`);
   };
   const warn = (t) => {
@@ -90551,7 +90581,8 @@ async function checkSetupReport(args, env) {
     set2("HULY_FRONT_URL") ? reachable(env.HULY_FRONT_URL) : Promise.resolve(void 0)
   ]);
   if (latest != null && isNewer(latest, version3)) warn(`Version ${version3} \u2014 ${latest} is available (npx -y huly-mcp-selfhost@latest, or update the plugin / Docker image)`);
-  else ok(`Version ${version3}${latest != null ? " (latest)" : ""}, Node.js ${process.versions.node}`);
+  else ok2(`Version ${version3}${latest != null ? " (latest)" : ""}, Node.js ${process.versions.node}`);
+  if (Number(process.versions.node.split(".")[0]) < 22) warn(`Node.js ${process.versions.node} is older than the supported 22 \u2014 update Node.js (huly-mcp-selfhost 4 needs 22 or newer)`);
   const session = getConnectionManager().describeAuth();
   const claims = session.token != null ? tokenClaims(session.token) : void 0;
   const auth = session.kind === "token" ? claims?.apiTokenId != null ? "API token" : "token" : session.kind;
@@ -90563,18 +90594,18 @@ async function checkSetupReport(args, env) {
     const date5 = new Date(claims.exp * 1e3).toISOString().slice(0, 10);
     if (days < 0) fail(`Token expired on ${date5}`);
     else if (days < 14) warn(`Token expires on ${date5} (in ${days} day(s)) \u2014 create a new one in time`);
-    else ok(`Token valid until ${date5}`);
+    else ok2(`Token valid until ${date5}`);
   }
   if (auth != null) {
     try {
       const workspaces = await listWorkspaces();
       if (workspaces.length === 0) fail("Logged in, but the account has no workspace");
-      else ok(`Logged in \xB7 ${workspaces.length} workspace(s): ${workspaces.slice(0, 8).map((w) => w.url).join(", ")}${workspaces.length > 8 ? ", \u2026" : ""}`);
+      else ok2(`Logged in \xB7 ${workspaces.length} workspace(s): ${workspaces.slice(0, 8).map((w) => w.url).join(", ")}${workspaces.length > 8 ? ", \u2026" : ""}`);
       const target = args.workspace ?? (workspaces.length === 1 ? workspaces[0].url : void 0);
       if (target != null) {
         const t0 = Date.now();
         await getWorkspace(target);
-        ok(`Workspace ${target} connected (${Date.now() - t0} ms)`);
+        ok2(`Workspace ${target} connected (${Date.now() - t0} ms)`);
       }
     } catch (e) {
       fail(`Login or connection failed: ${e.message}`);
@@ -90582,7 +90613,7 @@ async function checkSetupReport(args, env) {
   }
   if (frontStatus == null) {
     if (set2("HULY_ACCOUNTS_URL")) warn("HULY_FRONT_URL is not set \u2014 self-hosted: descriptions, documents and files need it");
-  } else if (frontStatus === "ok") ok(`Front service ${hostOf(env.HULY_FRONT_URL) ?? ""} reachable (descriptions, documents, files)`);
+  } else if (frontStatus === "ok") ok2(`Front service ${hostOf(env.HULY_FRONT_URL) ?? ""} reachable (descriptions, documents, files)`);
   else fail(`Front service ${hostOf(env.HULY_FRONT_URL) ?? ""} not reachable: ${frontStatus}`);
   const opts = [
     session.pinned != null ? `pinned workspace ${session.pinned}` : "all workspaces",
@@ -90831,10 +90862,31 @@ var updateProject = wrapToolHandler(async (args) => {
   return `\u2705 Project **${args.identifier}** updated (${Object.keys(updates).join(", ")}).`;
 });
 
-// src/utils/statuses.ts
+// src/utils/labels.ts
 var import_tracker2 = __toESM(require_lib11());
+var KIND = {
+  component: { cls: import_tracker2.default.class.Component, what: "Component" },
+  milestone: { cls: import_tracker2.default.class.Milestone, what: "Milestone" }
+};
+async function findByLabel(client, kind, space, label2, projectKey) {
+  const { cls, what } = KIND[kind];
+  const all = await client.findAll(cls, { space });
+  const q = label2.trim().toLowerCase();
+  const where = projectKey != null ? ` in project ${projectKey}` : " in this project";
+  const exact = all.filter((d) => String(d.label).toLowerCase() === q);
+  if (exact.length === 1) return exact[0];
+  if (exact.length > 1) throw new Error(`${what} name '${label2}' is ambiguous${where} (${exact.length} with that name).`);
+  const partial2 = q.length >= 2 ? all.filter((d) => String(d.label).toLowerCase().includes(q)) : [];
+  if (partial2.length === 1) return partial2[0];
+  if (partial2.length > 1) throw new Error(`${what} '${label2}' matches several${where}: ${partial2.map((d) => d.label).join(", ")}. Use the full name.`);
+  const names2 = all.map((d) => d.label).slice(0, 20);
+  throw new Error(`${what} '${label2}' not found${where}. ${names2.length > 0 ? `Available: ${names2.join(", ")}.` : `The project has no ${kind}s yet.`}`);
+}
+
+// src/utils/statuses.ts
+var import_tracker3 = __toESM(require_lib11());
 async function allowedIssueStatuses(client, project, kind) {
-  const all = await client.findAll(import_tracker2.default.class.IssueStatus, {});
+  const all = await client.findAll(import_tracker3.default.class.IssueStatus, {});
   const type = project?.type != null ? await client.findOne("task:class:ProjectType", { _id: project.type }) : void 0;
   const entries = type?.statuses ?? [];
   if (entries.length === 0) return all;
@@ -90846,20 +90898,20 @@ async function resolveIssueStatus(client, project, kind, name2) {
   const allowed = await allowedIssueStatuses(client, project, kind);
   const hit = allowed.find((s) => String(s.name).toLowerCase() === name2.trim().toLowerCase());
   if (hit != null) return hit;
-  const elsewhere = (await client.findAll(import_tracker2.default.class.IssueStatus, {})).some((s) => String(s.name).toLowerCase() === name2.trim().toLowerCase());
+  const elsewhere = (await client.findAll(import_tracker3.default.class.IssueStatus, {})).some((s) => String(s.name).toLowerCase() === name2.trim().toLowerCase());
   const names2 = [...new Set(allowed.map((s) => s.name))].join(", ");
   throw new Error(elsewhere ? `Status '${name2}' is not used for issues in ${String(project?.identifier ?? "this project")} (it belongs to another task type, e.g. pull requests). Available: ${names2}.` : `Status '${name2}' not found. Available: ${names2}.`);
 }
 
 // src/tools/relations.ts
-var import_tracker3 = __toESM(require_lib11());
+var import_tracker4 = __toESM(require_lib11());
 var import_core13 = __toESM(require_lib4());
 var import_rank = __toESM(require_lib13());
 var addRelation = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const issueA = await client.findOne(import_tracker3.default.class.Issue, { identifier: args.identifier });
+  const issueA = await client.findOne(import_tracker4.default.class.Issue, { identifier: args.identifier });
   if (issueA == null) throw new Error(`Issue '${args.identifier}' not found.`);
-  const issueB = await client.findOne(import_tracker3.default.class.Issue, { identifier: args.relatedTo });
+  const issueB = await client.findOne(import_tracker4.default.class.Issue, { identifier: args.relatedTo });
   if (issueB == null) throw new Error(`Issue '${args.relatedTo}' not found.`);
   const relA = { _id: issueB._id, _class: issueB._class };
   const relB = { _id: issueA._id, _class: issueA._class };
@@ -90867,63 +90919,63 @@ var addRelation = wrapToolHandler(async (args) => {
   if (existingRels.some((r) => r._id === issueB._id)) {
     return `**${args.identifier}** is already related to **${args.relatedTo}**.`;
   }
-  await client.updateDoc(import_tracker3.default.class.Issue, issueA.space, issueA._id, {
+  await client.updateDoc(import_tracker4.default.class.Issue, issueA.space, issueA._id, {
     relations: [...existingRels, relA]
   });
-  await client.updateDoc(import_tracker3.default.class.Issue, issueB.space, issueB._id, {
+  await client.updateDoc(import_tracker4.default.class.Issue, issueB.space, issueB._id, {
     relations: [...issueB.relations ?? [], relB]
   });
   return `\u2705 **${args.identifier}** is now related to **${args.relatedTo}**`;
 });
 var addBlockedBy = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const issue2 = await client.findOne(import_tracker3.default.class.Issue, { identifier: args.identifier });
+  const issue2 = await client.findOne(import_tracker4.default.class.Issue, { identifier: args.identifier });
   if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
-  const blocker = await client.findOne(import_tracker3.default.class.Issue, { identifier: args.blockedBy });
+  const blocker = await client.findOne(import_tracker4.default.class.Issue, { identifier: args.blockedBy });
   if (blocker == null) throw new Error(`Issue '${args.blockedBy}' not found.`);
   const blockerRef = { _id: blocker._id, _class: blocker._class };
   const existing = issue2.blockedBy ?? [];
   if (existing.some((r) => r._id === blocker._id)) {
     return `**${args.identifier}** is already blocked by **${args.blockedBy}**.`;
   }
-  await client.updateDoc(import_tracker3.default.class.Issue, issue2.space, issue2._id, {
+  await client.updateDoc(import_tracker4.default.class.Issue, issue2.space, issue2._id, {
     blockedBy: [...existing, blockerRef]
   });
   return `\u2705 **${args.identifier}** is now blocked by **${args.blockedBy}**`;
 });
 var setParent = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const child = await client.findOne(import_tracker3.default.class.Issue, { identifier: args.identifier });
+  const child = await client.findOne(import_tracker4.default.class.Issue, { identifier: args.identifier });
   if (child == null) throw new Error(`Issue '${args.identifier}' not found.`);
   if (args.parentIdentifier == null) {
     const result2 = await linkToParent(client, child, null);
     return result2 === "unchanged" ? `**${args.identifier}** has no parent.` : `\u2705 Cleared parent from **${args.identifier}**`;
   }
-  const parent = await client.findOne(import_tracker3.default.class.Issue, { identifier: args.parentIdentifier });
+  const parent = await client.findOne(import_tracker4.default.class.Issue, { identifier: args.parentIdentifier });
   if (parent == null) throw new Error(`Parent issue '${args.parentIdentifier}' not found.`);
   const result = await linkToParent(client, child, parent);
   if (result === "unchanged") return `**${args.identifier}** is already a sub-issue of **${args.parentIdentifier}**.`;
   return `\u2705 **${args.identifier}** is now a sub-issue of **${args.parentIdentifier}**${result === "repaired" ? " (repaired link from an older version)" : ""}`;
 });
 function isLegacyLink(issue2) {
-  return issue2.attachedTo === import_tracker3.default.ids.NoParent && (issue2.parents ?? []).length > 0;
+  return issue2.attachedTo === import_tracker4.default.ids.NoParent && (issue2.parents ?? []).length > 0;
 }
 async function linkToParent(client, child, parent) {
   const legacy = isLegacyLink(child);
   const undoLegacy = async () => {
-    const old = await client.findOne(import_tracker3.default.class.Issue, { _id: child.parents[0].parentId });
+    const old = await client.findOne(import_tracker4.default.class.Issue, { _id: child.parents[0].parentId });
     if (old == null) return;
     const childInfo = (old.childInfo ?? []).filter((c) => c.childId !== child._id);
     const removed = (old.childInfo ?? []).length - childInfo.length;
-    await client.updateDoc(import_tracker3.default.class.Issue, old.space, old._id, {
+    await client.updateDoc(import_tracker4.default.class.Issue, old.space, old._id, {
       childInfo,
       subIssues: Math.max(0, (old.subIssues ?? 0) - Math.max(removed, 1))
     });
   };
   if (parent == null) {
-    if (child.attachedTo === import_tracker3.default.ids.NoParent && (child.parents ?? []).length === 0) return "unchanged";
+    if (child.attachedTo === import_tracker4.default.ids.NoParent && (child.parents ?? []).length === 0) return "unchanged";
     if (legacy) await undoLegacy();
-    await client.update(child, { attachedTo: import_tracker3.default.ids.NoParent, parents: [] });
+    await client.update(child, { attachedTo: import_tracker4.default.ids.NoParent, parents: [] });
     return "cleared";
   }
   if (parent._id === child._id) throw new Error("An issue cannot be its own parent.");
@@ -90931,16 +90983,16 @@ async function linkToParent(client, child, parent) {
     throw new Error(`${parent.identifier} is a sub-issue of ${child.identifier} \u2014 that would create a cycle.`);
   }
   if (child.attachedTo === parent._id) return "unchanged";
-  const lastSibling = await client.findOne(import_tracker3.default.class.Issue, { attachedTo: parent._id }, { sort: { rank: import_core13.SortingOrder.Descending } });
+  const lastSibling = await client.findOne(import_tracker4.default.class.Issue, { attachedTo: parent._id }, { sort: { rank: import_core13.SortingOrder.Descending } });
   if (legacy) await undoLegacy();
   await client.update(child, { attachedTo: parent._id, rank: (0, import_rank.makeRank)(lastSibling?.rank, void 0) });
   return legacy ? "repaired" : "linked";
 }
 var repairParentLinks = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const project = await client.findOne(import_tracker3.default.class.Project, { identifier: args.projectIdentifier });
+  const project = await client.findOne(import_tracker4.default.class.Project, { identifier: args.projectIdentifier });
   if (project == null) throw new Error(`Project '${args.projectIdentifier}' not found.`);
-  const issues = await client.findAll(import_tracker3.default.class.Issue, { space: project._id });
+  const issues = await client.findAll(import_tracker4.default.class.Issue, { space: project._id });
   const byId = new Map(issues.map((i) => [i._id, i]));
   const legacy = issues.filter(isLegacyLink);
   if (legacy.length === 0) return `No broken parent links in ${args.projectIdentifier}.`;
@@ -90949,7 +91001,7 @@ var repairParentLinks = wrapToolHandler(async (args) => {
   let skipped = 0;
   for (const child of legacy) {
     const parentRef = child.parents[0];
-    const parent = byId.get(parentRef.parentId) ?? await client.findOne(import_tracker3.default.class.Issue, { _id: parentRef.parentId });
+    const parent = byId.get(parentRef.parentId) ?? await client.findOne(import_tracker4.default.class.Issue, { _id: parentRef.parentId });
     if (parent == null) {
       skipped++;
       lines.push(`- ${child.identifier}: parent ${parentRef.identifier} no longer exists \u2014 skipped`);
@@ -90971,31 +91023,31 @@ ${lines.join("\n")}`;
 });
 var removeRelation = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const issueA = await client.findOne(import_tracker3.default.class.Issue, { identifier: args.identifier });
+  const issueA = await client.findOne(import_tracker4.default.class.Issue, { identifier: args.identifier });
   if (issueA == null) throw new Error(`Issue '${args.identifier}' not found.`);
-  const issueB = await client.findOne(import_tracker3.default.class.Issue, { identifier: args.relatedTo });
+  const issueB = await client.findOne(import_tracker4.default.class.Issue, { identifier: args.relatedTo });
   if (issueB == null) throw new Error(`Issue '${args.relatedTo}' not found.`);
   const aHas = (issueA.relations ?? []).some((r) => r._id === issueB._id);
   const bHas = (issueB.relations ?? []).some((r) => r._id === issueA._id);
   if (!aHas && !bHas) return `**${args.identifier}** and **${args.relatedTo}** are not related.`;
-  if (aHas) await client.updateDoc(import_tracker3.default.class.Issue, issueA.space, issueA._id, { relations: (issueA.relations ?? []).filter((r) => r._id !== issueB._id) });
-  if (bHas) await client.updateDoc(import_tracker3.default.class.Issue, issueB.space, issueB._id, { relations: (issueB.relations ?? []).filter((r) => r._id !== issueA._id) });
+  if (aHas) await client.updateDoc(import_tracker4.default.class.Issue, issueA.space, issueA._id, { relations: (issueA.relations ?? []).filter((r) => r._id !== issueB._id) });
+  if (bHas) await client.updateDoc(import_tracker4.default.class.Issue, issueB.space, issueB._id, { relations: (issueB.relations ?? []).filter((r) => r._id !== issueA._id) });
   return `\u2705 **${args.identifier}** and **${args.relatedTo}** are no longer related`;
 });
 var removeBlockedBy = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const issue2 = await client.findOne(import_tracker3.default.class.Issue, { identifier: args.identifier });
+  const issue2 = await client.findOne(import_tracker4.default.class.Issue, { identifier: args.identifier });
   if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
-  const blocker = await client.findOne(import_tracker3.default.class.Issue, { identifier: args.blockedBy });
+  const blocker = await client.findOne(import_tracker4.default.class.Issue, { identifier: args.blockedBy });
   if (blocker == null) throw new Error(`Issue '${args.blockedBy}' not found.`);
   const existing = issue2.blockedBy ?? [];
   if (!existing.some((r) => r._id === blocker._id)) return `**${args.identifier}** is not blocked by **${args.blockedBy}**.`;
-  await client.updateDoc(import_tracker3.default.class.Issue, issue2.space, issue2._id, { blockedBy: existing.filter((r) => r._id !== blocker._id) });
+  await client.updateDoc(import_tracker4.default.class.Issue, issue2.space, issue2._id, { blockedBy: existing.filter((r) => r._id !== blocker._id) });
   return `\u2705 **${args.identifier}** is no longer blocked by **${args.blockedBy}**`;
 });
 
 // src/tools/issues.ts
-var import_tracker5 = __toESM(require_lib11());
+var import_tracker6 = __toESM(require_lib11());
 var import_tags = __toESM(require_lib16());
 var import_task2 = __toESM(require_lib14());
 var import_core14 = __toESM(require_lib4());
@@ -91124,13 +91176,13 @@ function extractText(node2) {
 }
 
 // src/utils/format.ts
-var import_tracker4 = __toESM(require_lib11());
+var import_tracker5 = __toESM(require_lib11());
 var PRIORITY_LABELS = {
-  [import_tracker4.IssuePriority.NoPriority]: "No Priority",
-  [import_tracker4.IssuePriority.Urgent]: "Urgent",
-  [import_tracker4.IssuePriority.High]: "High",
-  [import_tracker4.IssuePriority.Medium]: "Medium",
-  [import_tracker4.IssuePriority.Low]: "Low"
+  [import_tracker5.IssuePriority.NoPriority]: "No Priority",
+  [import_tracker5.IssuePriority.Urgent]: "Urgent",
+  [import_tracker5.IssuePriority.High]: "High",
+  [import_tracker5.IssuePriority.Medium]: "Medium",
+  [import_tracker5.IssuePriority.Low]: "Low"
 };
 var MILESTONE_STATUS_LABELS = {
   0: "Planned",
@@ -91289,10 +91341,10 @@ async function findMemberId(client, name2) {
 }
 var listIssues = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const project = await client.findOne(import_tracker5.default.class.Project, { identifier: args.projectIdentifier });
+  const project = await client.findOne(import_tracker6.default.class.Project, { identifier: args.projectIdentifier });
   if (project == null) throw new Error(`Project '${args.projectIdentifier}' not found.`);
   const query = { space: project._id };
-  const statuses = await client.findAll(import_tracker5.default.class.IssueStatus, {});
+  const statuses = await client.findAll(import_tracker6.default.class.IssueStatus, {});
   const statusMap = new Map(statuses.map((s) => [s._id, s.name]));
   const scope = args.status ?? "open";
   if (scope === "open") {
@@ -91303,31 +91355,27 @@ var listIssues = wrapToolHandler(async (args) => {
     query.status = status._id;
   }
   if (args.priority != null) {
-    query.priority = import_tracker5.IssuePriority[args.priority];
+    query.priority = import_tracker6.IssuePriority[args.priority];
   }
   if (args.milestoneLabel !== void 0) {
     if (args.milestoneLabel === null) query.milestone = null;
     else {
-      const m = await client.findOne(import_tracker5.default.class.Milestone, { space: project._id, label: args.milestoneLabel });
-      if (m == null) throw new Error(`Milestone '${args.milestoneLabel}' not found in project ${args.projectIdentifier}.`);
-      query.milestone = m._id;
+      query.milestone = (await findByLabel(client, "milestone", project._id, args.milestoneLabel, args.projectIdentifier))._id;
     }
   }
   if (args.componentLabel !== void 0) {
     if (args.componentLabel === null) query.component = null;
     else {
-      const c = await client.findOne(import_tracker5.default.class.Component, { space: project._id, label: args.componentLabel });
-      if (c == null) throw new Error(`Component '${args.componentLabel}' not found in project ${args.projectIdentifier}.`);
-      query.component = c._id;
+      query.component = (await findByLabel(client, "component", project._id, args.componentLabel, args.projectIdentifier))._id;
     }
   }
   if (args.assignee !== void 0) {
     query.assignee = args.assignee === null ? null : await findMemberId(client, args.assignee);
   }
   if (args.parentIdentifier !== void 0) {
-    if (args.parentIdentifier === null) query.attachedTo = import_tracker5.default.ids.NoParent;
+    if (args.parentIdentifier === null) query.attachedTo = import_tracker6.default.ids.NoParent;
     else {
-      const parent = await client.findOne(import_tracker5.default.class.Issue, { identifier: args.parentIdentifier });
+      const parent = await client.findOne(import_tracker6.default.class.Issue, { identifier: args.parentIdentifier });
       if (parent == null) throw new Error(`Issue '${args.parentIdentifier}' not found.`);
       query.attachedTo = parent._id;
     }
@@ -91339,7 +91387,7 @@ var listIssues = wrapToolHandler(async (args) => {
   else if (args.due === "set") query.dueDate = { $ne: null };
   else if (args.due === "none") query.dueDate = null;
   if (args.labelName != null) {
-    const label2 = await client.findOne(import_tags.default.class.TagElement, { targetClass: import_tracker5.default.class.Issue, title: args.labelName });
+    const label2 = await client.findOne(import_tags.default.class.TagElement, { targetClass: import_tracker6.default.class.Issue, title: args.labelName });
     if (label2 == null) throw new Error(`Label '${args.labelName}' not found.`);
     const refs = await client.findAll(import_tags.default.class.TagReference, { tag: label2._id });
     query._id = { $in: refs.map((r) => r.attachedTo) };
@@ -91348,16 +91396,16 @@ var listIssues = wrapToolHandler(async (args) => {
   let found;
   let total;
   if (args.blocked === true) {
-    const candidates = (await client.findAll(import_tracker5.default.class.Issue, query, { sort: { modifiedOn: import_core14.SortingOrder.Descending } })).filter((i) => (i.blockedBy ?? []).length > 0);
+    const candidates = (await client.findAll(import_tracker6.default.class.Issue, query, { sort: { modifiedOn: import_core14.SortingOrder.Descending } })).filter((i) => (i.blockedBy ?? []).length > 0);
     const blockerIds = [...new Set(candidates.flatMap((i) => (i.blockedBy ?? []).map((b) => b._id)))];
     const closed = new Set(statuses.filter((x) => x.category === import_task2.default.statusCategory.Won || x.category === import_task2.default.statusCategory.Lost).map((x) => x._id));
-    const openBlockers = new Set((blockerIds.length > 0 ? await client.findAll(import_tracker5.default.class.Issue, { _id: { $in: blockerIds } }) : []).filter((b) => !closed.has(b.status)).map((b) => b._id));
+    const openBlockers = new Set((blockerIds.length > 0 ? await client.findAll(import_tracker6.default.class.Issue, { _id: { $in: blockerIds } }) : []).filter((b) => !closed.has(b.status)).map((b) => b._id));
     const blocked = candidates.filter((i) => (i.blockedBy ?? []).some((b) => openBlockers.has(b._id)));
     total = blocked.length;
     found = blocked.slice(0, args.limit + offset);
   } else {
     found = await client.findAll(
-      import_tracker5.default.class.Issue,
+      import_tracker6.default.class.Issue,
       query,
       { limit: args.limit + offset, sort: { modifiedOn: import_core14.SortingOrder.Descending }, total: true }
     );
@@ -91368,7 +91416,7 @@ var listIssues = wrapToolHandler(async (args) => {
   if (issues.length === 0) return `No ${what} in project ${args.projectIdentifier}${offset > 0 ? ` after offset ${offset}` : ""}.${scope === "open" ? ' (status: "all" includes done ones.)' : ""}`;
   const lines = issues.map((issue2) => {
     const statusName2 = statusMap.get(issue2.status) ?? "Unknown";
-    const prio = issue2.priority !== import_tracker5.IssuePriority.NoPriority ? ` \xB7 ${priorityLabel(issue2.priority)}` : "";
+    const prio = issue2.priority !== import_tracker6.IssuePriority.NoPriority ? ` \xB7 ${priorityLabel(issue2.priority)}` : "";
     const due2 = issue2.dueDate != null ? ` \xB7 due ${formatDate(issue2.dueDate)}` : "";
     return `- **${issue2.identifier}** ${issue2.title} \u2014 ${statusName2}${prio}${due2}`;
   });
@@ -91382,24 +91430,24 @@ ${lines.join("\n")}${more}`;
 });
 var getIssue = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const issue2 = await client.findOne(import_tracker5.default.class.Issue, { identifier: args.identifier });
+  const issue2 = await client.findOne(import_tracker6.default.class.Issue, { identifier: args.identifier });
   if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
-  const status = await client.findOne(import_tracker5.default.class.IssueStatus, { _id: issue2.status });
-  const milestone = issue2.milestone != null ? await client.findOne(import_tracker5.default.class.Milestone, { _id: issue2.milestone }) : void 0;
-  const component = issue2.component != null ? await client.findOne(import_tracker5.default.class.Component, { _id: issue2.component }) : void 0;
+  const status = await client.findOne(import_tracker6.default.class.IssueStatus, { _id: issue2.status });
+  const milestone = issue2.milestone != null ? await client.findOne(import_tracker6.default.class.Milestone, { _id: issue2.milestone }) : void 0;
+  const component = issue2.component != null ? await client.findOne(import_tracker6.default.class.Component, { _id: issue2.component }) : void 0;
   const assignee = issue2.assignee != null ? (await peopleNames(client)).get(issue2.assignee) ?? String(issue2.assignee) : "Unassigned";
   const labelRefs = await client.findAll(import_tags.default.class.TagReference, { attachedTo: issue2._id });
   const refIds = async (list) => {
     if (list == null || list.length === 0) return "None";
     const names2 = [];
     for (const r of list) {
-      if (r._class != null && r._class !== import_tracker5.default.class.Issue) {
+      if (r._class != null && r._class !== import_tracker6.default.class.Issue) {
         const doc = await client.findOne(r._class, { _id: r._id });
         const kind = String(r._class).split(":").pop()?.replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase() ?? "doc";
         names2.push(`${kind} "${String(doc?.name ?? doc?.title ?? "?")}" \`${String(r._id)}\``);
         continue;
       }
-      const other = await client.findOne(import_tracker5.default.class.Issue, { _id: r._id });
+      const other = await client.findOne(import_tracker6.default.class.Issue, { _id: r._id });
       names2.push(other?.identifier ?? String(r._id));
     }
     return names2.join(", ");
@@ -91460,7 +91508,7 @@ ${text3.substring(0, 2e3)}`);
 });
 var createIssue = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const project = await client.findOne(import_tracker5.default.class.Project, { identifier: args.projectIdentifier });
+  const project = await client.findOne(import_tracker6.default.class.Project, { identifier: args.projectIdentifier });
   if (project == null) throw new Error(`Project '${args.projectIdentifier}' not found.`);
   const kind = await client.findOne(import_task2.default.class.TaskType, project.type != null ? { parent: project.type } : {});
   if (kind == null) throw new Error("Could not find a TaskType for this project.");
@@ -91471,10 +91519,10 @@ var createIssue = wrapToolHandler(async (args) => {
     componentLabel: args.componentLabel,
     milestoneLabel: args.milestoneLabel
   });
-  const parent = args.parentIdentifier != null ? await client.findOne(import_tracker5.default.class.Issue, { identifier: args.parentIdentifier }) : void 0;
+  const parent = args.parentIdentifier != null ? await client.findOne(import_tracker6.default.class.Issue, { identifier: args.parentIdentifier }) : void 0;
   if (args.parentIdentifier != null && parent == null) throw new Error(`Parent issue '${args.parentIdentifier}' not found.`);
   const incResult = await client.updateDoc(
-    import_tracker5.default.class.Project,
+    import_tracker6.default.class.Project,
     project.space,
     project._id,
     { $inc: { sequence: 1 } },
@@ -91485,7 +91533,7 @@ var createIssue = wrapToolHandler(async (args) => {
   const status = chosen != null ? chosen : project.defaultIssueStatus != null ? statuses.find((s) => s._id === project.defaultIssueStatus) ?? statuses[0] : statuses[0];
   if (status == null) throw new Error(`No statuses found in project '${args.projectIdentifier}'.`);
   const lastIssue = await client.findOne(
-    import_tracker5.default.class.Issue,
+    import_tracker6.default.class.Issue,
     { space: project._id },
     { sort: { rank: import_core14.SortingOrder.Descending } }
   );
@@ -91503,16 +91551,16 @@ var createIssue = wrapToolHandler(async (args) => {
     );
   }
   await client.addCollection(
-    import_tracker5.default.class.Issue,
+    import_tracker6.default.class.Issue,
     project._id,
-    import_tracker5.default.ids.NoParent,
-    import_tracker5.default.class.Issue,
+    import_tracker6.default.ids.NoParent,
+    import_tracker6.default.class.Issue,
     "subIssues",
     {
       title: args.title,
       description: descriptionBlobId,
       status: status._id,
-      priority: import_tracker5.IssuePriority[args.priority],
+      priority: import_tracker6.IssuePriority[args.priority],
       number: issueNumber,
       identifier,
       rank,
@@ -91534,19 +91582,29 @@ var createIssue = wrapToolHandler(async (args) => {
     issueId
   );
   if (parent != null) {
-    const created = await client.findOne(import_tracker5.default.class.Issue, { _id: issueId });
+    const created = await client.findOne(import_tracker6.default.class.Issue, { _id: issueId });
     if (created != null) await linkToParent(client, created, parent);
   }
   const extra = [parent != null ? `Sub-issue of ${parent.identifier}` : "", args.assignee != null ? `Assignee: ${args.assignee}` : "", args.componentLabel != null ? `Component: ${args.componentLabel}` : "", args.milestoneLabel != null ? `Milestone: ${args.milestoneLabel}` : ""].filter((x) => x !== "");
+  const hints = [];
+  if (args.componentLabel == null) {
+    const comps = await client.findAll(import_tracker6.default.class.Component, { space: project._id });
+    if (comps.length > 0) hints.push(`No component set \u2014 ${args.projectIdentifier} has: ${comps.map((c) => c.label).slice(0, 12).join(", ")} (update_issue componentLabel).`);
+  }
+  if (args.milestoneLabel == null) {
+    const open2 = (await client.findAll(import_tracker6.default.class.Milestone, { space: project._id })).filter((m) => m.status === 0 || m.status === 1);
+    if (open2.length > 0) hints.push(`No milestone set \u2014 open: ${open2.map((m) => m.label).slice(0, 8).join(", ")}.`);
+  }
   return `\u2705 Created **${identifier}**: ${args.title}
-Status: ${status.name} | Priority: ${priorityLabel(import_tracker5.IssuePriority[args.priority])}${extra.length > 0 ? ` | ${extra.join(" | ")}` : ""}`;
+Status: ${status.name} | Priority: ${priorityLabel(import_tracker6.IssuePriority[args.priority])}${extra.length > 0 ? ` | ${extra.join(" | ")}` : ""}${hints.length > 0 ? `
+${hints.join("\n")}` : ""}`;
 });
 var deleteIssue = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const issue2 = await client.findOne(import_tracker5.default.class.Issue, { identifier: args.identifier });
+  const issue2 = await client.findOne(import_tracker6.default.class.Issue, { identifier: args.identifier });
   if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
   await client.removeCollection(
-    import_tracker5.default.class.Issue,
+    import_tracker6.default.class.Issue,
     issue2.space,
     issue2._id,
     issue2.attachedTo,
@@ -91558,11 +91616,11 @@ var deleteIssue = wrapToolHandler(async (args) => {
 async function resolveFieldUpdates(client, issue2, args) {
   const updates = {};
   if (args.statusName != null) {
-    const project = await client.findOne(import_tracker5.default.class.Project, { _id: issue2.space });
+    const project = await client.findOne(import_tracker6.default.class.Project, { _id: issue2.space });
     updates.status = (await resolveIssueStatus(client, project, issue2.kind, args.statusName))._id;
   }
   if (args.priority != null) {
-    updates.priority = import_tracker5.IssuePriority[args.priority];
+    updates.priority = import_tracker6.IssuePriority[args.priority];
   }
   if (args.dueDate !== void 0) {
     if (args.dueDate != null && isNaN(new Date(args.dueDate).getTime())) throw new Error(`Invalid date: '${args.dueDate}'`);
@@ -91579,25 +91637,21 @@ async function resolveFieldUpdates(client, issue2, args) {
     if (args.componentLabel === null) {
       updates.component = null;
     } else {
-      const component = await client.findOne(import_tracker5.default.class.Component, { space: issue2.space, label: args.componentLabel });
-      if (component == null) throw new Error(`Component '${args.componentLabel}' not found in this project.`);
-      updates.component = component._id;
+      updates.component = (await findByLabel(client, "component", issue2.space, args.componentLabel))._id;
     }
   }
   if (args.milestoneLabel !== void 0) {
     if (args.milestoneLabel === null) {
       updates.milestone = null;
     } else {
-      const milestone = await client.findOne(import_tracker5.default.class.Milestone, { space: issue2.space, label: args.milestoneLabel });
-      if (milestone == null) throw new Error(`Milestone '${args.milestoneLabel}' not found in this project.`);
-      updates.milestone = milestone._id;
+      updates.milestone = (await findByLabel(client, "milestone", issue2.space, args.milestoneLabel))._id;
     }
   }
   return updates;
 }
 var updateIssue = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const issue2 = await client.findOne(import_tracker5.default.class.Issue, { identifier: args.identifier });
+  const issue2 = await client.findOne(import_tracker6.default.class.Issue, { identifier: args.identifier });
   if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
   const updates = {};
   if (args.title != null) updates.title = args.title;
@@ -91614,7 +91668,7 @@ var updateIssue = wrapToolHandler(async (args) => {
   }
   Object.assign(updates, await resolveFieldUpdates(client, issue2, args));
   if (Object.keys(updates).length === 0) return `No changes made to ${args.identifier}.`;
-  await client.updateDoc(import_tracker5.default.class.Issue, issue2.space, issue2._id, updates);
+  await client.updateDoc(import_tracker6.default.class.Issue, issue2.space, issue2._id, updates);
   const changed = Object.keys(updates).join(", ");
   return `\u2705 Updated **${args.identifier}** \u2014 changed: ${changed}`;
 });
@@ -91623,13 +91677,13 @@ var bulkUpdateIssues = wrapToolHandler(async (args) => {
   const identifiers = [...new Set(args.identifiers)];
   const planned = [];
   for (const identifier of identifiers) {
-    const issue2 = await client.findOne(import_tracker5.default.class.Issue, { identifier });
+    const issue2 = await client.findOne(import_tracker6.default.class.Issue, { identifier });
     if (issue2 == null) throw new Error(`Issue '${identifier}' not found. Nothing was changed.`);
     planned.push({ issue: issue2, updates: await resolveFieldUpdates(client, issue2, args) });
   }
   if (planned.every((p) => Object.keys(p.updates).length === 0)) return "No changes requested.";
   for (const { issue: issue2, updates } of planned) {
-    await client.updateDoc(import_tracker5.default.class.Issue, issue2.space, issue2._id, updates);
+    await client.updateDoc(import_tracker6.default.class.Issue, issue2.space, issue2._id, updates);
   }
   const changed = Object.keys(planned[0].updates).join(", ");
   return `\u2705 Updated ${planned.length} issue(s) \u2014 changed: ${changed}
@@ -91637,13 +91691,13 @@ ${planned.map((p) => `- ${p.issue.identifier}`).join("\n")}`;
 });
 var listSubIssues = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const root = await client.findOne(import_tracker5.default.class.Issue, { identifier: args.identifier });
+  const root = await client.findOne(import_tracker6.default.class.Issue, { identifier: args.identifier });
   if (root == null) throw new Error(`Issue '${args.identifier}' not found.`);
-  const statuses = await client.findAll(import_tracker5.default.class.IssueStatus, {});
+  const statuses = await client.findAll(import_tracker6.default.class.IssueStatus, {});
   const statusById = new Map(statuses.map((s) => [s._id, s]));
   const isDone = (i) => statusById.get(i.status)?.category === import_task2.default.statusCategory.Won;
   const isCanceled = (i) => statusById.get(i.status)?.category === import_task2.default.statusCategory.Lost;
-  const projectIssues = await client.findAll(import_tracker5.default.class.Issue, { space: root.space });
+  const projectIssues = await client.findAll(import_tracker6.default.class.Issue, { space: root.space });
   const childrenOf2 = (id) => projectIssues.filter((i) => i._id !== id && (i.attachedTo === id || i.parents?.[0]?.parentId === id));
   let total = 0;
   let done = 0;
@@ -91655,8 +91709,8 @@ var listSubIssues = wrapToolHandler(async (args) => {
       if (isDone(child)) done++;
       if (isCanceled(child)) canceled++;
       const statusName2 = statusById.get(child.status)?.name ?? "Unknown";
-      const mark = isDone(child) ? "x" : isCanceled(child) ? "-" : " ";
-      lines.push(`${"  ".repeat(level)}- [${mark}] **${child.identifier}** [${statusName2}] ${child.title}`);
+      const mark2 = isDone(child) ? "x" : isCanceled(child) ? "-" : " ";
+      lines.push(`${"  ".repeat(level)}- [${mark2}] **${child.identifier}** [${statusName2}] ${child.title}`);
       if (level + 1 < args.depth) walk(child._id, level + 1);
     }
   };
@@ -91669,22 +91723,22 @@ ${lines.join("\n")}`;
 });
 var moveIssue = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const issue2 = await client.findOne(import_tracker5.default.class.Issue, { identifier: args.identifier });
+  const issue2 = await client.findOne(import_tracker6.default.class.Issue, { identifier: args.identifier });
   if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
-  const target = await client.findOne(import_tracker5.default.class.Project, { identifier: args.targetProjectIdentifier });
+  const target = await client.findOne(import_tracker6.default.class.Project, { identifier: args.targetProjectIdentifier });
   if (target == null) throw new Error(`Project '${args.targetProjectIdentifier}' not found.`);
   if (target._id === issue2.space) throw new Error(`${args.identifier} is already in project ${args.targetProjectIdentifier}.`);
   let statusUpdate = {};
   if (args.statusName != null) {
-    const status = await client.findOne(import_tracker5.default.class.IssueStatus, { name: args.statusName });
+    const status = await client.findOne(import_tracker6.default.class.IssueStatus, { name: args.statusName });
     if (status == null) throw new Error(`Status '${args.statusName}' not found.`);
     statusUpdate = { status: status._id };
   }
   const hierarchy = client.getHierarchy();
   const renamed = [];
-  const lastRank = async () => (await client.findOne(import_tracker5.default.class.Issue, { space: target._id }, { sort: { rank: import_core14.SortingOrder.Descending } }))?.rank;
+  const lastRank = async () => (await client.findOne(import_tracker6.default.class.Issue, { space: target._id }, { sort: { rank: import_core14.SortingOrder.Descending } }))?.rank;
   const nextNumber2 = async () => {
-    const inc = await client.updateDoc(import_tracker5.default.class.Project, import_core14.default.space.Space, target._id, { $inc: { sequence: 1 } }, true);
+    const inc = await client.updateDoc(import_tracker6.default.class.Project, import_core14.default.space.Space, target._id, { $inc: { sequence: 1 } }, true);
     return inc?.object?.sequence ?? target.sequence + 1;
   };
   const moveDoc = async (doc, extra) => {
@@ -91693,7 +91747,7 @@ var moveIssue = wrapToolHandler(async (args) => {
       const of = attribute.type.of;
       const attached = await client.findAll(of, { attachedTo: doc._id });
       for (const child of attached) {
-        if (hierarchy.isDerived(of, import_tracker5.default.class.Issue)) {
+        if (hierarchy.isDerived(of, import_tracker6.default.class.Issue)) {
           const number5 = await nextNumber2();
           renamed.push(`${child.identifier} \u2192 ${target.identifier}-${number5}`);
           await moveDoc(child, { number: number5, identifier: `${target.identifier}-${number5}`, rank: (0, import_rank2.makeRank)(await lastRank(), void 0), component: null, milestone: null });
@@ -91713,18 +91767,18 @@ ${renamed.map((r) => `- ${r}`).join("\n")}`;
 });
 
 // src/tools/comments.ts
-var import_tracker6 = __toESM(require_lib11());
+var import_tracker7 = __toESM(require_lib11());
 var import_chunter = __toESM(require_lib17());
 var import_core15 = __toESM(require_lib4());
 var addComment = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const issue2 = await client.findOne(import_tracker6.default.class.Issue, { identifier: args.identifier });
+  const issue2 = await client.findOne(import_tracker7.default.class.Issue, { identifier: args.identifier });
   if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
   await client.addCollection(
     import_chunter.default.class.ChatMessage,
     issue2.space,
     issue2._id,
-    import_tracker6.default.class.Issue,
+    import_tracker7.default.class.Issue,
     "comments",
     { message: args.message }
   );
@@ -91732,7 +91786,7 @@ var addComment = wrapToolHandler(async (args) => {
 });
 var listComments = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const issue2 = await client.findOne(import_tracker6.default.class.Issue, { identifier: args.identifier });
+  const issue2 = await client.findOne(import_tracker7.default.class.Issue, { identifier: args.identifier });
   if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
   const newest2 = await client.findAll(
     import_chunter.default.class.ChatMessage,
@@ -91760,7 +91814,7 @@ ${lines.join("\n\n")}`;
 });
 var deleteComment = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const issue2 = await client.findOne(import_tracker6.default.class.Issue, { identifier: args.identifier });
+  const issue2 = await client.findOne(import_tracker7.default.class.Issue, { identifier: args.identifier });
   if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
   const comment = await client.findOne(import_chunter.default.class.ChatMessage, {
     _id: args.commentId,
@@ -91772,14 +91826,14 @@ var deleteComment = wrapToolHandler(async (args) => {
     issue2.space,
     comment._id,
     issue2._id,
-    import_tracker6.default.class.Issue,
+    import_tracker7.default.class.Issue,
     "comments"
   );
   return `\u2705 Comment \`${args.commentId}\` deleted from **${args.identifier}**.`;
 });
 var updateComment = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const issue2 = await client.findOne(import_tracker6.default.class.Issue, { identifier: args.identifier });
+  const issue2 = await client.findOne(import_tracker7.default.class.Issue, { identifier: args.identifier });
   if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
   const comment = await client.findOne(import_chunter.default.class.ChatMessage, {
     _id: args.commentId,
@@ -91791,7 +91845,7 @@ var updateComment = wrapToolHandler(async (args) => {
     issue2.space,
     comment._id,
     issue2._id,
-    import_tracker6.default.class.Issue,
+    import_tracker7.default.class.Issue,
     "comments",
     { message: args.message, editedOn: Date.now() }
   );
@@ -91799,20 +91853,20 @@ var updateComment = wrapToolHandler(async (args) => {
 });
 
 // src/tools/log-time.ts
-var import_tracker7 = __toESM(require_lib11());
+var import_tracker8 = __toESM(require_lib11());
 var import_core16 = __toESM(require_lib4());
 var logTime = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const issue2 = await client.findOne(import_tracker7.default.class.Issue, { identifier: args.identifier });
+  const issue2 = await client.findOne(import_tracker8.default.class.Issue, { identifier: args.identifier });
   if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
   const me = await currentPerson(client);
   const now = (/* @__PURE__ */ new Date()).getTime();
   const valueInHours = args.hours;
   await client.addCollection(
-    import_tracker7.default.class.TimeSpendReport,
+    import_tracker8.default.class.TimeSpendReport,
     issue2.space,
     issue2._id,
-    import_tracker7.default.class.Issue,
+    import_tracker8.default.class.Issue,
     "reports",
     {
       employee: me._id,
@@ -91832,12 +91886,12 @@ var listTimeReports = wrapToolHandler(async (args) => {
   const query = {};
   let scope;
   if (args.identifier != null) {
-    const issue2 = await client.findOne(import_tracker7.default.class.Issue, { identifier: args.identifier });
+    const issue2 = await client.findOne(import_tracker8.default.class.Issue, { identifier: args.identifier });
     if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
     query.attachedTo = issue2._id;
     scope = args.identifier;
   } else {
-    const project = await client.findOne(import_tracker7.default.class.Project, { identifier: args.projectIdentifier });
+    const project = await client.findOne(import_tracker8.default.class.Project, { identifier: args.projectIdentifier });
     if (project == null) throw new Error(`Project '${args.projectIdentifier}' not found.`);
     query.space = project._id;
     scope = args.projectIdentifier;
@@ -91852,11 +91906,11 @@ var listTimeReports = wrapToolHandler(async (args) => {
   };
   const from = parse4(args.from, false);
   const to = parse4(args.to, true);
-  const all = await client.findAll(import_tracker7.default.class.TimeSpendReport, query);
+  const all = await client.findAll(import_tracker8.default.class.TimeSpendReport, query);
   const reports = all.filter((r) => (from == null || (r.date ?? 0) >= from) && (to == null || (r.date ?? 0) <= to)).sort((a, b) => (b.date ?? 0) - (a.date ?? 0));
   if (reports.length === 0) return `No time reports found for ${scope}.`;
   const issueIds = [...new Set(reports.map((r) => r.attachedTo))];
-  const issues = await client.findAll(import_tracker7.default.class.Issue, { _id: { $in: issueIds } });
+  const issues = await client.findAll(import_tracker8.default.class.Issue, { _id: { $in: issueIds } });
   const issueId = new Map(issues.map((i) => [i._id, i.identifier]));
   const totalHours = reports.reduce((sum, r) => sum + (r.value ?? 0), 0);
   const byMember = /* @__PURE__ */ new Map();
@@ -91880,14 +91934,72 @@ var listTimeReports = wrapToolHandler(async (args) => {
 _${reports.length - shown.length} more not shown (raise limit)._` : ""
   ].filter((l, i, a) => !(l === "" && i === a.length - 1)).join("\n");
 });
+var DAY_MS = 864e5;
+var WEEKDAY = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+function weekStart(date5) {
+  const d = new Date(date5.getFullYear(), date5.getMonth(), date5.getDate());
+  const back = (d.getDay() + 6) % 7;
+  return d.getTime() - back * DAY_MS;
+}
+var timesheet = wrapToolHandler(async (args) => {
+  const client = await getConnection(args.workspace);
+  const ref = args.week != null ? new Date(args.week) : /* @__PURE__ */ new Date();
+  if (isNaN(ref.getTime())) throw new Error(`Invalid date: '${args.week}'`);
+  const start = weekStart(ref);
+  const days = Array.from({ length: 7 }, (_, i) => start + i * DAY_MS);
+  const end = start + 7 * DAY_MS - 1;
+  const nameOf = await peopleNames(client);
+  const query = {};
+  let who = "everyone";
+  if (args.everyone !== true) {
+    const person = args.member != null ? await findPerson(client, args.member) : await currentPerson(client);
+    query.employee = person._id;
+    who = person.name;
+  }
+  const reports = (await client.findAll(import_tracker8.default.class.TimeSpendReport, query)).filter((r) => (r.date ?? 0) >= start && (r.date ?? 0) <= end);
+  const issues = reports.length > 0 ? await client.findAll(import_tracker8.default.class.Issue, { _id: { $in: [...new Set(reports.map((r) => r.attachedTo))] } }) : [];
+  const projects = await client.findAll(import_tracker8.default.class.Project, {});
+  const projectOf = new Map(issues.map((i) => [i._id, projects.find((p) => p._id === i.space)?.identifier ?? "?"]));
+  const dayOf = (t) => Math.floor((t - start) / DAY_MS);
+  const ymd = (t) => {
+    const d = new Date(t);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  };
+  const label2 = (t) => `${WEEKDAY[(new Date(t).getDay() + 6) % 7]} ${ymd(t).slice(5)}`;
+  const rowKey = (r) => args.everyone === true ? nameOf.get(r.employee) ?? "?" : projectOf.get(r.attachedTo) ?? "?";
+  const rows = /* @__PURE__ */ new Map();
+  for (const r of reports) {
+    const d = dayOf(r.date ?? 0);
+    if (d < 0 || d > 6) continue;
+    const row = rows.get(rowKey(r)) ?? Array(7).fill(0);
+    row[d] += r.value ?? 0;
+    rows.set(rowKey(r), row);
+  }
+  const fmt2 = (h) => h === 0 ? "\xB7" : String(Math.round(h * 100) / 100);
+  const totals = Array(7).fill(0).map((_, d) => [...rows.values()].reduce((s, row) => s + row[d], 0));
+  const header2 = `| ${args.everyone === true ? "Person" : "Project"} | ${days.map(label2).join(" | ")} | \u03A3 |`;
+  const lines = [header2, `|---|${days.map(() => "--:").join("|")}|--:|`];
+  for (const [key, row] of [...rows.entries()].sort((a, b) => a[0].localeCompare(b[0]))) lines.push(`| ${key} | ${row.map(fmt2).join(" | ")} | **${fmt2(row.reduce((s, h) => s + h, 0))}** |`);
+  lines.push(`| **Total** | ${totals.map((h) => `**${fmt2(h)}**`).join(" | ")} | **${fmt2(totals.reduce((s, h) => s + h, 0))}** |`);
+  const expected = args.hoursPerDay ?? 8;
+  const today = Date.now();
+  const gaps = args.everyone === true || reports.length === 0 ? [] : days.slice(0, 5).map((t, d) => ({ t, h: totals[d] })).filter((x) => x.t <= today && x.h < expected).map((x) => `${label2(x.t)} (${fmt2(x.h) === "\xB7" ? "0" : fmt2(x.h)}h of ${expected}h)`);
+  return [
+    `## Timesheet ${ymd(start)} \u2013 ${ymd(start + 6 * DAY_MS)} \u2014 ${who}`,
+    "",
+    ...lines,
+    ...gaps.length > 0 ? ["", `**Gaps:** ${gaps.join(", ")} \u2014 log_time to fill them.`] : [],
+    ...reports.length === 0 ? ["", "_No time logged this week._"] : []
+  ].join("\n");
+});
 
 // src/tools/labels.ts
 var import_tags2 = __toESM(require_lib16());
-var import_tracker8 = __toESM(require_lib11());
+var import_tracker9 = __toESM(require_lib11());
 var import_core17 = __toESM(require_lib4());
 var listLabels = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const allLabels = await client.findAll(import_tags2.default.class.TagElement, { targetClass: import_tracker8.default.class.Issue });
+  const allLabels = await client.findAll(import_tags2.default.class.TagElement, { targetClass: import_tracker9.default.class.Issue });
   if (allLabels.length === 0) return "No labels found in this workspace.";
   const lines = allLabels.map((l) => {
     const color = l.color != null ? ` (color: #${l.color.toString(16).padStart(6, "0")})` : "";
@@ -91900,14 +92012,14 @@ ${lines.join("\n")}`;
 var createLabel = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
   const existing = await client.findOne(import_tags2.default.class.TagElement, {
-    targetClass: import_tracker8.default.class.Issue,
+    targetClass: import_tracker9.default.class.Issue,
     title: args.title
   });
   if (existing != null) {
     return `Label **${args.title}** already exists (id: \`${existing._id}\`).`;
   }
   const category = await client.findOne(import_tags2.default.class.TagCategory, {
-    targetClass: import_tracker8.default.class.Issue
+    targetClass: import_tracker9.default.class.Issue
   });
   const labelId = (0, import_core17.generateId)();
   await client.createDoc(
@@ -91915,7 +92027,7 @@ var createLabel = wrapToolHandler(async (args) => {
     import_core17.default.space.Workspace,
     {
       title: args.title,
-      targetClass: import_tracker8.default.class.Issue,
+      targetClass: import_tracker9.default.class.Issue,
       description: "",
       color: args.color != null ? parseInt(args.color.replace("#", ""), 16) : 8,
       category: category?._id ?? import_tags2.default.category.NoCategory,
@@ -91927,15 +92039,15 @@ var createLabel = wrapToolHandler(async (args) => {
 });
 var addLabel = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const issue2 = await client.findOne(import_tracker8.default.class.Issue, { identifier: args.identifier });
+  const issue2 = await client.findOne(import_tracker9.default.class.Issue, { identifier: args.identifier });
   if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
   let label2 = await client.findOne(import_tags2.default.class.TagElement, {
-    targetClass: import_tracker8.default.class.Issue,
+    targetClass: import_tracker9.default.class.Issue,
     title: args.labelName
   });
   if (label2 == null) {
     const category = await client.findOne(import_tags2.default.class.TagCategory, {
-      targetClass: import_tracker8.default.class.Issue
+      targetClass: import_tracker9.default.class.Issue
     });
     const labelId = (0, import_core17.generateId)();
     await client.createDoc(
@@ -91943,7 +92055,7 @@ var addLabel = wrapToolHandler(async (args) => {
       import_core17.default.space.Workspace,
       {
         title: args.labelName,
-        targetClass: import_tracker8.default.class.Issue,
+        targetClass: import_tracker9.default.class.Issue,
         description: "",
         color: 8,
         category: category?._id ?? import_tags2.default.category.NoCategory,
@@ -91965,7 +92077,7 @@ var addLabel = wrapToolHandler(async (args) => {
     import_tags2.default.class.TagReference,
     issue2.space,
     issue2._id,
-    import_tracker8.default.class.Issue,
+    import_tracker9.default.class.Issue,
     "labels",
     {
       tag: label2._id,
@@ -91977,10 +92089,10 @@ var addLabel = wrapToolHandler(async (args) => {
 });
 var removeLabel = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const issue2 = await client.findOne(import_tracker8.default.class.Issue, { identifier: args.identifier });
+  const issue2 = await client.findOne(import_tracker9.default.class.Issue, { identifier: args.identifier });
   if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
   const label2 = await client.findOne(import_tags2.default.class.TagElement, {
-    targetClass: import_tracker8.default.class.Issue,
+    targetClass: import_tracker9.default.class.Issue,
     title: args.labelName
   });
   if (label2 == null) throw new Error(`Label '${args.labelName}' not found.`);
@@ -91996,13 +92108,13 @@ var removeLabel = wrapToolHandler(async (args) => {
     issue2.space,
     ref._id,
     issue2._id,
-    import_tracker8.default.class.Issue,
+    import_tracker9.default.class.Issue,
     "labels"
   );
   return `\u2705 Removed label **${args.labelName}** from **${args.identifier}**`;
 });
 async function findLabel(client, title) {
-  const label2 = await client.findOne(import_tags2.default.class.TagElement, { targetClass: import_tracker8.default.class.Issue, title });
+  const label2 = await client.findOne(import_tags2.default.class.TagElement, { targetClass: import_tracker9.default.class.Issue, title });
   if (label2 == null) throw new Error(`Label '${title}' not found.`);
   return label2;
 }
@@ -92011,7 +92123,7 @@ var updateLabel = wrapToolHandler(async (args) => {
   const label2 = await findLabel(client, args.labelName);
   const updates = {};
   if (args.newName !== void 0 && args.newName !== label2.title) {
-    const clash = await client.findOne(import_tags2.default.class.TagElement, { targetClass: import_tracker8.default.class.Issue, title: args.newName });
+    const clash = await client.findOne(import_tags2.default.class.TagElement, { targetClass: import_tracker9.default.class.Issue, title: args.newName });
     if (clash != null) throw new Error(`A label named '${args.newName}' already exists.`);
     updates.title = args.newName;
   }
@@ -92044,8 +92156,8 @@ var deleteLabel = wrapToolHandler(async (args) => {
 });
 var listLabelCategories = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const categories = await client.findAll(import_tags2.default.class.TagCategory, { targetClass: import_tracker8.default.class.Issue });
-  const labels = await client.findAll(import_tags2.default.class.TagElement, { targetClass: import_tracker8.default.class.Issue });
+  const categories = await client.findAll(import_tags2.default.class.TagCategory, { targetClass: import_tracker9.default.class.Issue });
+  const labels = await client.findAll(import_tags2.default.class.TagElement, { targetClass: import_tracker9.default.class.Issue });
   if (categories.length === 0) return "No label categories.";
   const lines = categories.map((c) => {
     const own2 = labels.filter((l) => l.category === c._id).map((l) => l.title);
@@ -92060,17 +92172,17 @@ Without category: ${loose.join(", ")}` : ""}`;
 });
 var createLabelCategory = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const existing = await client.findAll(import_tags2.default.class.TagCategory, { targetClass: import_tracker8.default.class.Issue });
+  const existing = await client.findAll(import_tags2.default.class.TagCategory, { targetClass: import_tracker9.default.class.Issue });
   const same = existing.find((c) => String(c.label).toLowerCase() === args.name.toLowerCase());
   if (same != null) return `\u2139\uFE0F Category **${String(same.label)}** already exists \u2014 \`${String(same._id)}\`.`;
-  const id = await client.createDoc(import_tags2.default.class.TagCategory, import_core17.default.space.Workspace, { label: args.name, targetClass: import_tracker8.default.class.Issue, icon: import_tags2.default.icon.Tags, tags: [], default: false });
+  const id = await client.createDoc(import_tags2.default.class.TagCategory, import_core17.default.space.Workspace, { label: args.name, targetClass: import_tracker9.default.class.Issue, icon: import_tags2.default.icon.Tags, tags: [], default: false });
   return `\u2705 Label category **${args.name}** created \u2014 \`${String(id)}\`.`;
 });
 var setLabelCategory = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const label2 = await client.findOne(import_tags2.default.class.TagElement, { targetClass: import_tracker8.default.class.Issue, title: args.labelName });
+  const label2 = await client.findOne(import_tags2.default.class.TagElement, { targetClass: import_tracker9.default.class.Issue, title: args.labelName });
   if (label2 == null) throw new Error(`Label '${args.labelName}' not found.`);
-  const categories = await client.findAll(import_tags2.default.class.TagCategory, { targetClass: import_tracker8.default.class.Issue });
+  const categories = await client.findAll(import_tags2.default.class.TagCategory, { targetClass: import_tracker9.default.class.Issue });
   const cat = categories.find((c) => c._id === args.category || String(c.label).toLowerCase() === args.category.toLowerCase());
   if (cat == null) throw new Error(`Category '${args.category}' not found. Available: ${categories.map((c) => c.label).join(", ")}.`);
   await client.updateDoc(import_tags2.default.class.TagElement, label2.space, label2._id, { category: cat._id });
@@ -92101,19 +92213,16 @@ ${lines.join("\n")}`;
 });
 
 // src/tools/milestones.ts
-var import_tracker9 = __toESM(require_lib11());
+var import_tracker10 = __toESM(require_lib11());
 var import_task3 = __toESM(require_lib14());
 var import_core18 = __toESM(require_lib4());
 async function findProject(client, identifier) {
-  const project = await client.findOne(import_tracker9.default.class.Project, { identifier });
+  const project = await client.findOne(import_tracker10.default.class.Project, { identifier });
   if (project == null) throw new Error(`Project '${identifier}' not found.`);
   return project;
 }
 async function findMilestone(client, project, label2) {
-  const matches = await client.findAll(import_tracker9.default.class.Milestone, { space: project._id, label: label2 });
-  if (matches.length === 0) throw new Error(`Milestone '${label2}' not found in project ${project.identifier}.`);
-  if (matches.length > 1) throw new Error(`Milestone name '${label2}' is ambiguous in project ${project.identifier} (${matches.length} matches).`);
-  return matches[0];
+  return await findByLabel(client, "milestone", project._id, label2, project.identifier);
 }
 function parseDate(value) {
   const ts = new Date(value).getTime();
@@ -92123,7 +92232,7 @@ function parseDate(value) {
 var listMilestones = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
   const project = await findProject(client, args.projectIdentifier);
-  const milestones = await client.findAll(import_tracker9.default.class.Milestone, { space: project._id });
+  const milestones = await client.findAll(import_tracker10.default.class.Milestone, { space: project._id });
   if (milestones.length === 0) return `No milestones found in project ${args.projectIdentifier}.`;
   const lines = milestones.map((m) => {
     const status = MILESTONE_STATUS_LABELS[m.status] ?? "Unknown";
@@ -92135,18 +92244,18 @@ var listMilestones = wrapToolHandler(async (args) => {
 ${lines.join("\n")}`;
 });
 var MILESTONE_STATUS_MAP = {
-  Planned: import_tracker9.MilestoneStatus.Planned,
-  InProgress: import_tracker9.MilestoneStatus.InProgress,
-  Completed: import_tracker9.MilestoneStatus.Completed,
-  Canceled: import_tracker9.MilestoneStatus.Canceled
+  Planned: import_tracker10.MilestoneStatus.Planned,
+  InProgress: import_tracker10.MilestoneStatus.InProgress,
+  Completed: import_tracker10.MilestoneStatus.Completed,
+  Canceled: import_tracker10.MilestoneStatus.Canceled
 };
 var createMilestone = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
   const project = await findProject(client, args.projectIdentifier);
   const targetDate = parseDate(args.targetDate);
-  const status = MILESTONE_STATUS_MAP[args.status] ?? import_tracker9.MilestoneStatus.Planned;
+  const status = MILESTONE_STATUS_MAP[args.status] ?? import_tracker10.MilestoneStatus.Planned;
   await client.createDoc(
-    import_tracker9.default.class.Milestone,
+    import_tracker10.default.class.Milestone,
     project._id,
     {
       label: args.label,
@@ -92162,8 +92271,8 @@ var getMilestone = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
   const project = await findProject(client, args.projectIdentifier);
   const milestone = await findMilestone(client, project, args.label);
-  const issues = await client.findAll(import_tracker9.default.class.Issue, { space: project._id, milestone: milestone._id });
-  const statuses = await client.findAll(import_tracker9.default.class.IssueStatus, {});
+  const issues = await client.findAll(import_tracker10.default.class.Issue, { space: project._id, milestone: milestone._id });
+  const statuses = await client.findAll(import_tracker10.default.class.IssueStatus, {});
   const categoryById = new Map(statuses.map((s) => [s._id, s.category]));
   const isDone = (cat) => cat === import_task3.default.statusCategory.Won;
   const isCanceled = (cat) => cat === import_task3.default.statusCategory.Lost;
@@ -92196,7 +92305,7 @@ var updateMilestone = wrapToolHandler(async (args) => {
   const milestone = await findMilestone(client, project, args.label);
   const updates = {};
   if (args.newLabel !== void 0 && args.newLabel !== milestone.label) {
-    const clash = await client.findOne(import_tracker9.default.class.Milestone, { space: project._id, label: args.newLabel });
+    const clash = await client.findOne(import_tracker10.default.class.Milestone, { space: project._id, label: args.newLabel });
     if (clash != null) throw new Error(`A milestone named '${args.newLabel}' already exists in project ${args.projectIdentifier}.`);
     updates.label = args.newLabel;
   }
@@ -92204,7 +92313,7 @@ var updateMilestone = wrapToolHandler(async (args) => {
   if (args.status !== void 0) updates.status = MILESTONE_STATUS_MAP[args.status];
   if (args.description !== void 0) updates.description = textToMarkup(args.description);
   if (Object.keys(updates).length === 0) return `Nothing to update for milestone **${milestone.label}**.`;
-  await client.updateDoc(import_tracker9.default.class.Milestone, project._id, milestone._id, updates);
+  await client.updateDoc(import_tracker10.default.class.Milestone, project._id, milestone._id, updates);
   const changed = Object.keys(updates).map((k) => k === "label" ? "name" : k).join(", ");
   return `\u2705 Milestone **${updates.label ?? milestone.label}** updated (${changed}).`;
 });
@@ -92218,37 +92327,34 @@ var deleteMilestone = wrapToolHandler(async (args) => {
     if (dest._id === milestone._id) throw new Error("moveIssuesTo must name a different milestone.");
     target = dest._id;
   }
-  const issues = await client.findAll(import_tracker9.default.class.Issue, { space: project._id, milestone: milestone._id });
+  const issues = await client.findAll(import_tracker10.default.class.Issue, { space: project._id, milestone: milestone._id });
   for (const issue2 of issues) {
-    await client.updateDoc(import_tracker9.default.class.Issue, issue2.space, issue2._id, { milestone: target });
+    await client.updateDoc(import_tracker10.default.class.Issue, issue2.space, issue2._id, { milestone: target });
   }
-  await client.removeDoc(import_tracker9.default.class.Milestone, project._id, milestone._id);
+  await client.removeDoc(import_tracker10.default.class.Milestone, project._id, milestone._id);
   const effect = issues.length === 0 ? "No issues were assigned to it." : target != null ? `${issues.length} issue(s) moved to **${args.moveIssuesTo}**.` : `${issues.length} issue(s) no longer have a milestone.`;
   return `\u{1F5D1}\uFE0F Milestone **${milestone.label}** deleted from ${args.projectIdentifier}. ${effect}`;
 });
 
 // src/tools/components.ts
-var import_tracker10 = __toESM(require_lib11());
+var import_tracker11 = __toESM(require_lib11());
 var import_core19 = __toESM(require_lib4());
 async function findProject2(client, identifier) {
-  const project = await client.findOne(import_tracker10.default.class.Project, { identifier });
+  const project = await client.findOne(import_tracker11.default.class.Project, { identifier });
   if (project == null) throw new Error(`Project '${identifier}' not found.`);
   return project;
 }
 async function findComponent(client, project, label2) {
-  const matches = await client.findAll(import_tracker10.default.class.Component, { space: project._id, label: label2 });
-  if (matches.length === 0) throw new Error(`Component '${label2}' not found in project ${project.identifier}.`);
-  if (matches.length > 1) throw new Error(`Component name '${label2}' is ambiguous in project ${project.identifier} (${matches.length} matches).`);
-  return matches[0];
+  return await findByLabel(client, "component", project._id, label2, project.identifier);
 }
 async function findMemberRef(client, name2) {
   return (await findPerson(client, name2))._id;
 }
 var listComponents = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const project = await client.findOne(import_tracker10.default.class.Project, { identifier: args.projectIdentifier });
+  const project = await client.findOne(import_tracker11.default.class.Project, { identifier: args.projectIdentifier });
   if (project == null) throw new Error(`Project '${args.projectIdentifier}' not found.`);
-  const components = await client.findAll(import_tracker10.default.class.Component, { space: project._id });
+  const components = await client.findAll(import_tracker11.default.class.Component, { space: project._id });
   if (components.length === 0) return `No components found in project ${args.projectIdentifier}.`;
   const leadMap = await peopleNames(client);
   const lines = components.map((c) => {
@@ -92264,11 +92370,11 @@ ${lines.join("\n")}`;
 });
 var createComponent = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const project = await client.findOne(import_tracker10.default.class.Project, { identifier: args.projectIdentifier });
+  const project = await client.findOne(import_tracker11.default.class.Project, { identifier: args.projectIdentifier });
   if (project == null) throw new Error(`Project '${args.projectIdentifier}' not found.`);
   const leadRef = args.lead != null ? await findMemberRef(client, args.lead) : null;
   await client.createDoc(
-    import_tracker10.default.class.Component,
+    import_tracker11.default.class.Component,
     project._id,
     {
       label: args.label,
@@ -92286,14 +92392,14 @@ var updateComponent = wrapToolHandler(async (args) => {
   const component = await findComponent(client, project, args.label);
   const updates = {};
   if (args.newLabel !== void 0 && args.newLabel !== component.label) {
-    const clash = await client.findOne(import_tracker10.default.class.Component, { space: project._id, label: args.newLabel });
+    const clash = await client.findOne(import_tracker11.default.class.Component, { space: project._id, label: args.newLabel });
     if (clash != null) throw new Error(`A component named '${args.newLabel}' already exists in project ${args.projectIdentifier}.`);
     updates.label = args.newLabel;
   }
   if (args.description !== void 0) updates.description = textToMarkup(args.description);
   if (args.lead !== void 0) updates.lead = args.lead === null ? null : await findMemberRef(client, args.lead);
   if (Object.keys(updates).length === 0) return `Nothing to update for component **${component.label}**.`;
-  await client.updateDoc(import_tracker10.default.class.Component, project._id, component._id, updates);
+  await client.updateDoc(import_tracker11.default.class.Component, project._id, component._id, updates);
   const changed = Object.keys(updates).map((k) => k === "label" ? "name" : k).join(", ");
   return `\u2705 Component **${updates.label ?? component.label}** updated (${changed}).`;
 });
@@ -92307,11 +92413,11 @@ var deleteComponent = wrapToolHandler(async (args) => {
     if (dest._id === component._id) throw new Error("moveIssuesTo must name a different component.");
     target = dest._id;
   }
-  const issues = await client.findAll(import_tracker10.default.class.Issue, { space: project._id, component: component._id });
+  const issues = await client.findAll(import_tracker11.default.class.Issue, { space: project._id, component: component._id });
   for (const issue2 of issues) {
-    await client.updateDoc(import_tracker10.default.class.Issue, issue2.space, issue2._id, { component: target });
+    await client.updateDoc(import_tracker11.default.class.Issue, issue2.space, issue2._id, { component: target });
   }
-  await client.removeDoc(import_tracker10.default.class.Component, project._id, component._id);
+  await client.removeDoc(import_tracker11.default.class.Component, project._id, component._id);
   const effect = issues.length === 0 ? "No issues were assigned to it." : target != null ? `${issues.length} issue(s) moved to **${args.moveIssuesTo}**.` : `${issues.length} issue(s) no longer have a component.`;
   return `\u{1F5D1}\uFE0F Component **${component.label}** deleted from ${args.projectIdentifier}. ${effect}`;
 });
@@ -92322,7 +92428,7 @@ var import_core20 = __toESM(require_lib4());
 var import_document2 = __toESM(require_lib18());
 var import_rank3 = __toESM(require_lib13());
 var import_chunter2 = __toESM(require_lib17());
-var import_tracker11 = __toESM(require_lib11());
+var import_tracker12 = __toESM(require_lib11());
 var listTeamspaces = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
   const teamspaces = await client.findAll(import_document.default.class.Teamspace, {});
@@ -92549,7 +92655,7 @@ var addDocumentComment = wrapToolHandler(async (args) => {
 });
 var linkDocument = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const issue2 = await client.findOne(import_tracker11.default.class.Issue, { identifier: args.identifier });
+  const issue2 = await client.findOne(import_tracker12.default.class.Issue, { identifier: args.identifier });
   if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
   const doc = await client.findOne(import_document.default.class.Document, { _id: args.documentId });
   if (doc == null) throw new Error(`Document '${args.documentId}' not found.`);
@@ -92557,26 +92663,26 @@ var linkDocument = wrapToolHandler(async (args) => {
   if (existing.some((r) => r._id === doc._id)) {
     return `\u2139\uFE0F Document **"${doc.title}"** is already linked to **${args.identifier}**.`;
   }
-  await client.updateDoc(import_tracker11.default.class.Issue, issue2.space, issue2._id, {
+  await client.updateDoc(import_tracker12.default.class.Issue, issue2.space, issue2._id, {
     relations: [...existing, { _id: doc._id, _class: doc._class }]
   });
   return `\u2705 Document **"${doc.title}"** linked to **${args.identifier}** \u2014 visible in the Relations panel.`;
 });
 
 // src/tools/search.ts
-var import_tracker12 = __toESM(require_lib11());
+var import_tracker13 = __toESM(require_lib11());
 var searchIssues = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
   const result = await client.searchFulltext(
-    { query: args.query, classes: [import_tracker12.default.class.Issue] },
+    { query: args.query, classes: [import_tracker13.default.class.Issue] },
     { limit: args.limit }
   );
   if (result.docs.length === 0) return `No issues found for query: "${args.query}"`;
   const enriched = await Promise.all(
     result.docs.map(async (r) => {
-      const issue2 = await client.findOne(import_tracker12.default.class.Issue, { _id: r.id });
+      const issue2 = await client.findOne(import_tracker13.default.class.Issue, { _id: r.id });
       if (issue2 == null) return null;
-      const status = await client.findOne(import_tracker12.default.class.IssueStatus, { _id: issue2.status });
+      const status = await client.findOne(import_tracker13.default.class.IssueStatus, { _id: issue2.status });
       return { issue: issue2, statusName: status?.name ?? "Unknown" };
     })
   );
@@ -93080,7 +93186,7 @@ ${lines.join("\n")}`;
 });
 
 // src/tools/planner.ts
-var import_tracker13 = __toESM(require_lib11());
+var import_tracker14 = __toESM(require_lib11());
 var import_core24 = __toESM(require_lib4());
 var import_rank4 = __toESM(require_lib13());
 function parseDate2(value, label2 = "date") {
@@ -93146,9 +93252,9 @@ var createTodo = wrapToolHandler(async (args) => {
   if (args.dueDate != null) data.dueDate = parseDate2(args.dueDate, "dueDate");
   const id = (0, import_core24.generateId)();
   if (args.issue != null) {
-    const issue2 = await client.findOne(import_tracker13.default.class.Issue, { identifier: args.issue });
+    const issue2 = await client.findOne(import_tracker14.default.class.Issue, { identifier: args.issue });
     if (issue2 == null) throw new Error(`Issue '${args.issue}' not found.`);
-    await client.addCollection(C.ProjectToDo, IDS.ToDosSpace, issue2._id, import_tracker13.default.class.Issue, "todos", { ...data, attachedSpace: issue2.space, visibility: "public" }, id);
+    await client.addCollection(C.ProjectToDo, IDS.ToDosSpace, issue2._id, import_tracker14.default.class.Issue, "todos", { ...data, attachedSpace: issue2.space, visibility: "public" }, id);
     return `\u2705 To-do **${args.title}** created on ${args.issue} (id: \`${id}\`).`;
   }
   await client.addCollection(C.ToDo, IDS.ToDosSpace, IDS.ToDoNotAttached, C.ToDo, "todos", { ...data, visibility: "private" }, id);
@@ -93294,7 +93400,7 @@ var deleteEvent = wrapToolHandler(async (args) => {
 });
 
 // src/tools/github.ts
-var import_tracker14 = __toESM(require_lib11());
+var import_tracker15 = __toESM(require_lib11());
 var import_core26 = __toESM(require_lib4());
 var STATE2 = ["open", "closed", "merged"];
 var DECISION = ["changes requested", "approved", "review required"];
@@ -93303,12 +93409,12 @@ var listPullRequests = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
   const query = {};
   if (args.projectIdentifier != null) {
-    const project = await client.findOne(import_tracker14.default.class.Project, { identifier: args.projectIdentifier });
+    const project = await client.findOne(import_tracker15.default.class.Project, { identifier: args.projectIdentifier });
     if (project == null) throw new Error(`Project '${args.projectIdentifier}' not found.`);
     query.space = project._id;
   }
   if (args.issue != null) {
-    const issue2 = await client.findOne(import_tracker14.default.class.Issue, { identifier: args.issue });
+    const issue2 = await client.findOne(import_tracker15.default.class.Issue, { identifier: args.issue });
     if (issue2 == null) throw new Error(`Issue '${args.issue}' not found.`);
     query.attachedTo = issue2._id;
   }
@@ -93333,7 +93439,7 @@ var getPullRequest = wrapToolHandler(async (args) => {
   const pr = await client.findOne(C.PullRequest, { identifier: args.identifier });
   if (pr == null) throw new Error(`Pull request '${args.identifier}' not found.`);
   const gh = pr[IDS.GithubIssueMixin] ?? {};
-  const issue2 = pr.attachedTo !== import_tracker14.default.ids.NoParent ? await client.findOne(import_tracker14.default.class.Issue, { _id: pr.attachedTo }) : void 0;
+  const issue2 = pr.attachedTo !== import_tracker15.default.ids.NoParent ? await client.findOne(import_tracker15.default.class.Issue, { _id: pr.attachedTo }) : void 0;
   const reviews = await client.findAll(C.PullRequestReview, { attachedTo: pr._id }, { sort: { createdOn: import_core26.SortingOrder.Ascending } });
   const comments = await client.findAll(C.ReviewComment, { attachedTo: pr._id }, { sort: { createdOn: import_core26.SortingOrder.Ascending }, limit: 30 });
   const who = await socialIdNames(client, [...new Set([...reviews, ...comments].map((r) => r.createdBy))]);
@@ -93659,7 +93765,7 @@ To delete, run again with dryRun=false and confirm=true.`;
 
 // src/tools/attachments.ts
 var import_attachment = __toESM(require_lib19());
-var import_tracker15 = __toESM(require_lib11());
+var import_tracker16 = __toESM(require_lib11());
 var import_core29 = __toESM(require_lib4());
 function base64ToBlob(base643, mimeType) {
   const binary = Buffer.from(base643, "base64");
@@ -93668,7 +93774,7 @@ function base64ToBlob(base643, mimeType) {
 var attachFile = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
   const { wsToken, workspaceUuid } = await getWorkspaceInfo(args.workspace);
-  const issue2 = await client.findOne(import_tracker15.default.class.Issue, { identifier: args.identifier });
+  const issue2 = await client.findOne(import_tracker16.default.class.Issue, { identifier: args.identifier });
   if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
   const blob = base64ToBlob(args.contentBase64, args.mimeType);
   const blobId = `${issue2._id}-attachment-${Date.now()}-${args.filename}`;
@@ -93678,7 +93784,7 @@ var attachFile = wrapToolHandler(async (args) => {
     import_attachment.default.class.Attachment,
     issue2.space,
     issue2._id,
-    import_tracker15.default.class.Issue,
+    import_tracker16.default.class.Issue,
     "attachments",
     {
       name: args.filename,
@@ -93693,7 +93799,7 @@ var attachFile = wrapToolHandler(async (args) => {
 });
 var listAttachments = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const issue2 = await client.findOne(import_tracker15.default.class.Issue, { identifier: args.identifier });
+  const issue2 = await client.findOne(import_tracker16.default.class.Issue, { identifier: args.identifier });
   if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
   const attachments = await client.findAll(import_attachment.default.class.Attachment, { attachedTo: issue2._id });
   if (attachments.length === 0) return `No attachments found on **${args.identifier}**.`;
@@ -93707,7 +93813,7 @@ ${lines.join("\n")}`;
 var deleteAttachment = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
   const { wsToken, workspaceUuid } = await getWorkspaceInfo(args.workspace);
-  const issue2 = await client.findOne(import_tracker15.default.class.Issue, { identifier: args.identifier });
+  const issue2 = await client.findOne(import_tracker16.default.class.Issue, { identifier: args.identifier });
   if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
   const att = await client.findOne(import_attachment.default.class.Attachment, { _id: args.attachmentId });
   if (att == null) throw new Error(`Attachment '${args.attachmentId}' not found.`);
@@ -93716,7 +93822,7 @@ var deleteAttachment = wrapToolHandler(async (args) => {
     issue2.space,
     att._id,
     issue2._id,
-    import_tracker15.default.class.Issue,
+    import_tracker16.default.class.Issue,
     "attachments"
   );
   await deleteBlob(wsToken, workspaceUuid, String(att.file));
@@ -93724,7 +93830,7 @@ var deleteAttachment = wrapToolHandler(async (args) => {
 });
 
 // src/tools/statuses.ts
-var import_tracker16 = __toESM(require_lib11());
+var import_tracker17 = __toESM(require_lib11());
 var import_task5 = __toESM(require_lib14());
 var import_core30 = __toESM(require_lib4());
 var CATEGORY_MAP = {
@@ -93736,7 +93842,7 @@ var CATEGORY_MAP = {
 };
 var listIssueStatuses = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const statuses = await client.findAll(import_tracker16.default.class.IssueStatus, {});
+  const statuses = await client.findAll(import_tracker17.default.class.IssueStatus, {});
   if (statuses.length === 0) return "No issue statuses found.";
   const byCategory = /* @__PURE__ */ new Map();
   for (const s of statuses) {
@@ -93758,7 +93864,7 @@ var createIssueStatus = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
   let types;
   if (args.projectIdentifier != null) {
-    const project = await client.findOne(import_tracker16.default.class.Project, { identifier: args.projectIdentifier });
+    const project = await client.findOne(import_tracker17.default.class.Project, { identifier: args.projectIdentifier });
     if (project == null) throw new Error(`Project '${args.projectIdentifier}' not found.`);
     types = await client.findAll(import_task5.default.class.ProjectType, { _id: project.type });
   } else {
@@ -93767,12 +93873,12 @@ var createIssueStatus = wrapToolHandler(async (args) => {
   if (types.length === 0) throw new Error("No tracker project type found.");
   const mapped = CATEGORY_MAP[args.category];
   if (mapped == null) throw new Error(`Unknown category '${args.category}'.`);
-  let status = (await client.findAll(import_tracker16.default.class.IssueStatus, {})).find((s) => String(s.name).toLowerCase() === args.name.trim().toLowerCase());
+  let status = (await client.findAll(import_tracker17.default.class.IssueStatus, {})).find((s) => String(s.name).toLowerCase() === args.name.trim().toLowerCase());
   const created = status == null;
   if (status == null) {
     const statusId = (0, import_core30.generateId)();
-    await client.createDoc(import_tracker16.default.class.IssueStatus, import_core30.default.space.Model, {
-      ofAttribute: import_tracker16.default.attribute.IssueStatus,
+    await client.createDoc(import_tracker17.default.class.IssueStatus, import_core30.default.space.Model, {
+      ofAttribute: import_tracker17.default.attribute.IssueStatus,
       category: mapped.ref,
       name: args.name.trim(),
       color: args.color != null ? parseInt(args.color.replace("#", ""), 16) : void 0
@@ -93781,7 +93887,7 @@ var createIssueStatus = wrapToolHandler(async (args) => {
   }
   const added = [];
   for (const type of types) {
-    const issueTypes = (await client.findAll(import_task5.default.class.TaskType, { parent: type._id })).filter((t) => t.ofClass === import_tracker16.default.class.Issue);
+    const issueTypes = (await client.findAll(import_task5.default.class.TaskType, { parent: type._id })).filter((t) => t.ofClass === import_tracker17.default.class.Issue);
     for (const tt of issueTypes) {
       if ((tt.statuses ?? []).includes(status._id)) continue;
       await client.updateDoc(import_task5.default.class.TaskType, tt.space, tt._id, { $push: { statuses: status._id } });
@@ -93881,7 +93987,7 @@ var updateOrganization = wrapToolHandler(async (args) => {
 });
 
 // src/tools/agent.ts
-var import_tracker17 = __toESM(require_lib11());
+var import_tracker18 = __toESM(require_lib11());
 var import_core32 = __toESM(require_lib4());
 
 // src/utils/spec.ts
@@ -94058,12 +94164,12 @@ var PR_STATE = ["open", "closed", "merged"];
 var CLAIM_LABEL = "agent:working";
 var CLAIM_RE = /\[huly-(claim|release) agent=(\S+?)(?: until=(\S+?))?\]/;
 async function findIssue(client, identifier) {
-  const issue2 = await client.findOne(import_tracker17.default.class.Issue, { identifier });
+  const issue2 = await client.findOne(import_tracker18.default.class.Issue, { identifier });
   if (issue2 == null) throw new Error(`Issue '${identifier}' not found.`);
   return issue2;
 }
 async function findStatus(client, issue2, name2) {
-  const project = await client.findOne(import_tracker17.default.class.Project, { _id: issue2.space });
+  const project = await client.findOne(import_tracker18.default.class.Project, { _id: issue2.space });
   return await resolveIssueStatus(client, project, issue2.kind, name2);
 }
 function branchName(identifier, title) {
@@ -94074,16 +94180,16 @@ async function issueContext(workspace, identifier, commentLimit = 20) {
   const client = await getConnection(workspace);
   const issue2 = await findIssue(client, identifier);
   const [status, milestone, component, labels, names2] = await Promise.all([
-    client.findOne(import_tracker17.default.class.IssueStatus, { _id: issue2.status }),
-    issue2.milestone != null ? client.findOne(import_tracker17.default.class.Milestone, { _id: issue2.milestone }) : void 0,
-    issue2.component != null ? client.findOne(import_tracker17.default.class.Component, { _id: issue2.component }) : void 0,
+    client.findOne(import_tracker18.default.class.IssueStatus, { _id: issue2.status }),
+    issue2.milestone != null ? client.findOne(import_tracker18.default.class.Milestone, { _id: issue2.milestone }) : void 0,
+    issue2.component != null ? client.findOne(import_tracker18.default.class.Component, { _id: issue2.component }) : void 0,
     client.findAll("tags:class:TagReference", { attachedTo: issue2._id }),
     peopleNames(client)
   ]);
   const refs = async (list) => {
     const out = [];
     for (const r of list ?? []) {
-      const other = await client.findOne(r._class ?? import_tracker17.default.class.Issue, { _id: r._id });
+      const other = await client.findOne(r._class ?? import_tracker18.default.class.Issue, { _id: r._id });
       if (other == null) continue;
       out.push(other.identifier != null ? `${other.identifier}: ${other.title}` : `${String(other.title ?? other.name ?? r._id)} (${String(r._class).split(":").pop() ?? ""} \`${String(r._id)}\`)`);
     }
@@ -94091,7 +94197,7 @@ async function issueContext(workspace, identifier, commentLimit = 20) {
   };
   const blockedBy = await refs(issue2.blockedBy);
   const related = await refs(issue2.relations);
-  const sameProject = await client.findAll(import_tracker17.default.class.Issue, { space: issue2.space }, { projection: { identifier: 1, title: 1, blockedBy: 1 } });
+  const sameProject = await client.findAll(import_tracker18.default.class.Issue, { space: issue2.space }, { projection: { identifier: 1, title: 1, blockedBy: 1 } });
   const blocking = sameProject.filter((i) => (i.blockedBy ?? []).some((b) => b._id === issue2._id));
   const lines = [
     `## ${issue2.identifier}: ${issue2.title}`,
@@ -94212,11 +94318,11 @@ ${args.summary}${prLine}` });
 var norm = (s) => s.trim().toLowerCase().replace(/\s+/g, " ");
 var createIssueTree = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const project = await client.findOne(import_tracker17.default.class.Project, { identifier: args.projectIdentifier });
+  const project = await client.findOne(import_tracker18.default.class.Project, { identifier: args.projectIdentifier });
   if (project == null) throw new Error(`Project '${args.projectIdentifier}' not found.`);
   if (args.epic == null && args.epicIdentifier == null) throw new Error("Pass epic (new) or epicIdentifier (existing).");
   if (args.epic != null && args.epicIdentifier != null) throw new Error("Pass either epic or epicIdentifier, not both.");
-  const existing = await client.findAll(import_tracker17.default.class.Issue, { space: project._id });
+  const existing = await client.findAll(import_tracker18.default.class.Issue, { space: project._id });
   const byTitle = new Map(existing.map((i) => [norm(i.title), i.identifier]));
   const byIdentifier = new Map(existing.map((i) => [i.identifier, i]));
   const epicExisting = args.epicIdentifier != null ? (await findIssue(client, args.epicIdentifier)).identifier : void 0;
@@ -94344,9 +94450,9 @@ var issuesFromMeeting = wrapToolHandler(async (args) => {
     throw new Error(`No open action items in "${doc.title}"${plan.skippedDone > 0 ? ` (${plan.skippedDone} checked)` : ""}. Recognised: open checkboxes, lines starting with "TODO:"/"Action:", list items under a heading like "Action items" or "Next steps".`);
   }
   if (plan.tasks.length > 50) throw new Error(`"${doc.title}" has ${plan.tasks.length} action items (max 50).`);
-  const project = await client.findOne(import_tracker17.default.class.Project, { identifier: args.projectIdentifier });
+  const project = await client.findOne(import_tracker18.default.class.Project, { identifier: args.projectIdentifier });
   if (project == null) throw new Error(`Project '${args.projectIdentifier}' not found.`);
-  const existing = await client.findAll(import_tracker17.default.class.Issue, { space: project._id });
+  const existing = await client.findAll(import_tracker18.default.class.Issue, { space: project._id });
   const byTitle = new Map(existing.map((i) => [norm(i.title), i.identifier]));
   const people = /* @__PURE__ */ new Map();
   for (const name2 of new Set(plan.tasks.map((t) => t.assignee).filter((a) => a != null))) {
@@ -94405,18 +94511,18 @@ var changesSince = wrapToolHandler(async (args) => {
   const since = parseSince(args.since);
   const query = { modifiedOn: { $gte: since } };
   if (args.projectIdentifiers != null && args.projectIdentifiers.length > 0) {
-    const projects = await client.findAll(import_tracker17.default.class.Project, { identifier: { $in: args.projectIdentifiers } });
+    const projects = await client.findAll(import_tracker18.default.class.Project, { identifier: { $in: args.projectIdentifiers } });
     const missing = args.projectIdentifiers.filter((p) => !projects.some((x) => x.identifier === p));
     if (missing.length > 0) throw new Error(`Project(s) not found: ${missing.join(", ")}.`);
     query.space = { $in: projects.map((p) => p._id) };
   }
-  const issues = await client.findAll(import_tracker17.default.class.Issue, query, { sort: { modifiedOn: import_core32.SortingOrder.Descending }, limit: args.limit });
+  const issues = await client.findAll(import_tracker18.default.class.Issue, query, { sort: { modifiedOn: import_core32.SortingOrder.Descending }, limit: args.limit });
   if (issues.length === 0) return `No issue changes since ${new Date(since).toISOString()}.`;
   const ids = issues.map((i) => i._id);
   const [updates, comments, statuses] = await Promise.all([
     client.findAll("activity:class:DocUpdateMessage", { attachedTo: { $in: ids }, createdOn: { $gte: since } }),
     client.findAll("chunter:class:ChatMessage", { attachedTo: { $in: ids }, createdOn: { $gte: since } }),
-    client.findAll(import_tracker17.default.class.IssueStatus, {})
+    client.findAll(import_tracker18.default.class.IssueStatus, {})
   ]);
   const authors = await socialIdNames(client, [...new Set([...updates, ...comments].map((m) => m.createdBy).filter((x) => x != null))]);
   const statusName2 = new Map(statuses.map((s) => [s._id, s.name]));
@@ -94499,7 +94605,7 @@ var findProjectForRepo = wrapToolHandler(async (args) => {
     const repos = (await client.findAll("github:class:GithubIntegrationRepository", {})).filter((r) => String(r.resourcePath ?? "").toLowerCase() === slug);
     if (repos.length === 0) continue;
     const repoIds = new Set(repos.map((r) => r._id));
-    const projects = (await client.findAll(import_tracker17.default.class.Project, {})).filter((p) => (p[IDS.GithubProject]?.repositories ?? []).some((id) => repoIds.has(id)));
+    const projects = (await client.findAll(import_tracker18.default.class.Project, {})).filter((p) => (p[IDS.GithubProject]?.repositories ?? []).some((id) => repoIds.has(id)));
     for (const p of projects) hits.push(`- workspace \`${ws2.url}\` \xB7 project **${p.identifier}** (${p.name})`);
   }
   if (hits.length === 0) return `No Huly project is linked to GitHub repository ${slug}. (Link it in Huly \u2192 Settings \u2192 GitHub, or pass workspace and project explicitly.)`;
@@ -96072,8 +96178,655 @@ var cancelTrainingRequest = wrapToolHandler(async (args) => {
   return "\u2705 Assignment canceled; the trainees no longer see it as open.";
 });
 
-// src/tools/process.ts
+// src/utils/redact.ts
+var JWT = /eyJ[\w-]{5,}\.[\w-]{5,}\.[\w-]{5,}/g;
+function redactSecrets(value) {
+  if (typeof value === "string") return value.replace(JWT, "***");
+  if (value instanceof Error) {
+    const copy2 = new Error(redactSecrets(value.message));
+    copy2.stack = value.stack != null ? redactSecrets(value.stack) : void 0;
+    return copy2;
+  }
+  return value;
+}
+function routeConsoleToStderr() {
+  const write = console.error.bind(console);
+  const log = (...args) => {
+    write(...args.map(redactSecrets));
+  };
+  console.log = console.info = console.debug = console.warn = console.error = log;
+}
+
+// src/tools/admin.ts
+async function configurableModules(client) {
+  const all = await client.findAll("core:class:PluginConfiguration", {});
+  return all.filter((c) => c.hidden !== true && c.system !== true).sort((a, b) => String(a.pluginId).localeCompare(String(b.pluginId)));
+}
+var listModules = wrapToolHandler(async (args) => {
+  const client = await getConnection(args.workspace);
+  const mods = await configurableModules(client);
+  const on = mods.filter((m) => m.enabled !== false);
+  const off = mods.filter((m) => m.enabled === false);
+  const fmt2 = (m) => `\`${String(m.pluginId)}\`${m.beta === true ? " (beta)" : ""}`;
+  return `## Modules
+
+**On (${on.length}):** ${on.map(fmt2).join(", ")}
+
+**Off (${off.length}):** ${off.map(fmt2).join(", ") || "\u2014"}
+
+Switch with set_module.`;
+});
+var setModule = wrapToolHandler(async (args) => {
+  const client = await getConnection(args.workspace);
+  const mods = await configurableModules(client);
+  const m = mods.find((x) => String(x.pluginId).toLowerCase() === args.module.trim().toLowerCase());
+  if (m == null) throw new Error(`Module '${args.module}' not found. Available: ${mods.map((x) => x.pluginId).join(", ")}.`);
+  if (m.enabled !== false === args.enabled) return `\`${String(m.pluginId)}\` is already ${args.enabled ? "on" : "off"}.`;
+  await client.update(m, { enabled: args.enabled });
+  return `\u2705 Module \`${String(m.pluginId)}\` switched ${args.enabled ? "on" : "off"} for everyone in the workspace${m.beta === true ? " (beta module)" : ""}.`;
+});
+var updateWorkspaceSettings = wrapToolHandler(async (args) => {
+  const account = await getAccountClient(args.workspace);
+  const done = [];
+  if (args.name != null) {
+    await account.updateWorkspaceName(args.name.trim());
+    done.push(`name \u2192 ${args.name.trim()}`);
+  }
+  if (args.readOnlyGuests != null) {
+    await account.updateAllowReadOnlyGuests(args.readOnlyGuests);
+    done.push(`read-only guests ${args.readOnlyGuests ? "allowed" : "not allowed"}`);
+  }
+  if (args.guestSignUp != null) {
+    await account.updateAllowGuestSignUp(args.guestSignUp);
+    done.push(`guest sign-up ${args.guestSignUp ? "allowed" : "not allowed"}`);
+  }
+  if (args.passwordAgingDays != null) {
+    await account.updatePasswordAgingRule(args.passwordAgingDays);
+    done.push(args.passwordAgingDays > 0 ? `passwords expire after ${args.passwordAgingDays} days` : "password expiry off");
+  }
+  if (done.length === 0) throw new Error("Nothing to change: pass name, readOnlyGuests, guestSignUp or passwordAgingDays.");
+  return `\u2705 Workspace updated: ${done.join("; ")}.`;
+});
+var getMyProfile = wrapToolHandler(async (args) => {
+  const account = await getAccountClient(args.workspace);
+  const [person, profile, ids] = await Promise.all([account.getPerson(), account.getUserProfile().catch(() => null), account.getSocialIds().catch(() => [])]);
+  const lines = [`## ${[person?.firstName, person?.lastName].filter(Boolean).join(" ") || "Your profile"}`];
+  if (profile != null) {
+    for (const [k, label2] of [["bio", "Bio"], ["city", "City"], ["country", "Country"], ["website", "Website"]]) if (profile[k] != null && profile[k] !== "") lines.push(`- **${label2}:** ${String(profile[k])}`);
+    for (const [k, v] of Object.entries(profile.socialLinks ?? {})) lines.push(`- **${k}:** ${String(v)}`);
+    lines.push(`- **Public profile:** ${profile.isPublic === true ? "yes" : "no"}`);
+  }
+  const socials = ids.filter((s) => s.isDeleted !== true).map((s) => `${String(s.type)}: ${String(s.displayValue ?? s.value)}${s.verifiedOn != null ? "" : " (unverified)"}`);
+  if (socials.length > 0) lines.push("", "**Logins and identities:**", ...socials.map((s) => `- ${s}`));
+  return lines.join("\n");
+});
+var updateMyProfile = wrapToolHandler(async (args) => {
+  const account = await getAccountClient(args.workspace);
+  const done = [];
+  if (args.firstName != null || args.lastName != null) {
+    const person = await account.getPerson();
+    await account.changeUsername(args.firstName ?? person.firstName ?? "", args.lastName ?? person.lastName ?? "");
+    done.push("name");
+  }
+  const profile = {};
+  for (const k of ["bio", "city", "country", "website", "socialLinks", "isPublic"]) if (args[k] !== void 0) profile[k] = args[k];
+  if (Object.keys(profile).length > 0) {
+    await account.setMyProfile(profile);
+    done.push(...Object.keys(profile));
+  }
+  if (done.length === 0) throw new Error("Nothing to change: pass firstName, lastName, bio, city, country, website, socialLinks or isPublic.");
+  return `\u2705 Profile updated \u2014 changed: ${done.join(", ")}.`;
+});
+var createWorkspace = wrapToolHandler(async (args) => {
+  const account = await getAccountClient();
+  const info = await account.createWorkspace(args.name.trim(), args.region);
+  return `\u2705 Workspace **${args.name.trim()}** created${info?.workspaceUrl != null ? ` (slug \`${String(info.workspaceUrl)}\`)` : ""}. Huly sets it up in the background \u2014 it can take a minute before tools can use it. You are its owner.`;
+});
+var API_READ = ["getProviders", "getUserWorkspaces", "getWorkspaceInfo", "getWorkspacesInfo", "getRegionInfo", "getPerson", "getPersonInfo", "getSocialIds", "getWorkspaceMembers", "getUserProfile", "getInviteInfo", "isReadOnlyGuest", "getMailboxOptions", "getMailboxes", "listIntegrations", "getIntegration", "findPersonBySocialKey", "findPersonBySocialId", "findSocialIdBySocialKey", "findFullSocialIdBySocialKey", "findFullSocialIds", "getAccountInfo", "checkPasswordAging", "canMergeSpecifiedPersons"];
+var API_WRITE = ["updateWorkspaceName", "updateAllowReadOnlyGuests", "updateAllowGuestSignUp", "updatePasswordAgingRule", "changeUsername", "setMyProfile", "sendInvite", "resendInvite", "createInvite", "createInviteLink", "createAccessLink", "updateWorkspaceRole", "createWorkspace", "createMailbox", "deleteMailbox", "updateSocialId"];
+var hulyApi = wrapToolHandler(async (args) => {
+  const method = args.method.trim();
+  const params = args.params ?? [];
+  const isRead = API_READ.includes(method);
+  const isWrite = API_WRITE.includes(method);
+  if (!isRead && !isWrite) {
+    throw new Error(`Method '${method}' is not available here. Read: ${API_READ.join(", ")}. Write: ${API_WRITE.join(", ")}. (Deleting workspaces/accounts, logins, passwords and secrets are deliberately excluded.)`);
+  }
+  if (isWrite && args.dryRun !== false) {
+    return `Dry run \u2014 would call account service \`${method}(${params.map((p) => JSON.stringify(p)).join(", ")})\`. Run again with dryRun: false to do it.`;
+  }
+  const account = await getAccountClient(args.workspace);
+  if (typeof account[method] !== "function") throw new Error(`This Huly version's account service has no method '${method}'.`);
+  const result = await account[method](...params);
+  const text3 = result === void 0 ? "(no result)" : JSON.stringify(redactSecrets(result), null, 2);
+  return `\`${method}\`${isWrite ? " done" : ""}:
+
+\`\`\`json
+${text3.length > 2e4 ? `${text3.slice(0, 2e4)}
+\u2026 (${text3.length} chars, shortened)` : text3}
+\`\`\``;
+});
+var ok = (r) => String(r?.content?.[0]?.text ?? "").split("\n")[0];
+var setupWorkspace = wrapToolHandler(async (args) => {
+  const ws2 = args.workspace;
+  const plan = [];
+  for (const m of args.modules?.enable ?? []) plan.push(`module ${m} on`);
+  for (const m of args.modules?.disable ?? []) plan.push(`module ${m} off`);
+  for (const s of args.statuses ?? []) plan.push(`issue status "${s.name}" (${s.category})${s.projectIdentifier != null ? ` for ${s.projectIdentifier}'s workflow` : ""}`);
+  for (const p of args.projects ?? []) {
+    plan.push(`project ${p.identifier} "${p.name}"`);
+    for (const c of p.components ?? []) plan.push(`  component "${c.label}"`);
+    for (const m of p.milestones ?? []) plan.push(`  milestone "${m.label}" \u2192 ${m.targetDate}`);
+  }
+  for (const t of args.teamspaces ?? []) plan.push(`teamspace "${t.name}"`);
+  if (plan.length === 0) throw new Error("Empty template: pass modules, statuses, projects or teamspaces.");
+  if (args.dryRun !== false) return `## Plan for ${ws2} (dry run)
+
+${plan.map((l) => `- ${l}`).join("\n")}
+
+Run again with dryRun: false. Existing projects, components, milestones and statuses are reused, not duplicated.`;
+  const log = [];
+  const step = async (label2, fn) => {
+    try {
+      log.push(`- ${label2}: ${ok(await fn())}`);
+    } catch (e) {
+      log.push(`- ${label2}: \u26A0\uFE0F ${e.message.replace(/^Huly MCP: /, "")}`);
+    }
+  };
+  for (const m of args.modules?.enable ?? []) await step(`module ${m}`, async () => await setModule({ workspace: ws2, module: m, enabled: true }));
+  for (const m of args.modules?.disable ?? []) await step(`module ${m}`, async () => await setModule({ workspace: ws2, module: m, enabled: false }));
+  const client = await getConnection(ws2);
+  const exists = (what) => ({ content: [{ text: `exists, reused (${what})` }] });
+  for (const p of args.projects ?? []) {
+    await step(`project ${p.identifier}`, async () => await client.findOne("tracker:class:Project", { identifier: p.identifier }) != null ? exists("project") : await createProject({ workspace: ws2, identifier: p.identifier, name: p.name, description: p.description }));
+  }
+  for (const s of args.statuses ?? []) {
+    await step(`status ${s.name}`, async () => await createIssueStatus({ workspace: ws2, name: s.name, category: s.category, projectIdentifier: s.projectIdentifier ?? args.projects?.[0]?.identifier }));
+  }
+  for (const p of args.projects ?? []) {
+    const project = await client.findOne("tracker:class:Project", { identifier: p.identifier });
+    const labels = async (cls) => new Set(project == null ? [] : (await client.findAll(cls, { space: project._id })).map((d) => String(d.label).toLowerCase()));
+    const comps = await labels("tracker:class:Component");
+    const miles = await labels("tracker:class:Milestone");
+    for (const c of p.components ?? []) await step(`${p.identifier} component ${c.label}`, async () => comps.has(c.label.toLowerCase()) ? exists("component") : await createComponent({ workspace: ws2, projectIdentifier: p.identifier, label: c.label, description: c.description }));
+    for (const m of p.milestones ?? []) await step(`${p.identifier} milestone ${m.label}`, async () => miles.has(m.label.toLowerCase()) ? exists("milestone") : await createMilestone({ workspace: ws2, projectIdentifier: p.identifier, label: m.label, targetDate: m.targetDate, status: "Planned" }));
+  }
+  const spaces = new Set((await client.findAll("document:class:Teamspace", {})).map((t) => String(t.name).toLowerCase()));
+  for (const t of args.teamspaces ?? []) await step(`teamspace ${t.name}`, async () => spaces.has(t.name.toLowerCase()) ? exists("teamspace") : await createTeamspace({ workspace: ws2, name: t.name, description: t.description, isPrivate: false }));
+  return `## ${ws2} set up
+
+${log.join("\n")}`;
+});
+
+// src/tools/coverage.ts
+var import_tracker19 = __toESM(require_lib11());
+var import_task6 = __toESM(require_lib14());
+var import_core44 = __toESM(require_lib4());
+
+// src/tools/testing.ts
 var import_core43 = __toESM(require_lib4());
+var TM = {
+  Project: "testManagement:class:TestProject",
+  Suite: "testManagement:class:TestSuite",
+  Case: "testManagement:class:TestCase",
+  Plan: "testManagement:class:TestPlan",
+  PlanItem: "testManagement:class:TestPlanItem",
+  Run: "testManagement:class:TestRun",
+  Result: "testManagement:class:TestResult",
+  NoParent: "testManagement:ids:NoParent",
+  SpaceType: "testManagement:spaceType:DefaultProject",
+  TypeMixin: "testManagement:mixin:DefaultProjectTypeData"
+};
+var CASE_TYPES = ["Functional", "Performance", "Regression", "Security", "Smoke", "Usability"];
+var CASE_PRIORITIES = ["Low", "Medium", "High", "Urgent"];
+var CASE_STATUSES = ["Draft", "ReadyForReview", "FixReviewComments", "Approved", "Rejected"];
+var RESULT_STATUSES = ["Untested", "Blocked", "Passed", "Failed"];
+var idx = (list, v) => list.indexOf(v);
+var name = (list, i) => (i != null ? list[i] : void 0) ?? "\u2014";
+async function findProject3(client, ref) {
+  const all = await client.findAll(TM.Project, {});
+  const hits = all.filter((p) => p._id === ref || String(p.name).toLowerCase() === ref.toLowerCase());
+  if (hits.length === 1) return hits[0];
+  if (hits.length > 1) throw new Error(`Test project '${ref}' is ambiguous: ${hits.map((p) => p._id).join(", ")}.`);
+  throw new Error(`Test project '${ref}' not found. Available: ${all.map((p) => p.name).join(", ") || "none"}.`);
+}
+async function findSuite(client, project, ref) {
+  const suites = await client.findAll(TM.Suite, { space: project._id });
+  const hits = suites.filter((s) => s._id === ref || String(s.name).toLowerCase() === ref.toLowerCase());
+  if (hits.length === 1) return hits[0];
+  if (hits.length > 1) throw new Error(`Suite '${ref}' is ambiguous \u2014 use its id: ${hits.map((s) => s._id).join(", ")}.`);
+  throw new Error(`Suite '${ref}' not found in ${String(project.name)}.`);
+}
+async function findDoc(client, _class, id, what) {
+  const doc = await client.findOne(_class, { _id: id });
+  if (doc == null) throw new Error(`${what} '${id}' not found.`);
+  return doc;
+}
+var listTestProjects = wrapToolHandler(async (args) => {
+  const client = await getConnection(args.workspace);
+  const projects = await client.findAll(TM.Project, { archived: false });
+  if (projects.length === 0) return "No test projects.";
+  const lines = [];
+  for (const p of projects) {
+    const cases = await client.findAll(TM.Case, { space: p._id }, { limit: 1, total: true });
+    const runs = await client.findAll(TM.Run, { space: p._id }, { limit: 1, total: true });
+    lines.push(`- **${String(p.name)}** \u2014 ${String(cases.total ?? cases.length)} case(s), ${String(runs.total ?? runs.length)} run(s) \u2014 \`${String(p._id)}\``);
+  }
+  return `## Test projects (${projects.length})
+
+${lines.join("\n")}`;
+});
+var createTestProject = wrapToolHandler(async (args) => {
+  const client = await getConnection(args.workspace);
+  const existing = await client.findAll(TM.Project, {});
+  const same = existing.find((p) => String(p.name).toLowerCase() === args.name.toLowerCase());
+  if (same != null) return `\u2139\uFE0F Test project **${String(same.name)}** already exists \u2014 \`${String(same._id)}\`.`;
+  const me = await currentAccountUuid(client);
+  const id = await client.createDoc(TM.Project, "core:space:Space", {
+    name: args.name,
+    description: args.description ?? "",
+    private: args.isPrivate,
+    members: [me],
+    owners: [me],
+    archived: false,
+    type: TM.SpaceType
+  });
+  await client.createMixin(id, TM.Project, "core:space:Space", TM.TypeMixin, {});
+  return `\u2705 Test project **${args.name}** created \u2014 \`${String(id)}\`.`;
+});
+var listTestCases = wrapToolHandler(async (args) => {
+  const client = await getConnection(args.workspace);
+  const project = await findProject3(client, args.project);
+  const suites = await client.findAll(TM.Suite, { space: project._id }, { sort: { name: import_core43.SortingOrder.Ascending } });
+  const query = { space: project._id };
+  if (args.status != null) query.status = idx(CASE_STATUSES, args.status);
+  const cases = await client.findAll(TM.Case, query, { sort: { name: import_core43.SortingOrder.Ascending } });
+  const people = await peopleNames(client);
+  const root = args.suite != null ? (await findSuite(client, project, args.suite))._id : TM.NoParent;
+  const lines = [];
+  const walk = (parent, depth) => {
+    for (const s of suites.filter((x) => x.parent === parent)) {
+      lines.push(`${"  ".repeat(depth)}- \u{1F4C2} **${String(s.name)}** \u2014 \`${String(s._id)}\``);
+      for (const c of cases.filter((x) => x.attachedTo === s._id)) {
+        const who = c.assignee != null ? ` \xB7 @${people.get(c.assignee) ?? "?"}` : "";
+        lines.push(`${"  ".repeat(depth + 1)}- ${String(c.name)} [${name(CASE_TYPES, c.type)}, ${name(CASE_PRIORITIES, c.priority)}, ${name(CASE_STATUSES, c.status)}]${who} \u2014 \`${String(c._id)}\``);
+      }
+      if (depth < 20) walk(s._id, depth + 1);
+    }
+  };
+  if (args.suite != null) {
+    const s = suites.find((x) => x._id === root);
+    lines.push(`- \u{1F4C2} **${String(s.name)}** \u2014 \`${String(s._id)}\``);
+    for (const c of cases.filter((x) => x.attachedTo === root)) lines.push(`  - ${String(c.name)} [${name(CASE_TYPES, c.type)}, ${name(CASE_PRIORITIES, c.priority)}, ${name(CASE_STATUSES, c.status)}] \u2014 \`${String(c._id)}\``);
+    walk(root, 1);
+  } else walk(root, 0);
+  if (lines.length === 0) return `No suites in ${String(project.name)} yet \u2014 create one with create_test_suite.`;
+  return `## ${String(project.name)}: ${cases.length} case(s)
+
+${lines.join("\n")}`;
+});
+var createTestSuite = wrapToolHandler(async (args) => {
+  const client = await getConnection(args.workspace);
+  const project = await findProject3(client, args.project);
+  const parent = args.parent != null ? await findSuite(client, project, args.parent) : void 0;
+  const id = await client.createDoc(TM.Suite, project._id, { name: args.name, description: args.description ?? "", parent: parent?._id ?? TM.NoParent });
+  return `\u2705 Suite **${args.name}** created${parent != null ? ` in "${String(parent.name)}"` : ""} \u2014 \`${String(id)}\`.`;
+});
+var getTestCase = wrapToolHandler(async (args) => {
+  const client = await getConnection(args.workspace);
+  const c = await findDoc(client, TM.Case, args.caseId, "Test case");
+  const suite = await client.findOne(TM.Suite, { _id: c.attachedTo });
+  const people = await peopleNames(client);
+  const results = await client.findAll(TM.Result, { testCase: c._id }, { sort: { modifiedOn: import_core43.SortingOrder.Descending }, limit: 5 });
+  const lines = [
+    `## ${String(c.name)}`,
+    "",
+    `**Suite:** ${String(suite?.name ?? "\u2014")} \xB7 **Type:** ${name(CASE_TYPES, c.type)} \xB7 **Priority:** ${name(CASE_PRIORITIES, c.priority)} \xB7 **Status:** ${name(CASE_STATUSES, c.status)}`,
+    `**Assignee:** ${c.assignee != null ? people.get(c.assignee) ?? "?" : "\u2014"} \xB7 **Id:** \`${String(c._id)}\``,
+    "",
+    "### Steps / description",
+    await readMarkup(args.workspace, c.description) || "_(empty)_"
+  ];
+  if (results.length > 0) {
+    lines.push("", "### Latest results");
+    for (const r of results) {
+      const run = await client.findOne(TM.Run, { _id: r.attachedTo });
+      lines.push(`- ${name(RESULT_STATUSES, r.status)} in run "${String(run?.name ?? "?")}" (${formatDate(r.modifiedOn)})`);
+    }
+  }
+  return lines.join("\n");
+});
+var createTestCase = wrapToolHandler(async (args) => {
+  const client = await getConnection(args.workspace);
+  const project = await findProject3(client, args.project);
+  const suite = await findSuite(client, project, args.suite);
+  const assignee = args.assignee != null ? (await findPerson(client, args.assignee))._id : null;
+  const id = await client.addCollection(TM.Case, project._id, suite._id, TM.Suite, "testCases", {
+    name: args.name,
+    description: args.description != null && args.description !== "" ? await writeMarkup(args.workspace, "testcase", args.description) : null,
+    type: idx(CASE_TYPES, args.type ?? "Functional"),
+    priority: idx(CASE_PRIORITIES, args.priority ?? "Medium"),
+    status: idx(CASE_STATUSES, args.status ?? "Draft"),
+    assignee,
+    attachments: 0
+  });
+  return `\u2705 Test case **${args.name}** created in "${String(suite.name)}" \u2014 \`${String(id)}\`.`;
+});
+var updateTestCase = wrapToolHandler(async (args) => {
+  const client = await getConnection(args.workspace);
+  const c = await findDoc(client, TM.Case, args.caseId, "Test case");
+  const update = {};
+  if (args.name != null) update.name = args.name;
+  if (args.description != null) update.description = await writeMarkup(args.workspace, "testcase", args.description);
+  if (args.type != null) update.type = idx(CASE_TYPES, args.type);
+  if (args.priority != null) update.priority = idx(CASE_PRIORITIES, args.priority);
+  if (args.status != null) update.status = idx(CASE_STATUSES, args.status);
+  if (args.assignee !== void 0) update.assignee = args.assignee != null ? (await findPerson(client, args.assignee))._id : null;
+  if (Object.keys(update).length === 0) throw new Error("Nothing to change.");
+  await client.updateCollection(TM.Case, c.space, c._id, c.attachedTo, TM.Suite, "testCases", update);
+  return `\u2705 Test case **${String(args.name ?? c.name)}** updated: ${Object.keys(update).join(", ")}.`;
+});
+var deleteTestCase = wrapToolHandler(async (args) => {
+  const client = await getConnection(args.workspace);
+  const c = await findDoc(client, TM.Case, args.caseId, "Test case");
+  await client.removeCollection(TM.Case, c.space, c._id, c.attachedTo, TM.Suite, "testCases");
+  return `\u2705 Test case **${String(c.name)}** deleted.`;
+});
+async function selectCases(client, project, caseIds, suites) {
+  const out = /* @__PURE__ */ new Map();
+  for (const id of caseIds ?? []) {
+    const c = await findDoc(client, TM.Case, id, "Test case");
+    if (c.space !== project._id) throw new Error(`Test case '${id}' belongs to another project.`);
+    out.set(c._id, c);
+  }
+  if ((suites ?? []).length > 0) {
+    const all = await client.findAll(TM.Suite, { space: project._id });
+    let level = await Promise.all((suites ?? []).map(async (s) => (await findSuite(client, project, s))._id));
+    const ids = new Set(level);
+    while (level.length > 0) {
+      level = all.filter((s) => level.includes(s.parent) && !ids.has(s._id)).map((s) => s._id);
+      for (const l of level) ids.add(l);
+    }
+    const cases = await client.findAll(TM.Case, { space: project._id, attachedTo: { $in: [...ids] } });
+    for (const c of cases) out.set(c._id, c);
+  }
+  return [...out.values()];
+}
+var listTestPlans = wrapToolHandler(async (args) => {
+  const client = await getConnection(args.workspace);
+  const project = await findProject3(client, args.project);
+  const plans = await client.findAll(TM.Plan, { space: project._id });
+  if (plans.length === 0) return `No test plans in ${String(project.name)}.`;
+  const lines = [];
+  for (const p of plans) {
+    const items = await client.findAll(TM.PlanItem, { attachedTo: p._id });
+    lines.push(`- **${String(p.name)}** \u2014 ${items.length} case(s) \u2014 \`${String(p._id)}\``);
+  }
+  return `## Test plans in ${String(project.name)} (${plans.length})
+
+${lines.join("\n")}`;
+});
+var createTestPlan = wrapToolHandler(async (args) => {
+  const client = await getConnection(args.workspace);
+  const project = await findProject3(client, args.project);
+  const cases = await selectCases(client, project, args.caseIds, args.suites);
+  if (cases.length === 0) throw new Error("No test cases selected (caseIds or suites).");
+  const ops = client.apply?.() ?? client;
+  const id = await ops.createDoc(TM.Plan, project._id, { name: args.name, description: null });
+  for (const c of cases) {
+    await ops.addCollection(TM.PlanItem, project._id, id, TM.Plan, "items", { testCase: c._id, testSuite: c.attachedTo, assignee: c.assignee ?? null });
+  }
+  if (ops !== client) await ops.commit();
+  return `\u2705 Test plan **${args.name}** with ${cases.length} case(s) \u2014 \`${String(id)}\`.`;
+});
+var createTestRun = wrapToolHandler(async (args) => {
+  const client = await getConnection(args.workspace);
+  const project = await findProject3(client, args.project);
+  let cases = await selectCases(client, project, args.caseIds, args.suites);
+  if (args.plan != null) {
+    const plans = await client.findAll(TM.Plan, { space: project._id });
+    const plan = plans.find((p) => p._id === args.plan || String(p.name).toLowerCase() === args.plan.toLowerCase());
+    if (plan == null) throw new Error(`Test plan '${args.plan}' not found.`);
+    const items = await client.findAll(TM.PlanItem, { attachedTo: plan._id });
+    const fromPlan = await Promise.all(items.map(async (i) => await client.findOne(TM.Case, { _id: i.testCase })));
+    cases = [...new Map([...cases, ...fromPlan.filter((c) => c != null)].map((c) => [c._id, c])).values()];
+  }
+  if (cases.length === 0) throw new Error("No test cases selected (plan, suites or caseIds).");
+  const dueDate = args.dueDate != null ? new Date(args.dueDate).getTime() : void 0;
+  if (dueDate != null && Number.isNaN(dueDate)) throw new Error(`Invalid dueDate '${args.dueDate}'.`);
+  const ops = client.apply?.() ?? client;
+  const id = await ops.createDoc(TM.Run, project._id, { name: args.name, description: null, ...dueDate != null ? { dueDate } : {} });
+  for (const c of cases) {
+    await ops.addCollection(TM.Result, project._id, id, TM.Run, "results", { name: c.name, testCase: c._id, testSuite: c.attachedTo, description: null, status: idx(RESULT_STATUSES, "Untested"), assignee: c.assignee ?? null });
+  }
+  if (ops !== client) await ops.commit();
+  return `\u2705 Test run **${args.name}** started with ${cases.length} case(s) \u2014 \`${String(id)}\`. Record results with set_test_result.`;
+});
+var listTestRuns = wrapToolHandler(async (args) => {
+  const client = await getConnection(args.workspace);
+  const project = await findProject3(client, args.project);
+  const runs = await client.findAll(TM.Run, { space: project._id }, { sort: { modifiedOn: import_core43.SortingOrder.Descending }, limit: args.limit });
+  if (runs.length === 0) return `No test runs in ${String(project.name)}.`;
+  const lines = [];
+  for (const r of runs) {
+    const results = await client.findAll(TM.Result, { attachedTo: r._id });
+    const counts = RESULT_STATUSES.map((s, i) => [s, results.filter((x) => (x.status ?? 0) === i).length]).filter(([, n]) => n > 0);
+    lines.push(`- **${String(r.name)}** \u2014 ${counts.map(([s, n]) => `${n} ${s}`).join(", ") || "empty"}${r.dueDate != null ? ` \xB7 due ${formatDate(r.dueDate)}` : ""} \u2014 \`${String(r._id)}\``);
+  }
+  return `## Test runs in ${String(project.name)} (${runs.length})
+
+${lines.join("\n")}`;
+});
+var getTestRun = wrapToolHandler(async (args) => {
+  const client = await getConnection(args.workspace);
+  const run = await findDoc(client, TM.Run, args.runId, "Test run");
+  const results = await client.findAll(TM.Result, { attachedTo: run._id });
+  const people = await peopleNames(client);
+  const lines = results.sort((a, b) => String(a.name).localeCompare(String(b.name))).map((r) => `- ${name(RESULT_STATUSES, r.status ?? 0)} \u2014 **${String(r.name)}**${r.assignee != null ? ` \xB7 @${people.get(r.assignee) ?? "?"}` : ""} \u2014 \`${String(r._id)}\``);
+  const done = results.filter((r) => (r.status ?? 0) !== 0).length;
+  return `## Run: ${String(run.name)} (${done}/${results.length} tested)
+
+${lines.join("\n")}`;
+});
+var setTestResult = wrapToolHandler(async (args) => {
+  const client = await getConnection(args.workspace);
+  let result = await client.findOne(TM.Result, { _id: args.result });
+  if (result == null && args.runId != null) {
+    const all = await client.findAll(TM.Result, { attachedTo: args.runId });
+    const hits = all.filter((r) => r.testCase === args.result || String(r.name).toLowerCase() === args.result.toLowerCase());
+    if (hits.length > 1) throw new Error(`'${args.result}' matches several results in this run \u2014 use the result id.`);
+    result = hits[0];
+  }
+  if (result == null) throw new Error(`Test result '${args.result}' not found (pass a result id, or runId plus case id/name).`);
+  const update = { status: idx(RESULT_STATUSES, args.status) };
+  if (args.comment != null) update.description = await writeMarkup(args.workspace, "testresult", args.comment);
+  if (args.assignee !== void 0) update.assignee = args.assignee != null ? (await findPerson(client, args.assignee))._id : null;
+  await client.updateCollection(TM.Result, result.space, result._id, result.attachedTo, TM.Run, "results", update);
+  return `\u2705 **${String(result.name)}**: ${args.status}${args.comment != null ? " (with comment)" : ""}.`;
+});
+var updateTestSuite = wrapToolHandler(async (args) => {
+  const client = await getConnection(args.workspace);
+  const project = await findProject3(client, args.project);
+  const suite = await findSuite(client, project, args.suite);
+  const update = {};
+  if (args.name != null) update.name = args.name;
+  if (args.description != null) update.description = args.description;
+  if (args.parent !== void 0) {
+    if (args.parent == null) update.parent = TM.NoParent;
+    else {
+      const parent = await findSuite(client, project, args.parent);
+      const all = await client.findAll(TM.Suite, { space: project._id });
+      for (let p = parent; p != null; p = all.find((s) => s._id === p.parent)) {
+        if (p._id === suite._id) throw new Error("A suite cannot move into itself or one of its sub-suites.");
+      }
+      update.parent = parent._id;
+    }
+  }
+  if (Object.keys(update).length === 0) throw new Error("Nothing to change.");
+  await client.updateDoc(TM.Suite, suite.space, suite._id, update);
+  return `\u2705 Suite **${String(args.name ?? suite.name)}** updated: ${Object.keys(update).join(", ")}.`;
+});
+var deleteTestSuite = wrapToolHandler(async (args) => {
+  const client = await getConnection(args.workspace);
+  const project = await findProject3(client, args.project);
+  const suite = await findSuite(client, project, args.suite);
+  const all = await client.findAll(TM.Suite, { space: project._id });
+  const ids = [suite._id];
+  for (let i = 0; i < ids.length; i++) ids.push(...all.filter((s) => s.parent === ids[i]).map((s) => s._id));
+  const cases = await client.findAll(TM.Case, { space: project._id, attachedTo: { $in: ids } });
+  if ((ids.length > 1 || cases.length > 0) && args.recursive !== true) throw new Error(`Suite '${String(suite.name)}' holds ${ids.length - 1} sub-suite(s) and ${cases.length} case(s) \u2014 pass recursive: true to delete them too.`);
+  for (const c of cases) await client.removeCollection(TM.Case, c.space, c._id, c.attachedTo, TM.Suite, "testCases");
+  for (const id of ids.reverse()) await client.removeDoc(TM.Suite, project._id, id);
+  return `\u{1F5D1}\uFE0F Suite **${String(suite.name)}** deleted${ids.length > 1 || cases.length > 0 ? ` with ${ids.length - 1} sub-suite(s) and ${cases.length} case(s)` : ""}.`;
+});
+var updateTestRun = wrapToolHandler(async (args) => {
+  const client = await getConnection(args.workspace);
+  const run = await findDoc(client, TM.Run, args.runId, "Test run");
+  const update = {};
+  if (args.name != null) update.name = args.name;
+  if (args.dueDate !== void 0) {
+    const t = args.dueDate != null ? new Date(args.dueDate).getTime() : null;
+    if (t != null && Number.isNaN(t)) throw new Error(`Invalid dueDate '${String(args.dueDate)}'.`);
+    update.dueDate = t;
+  }
+  if (args.description != null) update.description = await writeMarkup(args.workspace, "testrun", args.description);
+  if (Object.keys(update).length === 0) throw new Error("Nothing to change.");
+  await client.updateDoc(TM.Run, run.space, run._id, update);
+  return `\u2705 Run **${String(args.name ?? run.name)}** updated: ${Object.keys(update).join(", ")}.`;
+});
+var deleteTestRun = wrapToolHandler(async (args) => {
+  const client = await getConnection(args.workspace);
+  const run = await findDoc(client, TM.Run, args.runId, "Test run");
+  const results = await client.findAll(TM.Result, { attachedTo: run._id });
+  for (const r of results) await client.removeCollection(TM.Result, r.space, r._id, run._id, TM.Run, "results");
+  await client.removeDoc(TM.Run, run.space, run._id);
+  return `\u{1F5D1}\uFE0F Run **${String(run.name)}** deleted with ${results.length} result(s).`;
+});
+var deleteTestPlan = wrapToolHandler(async (args) => {
+  const client = await getConnection(args.workspace);
+  const project = await findProject3(client, args.project);
+  const plans = await client.findAll(TM.Plan, { space: project._id });
+  const plan = plans.find((p) => p._id === args.plan || String(p.name).toLowerCase() === args.plan.toLowerCase());
+  if (plan == null) throw new Error(`Test plan '${args.plan}' not found.`);
+  const items = await client.findAll(TM.PlanItem, { attachedTo: plan._id });
+  for (const i of items) await client.removeCollection(TM.PlanItem, i.space, i._id, plan._id, TM.Plan, "items");
+  await client.removeDoc(TM.Plan, plan.space, plan._id);
+  return `\u{1F5D1}\uFE0F Test plan **${String(plan.name)}** deleted (${items.length} item(s); runs made from it stay).`;
+});
+
+// src/tools/coverage.ts
+var caseIdsOf = (issue2) => (issue2.relations ?? []).filter((r) => r._class === TM.Case).map((r) => String(r._id));
+async function coverageData(client, projectIdentifier, milestoneLabel) {
+  const project = await client.findOne(import_tracker19.default.class.Project, { identifier: projectIdentifier });
+  if (project == null) throw new Error(`Project '${projectIdentifier}' not found.`);
+  const milestone = milestoneLabel != null ? await findByLabel(client, "milestone", project._id, milestoneLabel, projectIdentifier) : void 0;
+  const issues = await client.findAll(import_tracker19.default.class.Issue, { space: project._id, ...milestone != null ? { milestone: milestone._id } : {} }, { sort: { rank: import_core44.SortingOrder.Ascending } });
+  const statuses = await client.findAll(import_tracker19.default.class.IssueStatus, {});
+  const closed = new Set(statuses.filter((s) => s.category === import_task6.default.statusCategory.Won || s.category === import_task6.default.statusCategory.Lost).map((s) => String(s._id)));
+  const ids = [...new Set(issues.flatMap(caseIdsOf))];
+  const cases = new Map((ids.length > 0 ? await client.findAll(TM.Case, { _id: { $in: ids } }) : []).map((c) => [String(c._id), c]));
+  const results = ids.length > 0 ? await client.findAll(TM.Result, { testCase: { $in: ids } }, { sort: { modifiedOn: import_core44.SortingOrder.Descending } }) : [];
+  const latest = /* @__PURE__ */ new Map();
+  for (const r of results) if (!latest.has(String(r.testCase))) latest.set(String(r.testCase), r);
+  return { project, milestone, issues, statusName: new Map(statuses.map((s) => [String(s._id), s.name])), closed, cases, latest };
+}
+var resultName = (r) => r == null ? "never run" : RESULT_STATUSES[r.status] ?? String(r.status);
+var mark = (r) => r == null ? "\u26AA" : r.status === 2 ? "\u2705" : r.status === 3 ? "\u274C" : r.status === 1 ? "\u26D4" : "\u26AA";
+var testCoverage = wrapToolHandler(async (args) => {
+  const client = await getConnection(args.workspace);
+  const d = await coverageData(client, args.projectIdentifier, args.milestoneLabel);
+  const scope = d.issues.filter((i) => args.onlyOpen !== true || !d.closed.has(String(i.status)));
+  if (scope.length === 0) return `No issues in ${args.projectIdentifier}${d.milestone != null ? ` / ${String(d.milestone.label)}` : ""}.`;
+  const covered = scope.filter((i) => caseIdsOf(i).some((id) => d.cases.has(id)));
+  const uncovered = scope.filter((i) => !covered.includes(i));
+  const caseStates = covered.flatMap((i) => caseIdsOf(i).filter((id) => d.cases.has(id)).map((id) => d.latest.get(id)));
+  const failing = caseStates.filter((r) => r?.status === 3).length;
+  const never2 = caseStates.filter((r) => r == null).length;
+  const out = [
+    `## Test coverage \u2014 ${args.projectIdentifier}${d.milestone != null ? ` / ${String(d.milestone.label)}` : ""}`,
+    `${covered.length}/${scope.length} issues have test cases \xB7 ${failing} failing \xB7 ${never2} never run`
+  ];
+  if (uncovered.length > 0) {
+    out.push("", `### Without test cases (${uncovered.length})`);
+    for (const i of uncovered.slice(0, 40)) out.push(`- **${String(i.identifier)}** ${String(i.title)} \u2014 ${d.statusName.get(String(i.status)) ?? "?"}`);
+    if (uncovered.length > 40) out.push(`- \u2026 ${uncovered.length - 40} more`);
+  }
+  if (covered.length > 0) {
+    out.push("", `### Covered (${covered.length})`);
+    for (const i of covered) {
+      const parts = caseIdsOf(i).filter((id) => d.cases.has(id)).map((id) => {
+        const r = d.latest.get(id);
+        return `${mark(r)} ${String(d.cases.get(id).name)} (${resultName(r)}${r != null ? `, ${formatDate(r.modifiedOn)}` : ""})`;
+      });
+      out.push(`- **${String(i.identifier)}** ${String(i.title)} \u2014 ${parts.join(" \xB7 ")}`);
+    }
+  }
+  out.push("", "_Link a case: link_test_case. Run them: create_test_run._");
+  return out.join("\n");
+});
+var linkTestCase = wrapToolHandler(async (args) => {
+  const client = await getConnection(args.workspace);
+  const issue2 = await client.findOne(import_tracker19.default.class.Issue, { identifier: args.identifier });
+  if (issue2 == null) throw new Error(`Issue '${args.identifier}' not found.`);
+  let tc = await client.findOne(TM.Case, { _id: args.testCase });
+  if (tc == null) {
+    const named = (await client.findAll(TM.Case, {})).filter((c) => String(c.name).toLowerCase() === args.testCase.trim().toLowerCase());
+    if (named.length > 1) throw new Error(`Test case name '${args.testCase}' is ambiguous (${named.length} cases) \u2014 pass its id (list_test_cases).`);
+    tc = named[0];
+  }
+  if (tc == null) throw new Error(`Test case '${args.testCase}' not found (id or exact name; list_test_cases).`);
+  if (caseIdsOf(issue2).includes(String(tc._id))) return `**${args.identifier}** is already linked to "${String(tc.name)}".`;
+  await client.updateDoc(import_tracker19.default.class.Issue, issue2.space, issue2._id, { relations: [...issue2.relations ?? [], { _id: tc._id, _class: TM.Case }] });
+  return `\u2705 **${args.identifier}** \u2194 test case "${String(tc.name)}" (in the issue's Related list).`;
+});
+var releaseCheck = wrapToolHandler(async (args) => {
+  const client = await getConnection(args.workspace);
+  const d = await coverageData(client, args.projectIdentifier, args.milestoneLabel);
+  const ms = d.milestone;
+  const open2 = d.issues.filter((i) => !d.closed.has(String(i.status)));
+  const done = d.issues.length - open2.length;
+  const blockerIds = [...new Set(open2.flatMap((i) => (i.blockedBy ?? []).map((b) => String(b._id))))];
+  const blockers = new Map((blockerIds.length > 0 ? await client.findAll(import_tracker19.default.class.Issue, { _id: { $in: blockerIds } }) : []).map((b) => [String(b._id), b]));
+  const blocked = open2.map((i) => ({ i, by: (i.blockedBy ?? []).map((b) => blockers.get(String(b._id))).filter((b) => b != null && !d.closed.has(String(b.status))) })).filter((x) => x.by.length > 0);
+  const prs = d.issues.length > 0 ? await client.findAll(C.PullRequest, { attachedTo: { $in: d.issues.map((i) => i._id) } }) : [];
+  const openPrs = prs.filter((p) => p.state === 0 || p.state === "open");
+  const doneIssues = d.issues.filter((i) => d.closed.has(String(i.status)));
+  const untested = doneIssues.filter((i) => !caseIdsOf(i).some((id) => d.cases.has(id)));
+  const caseRows = [...new Set(d.issues.flatMap(caseIdsOf))].filter((id) => d.cases.has(id)).map((id) => ({ c: d.cases.get(id), r: d.latest.get(id) }));
+  const failing = caseRows.filter((x) => x.r?.status === 3);
+  const blockedTests = caseRows.filter((x) => x.r?.status === 1);
+  const neverRun = caseRows.filter((x) => x.r == null);
+  const overdue = ms?.targetDate != null && ms.targetDate < Date.now() && ms.status !== 2;
+  const reasons = [];
+  if (open2.length > 0) reasons.push(`${open2.length} open issue(s)`);
+  if (blocked.length > 0) reasons.push(`${blocked.length} blocked`);
+  if (openPrs.length > 0) reasons.push(`${openPrs.length} open PR(s)`);
+  if (failing.length > 0) reasons.push(`${failing.length} failing test(s)`);
+  if (blockedTests.length > 0) reasons.push(`${blockedTests.length} blocked test(s)`);
+  const warnings = [];
+  if (untested.length > 0) warnings.push(`${untested.length} done issue(s) without test cases`);
+  if (neverRun.length > 0) warnings.push(`${neverRun.length} linked test case(s) never run`);
+  if (overdue) warnings.push(`target date ${formatDate(ms.targetDate)} has passed`);
+  const out = [
+    `## Release check \u2014 ${args.projectIdentifier} / ${String(ms?.label ?? args.milestoneLabel)}`,
+    reasons.length === 0 ? `**\u2705 Ready**${warnings.length > 0 ? ` \u2014 but ${warnings.join(", ")}` : ""}` : `**\u274C Not ready:** ${reasons.join(", ")}${warnings.length > 0 ? ` \xB7 also ${warnings.join(", ")}` : ""}`,
+    `${done}/${d.issues.length} issues done${ms?.targetDate != null ? ` \xB7 target ${formatDate(ms.targetDate)}` : ""}`
+  ];
+  const list = (title, rows) => {
+    if (rows.length > 0) out.push("", `### ${title} (${rows.length})`, ...rows.slice(0, 25), ...rows.length > 25 ? [`- \u2026 ${rows.length - 25} more`] : []);
+  };
+  list("Open issues", open2.map((i) => `- **${String(i.identifier)}** ${String(i.title)} \u2014 ${d.statusName.get(String(i.status)) ?? "?"}`));
+  list("Blocked", blocked.map((x) => `- **${String(x.i.identifier)}** waits for ${x.by.map((b) => String(b.identifier)).join(", ")}`));
+  list("Open PRs", openPrs.map((p) => `- **${String(p.identifier)}** ${String(p.title)}`));
+  list("Failing tests", failing.map((x) => `- \u274C ${String(x.c.name)} (${formatDate(x.r.modifiedOn)})`));
+  list("Blocked tests", blockedTests.map((x) => `- \u26D4 ${String(x.c.name)}`));
+  list("Done without test cases", untested.map((i) => `- **${String(i.identifier)}** ${String(i.title)}`));
+  out.push("", "_Release notes: release_notes. Coverage details: test_coverage._");
+  return out.join("\n");
+});
+
+// src/tools/process.ts
+var import_core45 = __toESM(require_lib4());
 var PR = { Process: "process:class:Process", State: "process:class:State", Transition: "process:class:Transition", Execution: "process:class:Execution", Log: "process:class:ExecutionLog", ToDo: "process:class:ProcessToDo" };
 var trig = (id) => (String(id).split(":").pop() ?? "").replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase();
 async function findProcess(client, ref) {
@@ -96112,7 +96865,7 @@ var listExecutions = wrapToolHandler(async (args) => {
   const query = {};
   if (args.process != null) query.process = (await findProcess(client, args.process))._id;
   if (args.status != null) query.status = args.status;
-  const execs = await client.findAll(PR.Execution, query, { sort: { modifiedOn: import_core43.SortingOrder.Descending }, limit: args.limit ?? 30 });
+  const execs = await client.findAll(PR.Execution, query, { sort: { modifiedOn: import_core45.SortingOrder.Descending }, limit: args.limit ?? 30 });
   if (execs.length === 0) return "No process executions.";
   const [processes, states, cards] = await Promise.all([
     client.findAll(PR.Process, {}),
@@ -96164,7 +96917,7 @@ var startProcess = wrapToolHandler(async (args) => {
     if (running != null) throw new Error(`'${String(proc.name)}' is already running on this card (\`${String(running._id)}\`).`);
   }
   if (args.dryRun === true) return `Dry run: would start **${String(proc.name)}** on "${String(card.title)}". Nothing was changed.`;
-  const id = (0, import_core43.generateId)();
+  const id = (0, import_core45.generateId)();
   await client.createDoc(PR.Execution, card.space, { process: proc._id, currentState: null, card: card._id, rollback: [], context: {}, status: "active" }, id);
   return `\u2705 Started **${String(proc.name)}** on "${String(card.title)}" \u2014 \`${id}\`. Huly's process service moves it on; check with list_executions.`;
 });
@@ -96181,7 +96934,7 @@ var cancelExecution = wrapToolHandler(async (args) => {
 
 // src/tools/surveys.ts
 var SV = { Survey: "survey:class:Survey", Poll: "survey:class:Poll" };
-var KIND = { string: "free text", option: "single choice", options: "multiple choice" };
+var KIND2 = { string: "free text", option: "single choice", options: "multiple choice" };
 var listSurveys = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
   const surveys = await client.findAll(SV.Survey, {});
@@ -96206,7 +96959,7 @@ var getSurvey = wrapToolHandler(async (args) => {
   if (s.prompt != null && s.prompt !== "") out.push(String(s.prompt));
   out.push("", `### Questions \u2014 results from ${done.length} completed of ${polls.length} poll(s)`);
   (s.questions ?? []).forEach((q, i) => {
-    out.push(`${i + 1}. ${String(q.name)} _(${KIND[q.kind] ?? q.kind}${q.isMandatory === true ? ", required" : ""})_`);
+    out.push(`${i + 1}. ${String(q.name)} _(${KIND2[q.kind] ?? q.kind}${q.isMandatory === true ? ", required" : ""})_`);
     const answers = done.map((p) => (p.questions ?? [])[i]).filter((a) => a != null && a.name === q.name);
     if (q.kind === "string") {
       for (const a of answers.filter((x) => x.answer != null && x.answer !== "").slice(0, args.maxTextAnswers ?? 10)) out.push(`   - \u201C${String(a.answer)}\u201D`);
@@ -96224,18 +96977,18 @@ var getSurvey = wrapToolHandler(async (args) => {
 });
 
 // src/tools/fields.ts
-var import_tracker18 = __toESM(require_lib11());
-var import_core44 = __toESM(require_lib4());
+var import_tracker20 = __toESM(require_lib11());
+var import_core46 = __toESM(require_lib4());
 async function resolveOwner(client, target) {
   const h = client.getHierarchy();
   const t = target.trim();
-  if (t.toLowerCase() === "issue") return { id: import_tracker18.default.class.Issue, label: "all issues" };
+  if (t.toLowerCase() === "issue") return { id: import_tracker20.default.class.Issue, label: "all issues" };
   if (/^[A-Z][A-Z0-9]*$/.test(t)) {
-    const project = await client.findOne(import_tracker18.default.class.Project, { identifier: t });
+    const project = await client.findOne(import_tracker20.default.class.Project, { identifier: t });
     if (project != null) {
       const projectType = await client.findOne("task:class:ProjectType", { _id: project.type });
       const taskTypes = await client.findAll("task:class:TaskType", { _id: { $in: projectType?.tasks ?? [] } });
-      const issueType = taskTypes.find((tt) => tt.ofClass === import_tracker18.default.class.Issue && tt._id !== "tracker:taskTypes:Issue") ?? taskTypes.find((tt) => tt.ofClass === import_tracker18.default.class.Issue);
+      const issueType = taskTypes.find((tt) => tt.ofClass === import_tracker20.default.class.Issue && tt._id !== "tracker:taskTypes:Issue") ?? taskTypes.find((tt) => tt.ofClass === import_tracker20.default.class.Issue);
       if (issueType?.targetClass == null) throw new Error(`Project ${t} has no issue task type.`);
       return { id: issueType.targetClass, label: `issues of project type "${String(projectType?.name ?? project.type)}" (${t})` };
     }
@@ -96291,7 +97044,7 @@ var createCustomField = wrapToolHandler(async (args) => {
   const same = existing.find((a) => labelText(a.label).toLowerCase() === args.label.toLowerCase());
   if (same != null) return `\u2139\uFE0F Field **${args.label}** already exists on ${owner.label} \u2014 \`${String(same.name)}\`.`;
   const type = await makeType(client, args.type, { enumValues: args.enumValues, enumName: args.label, refClass: args.refClass });
-  const name2 = "custom" + (0, import_core44.generateId)();
+  const name2 = "custom" + (0, import_core46.generateId)();
   await client.createDoc(C.Attribute, "core:space:Model", {
     attributeOf: owner.id,
     name: name2,
@@ -96320,7 +97073,7 @@ var setCustomFields = wrapToolHandler(async (args) => {
 });
 
 // src/tools/drive.ts
-var import_core45 = __toESM(require_lib4());
+var import_core47 = __toESM(require_lib4());
 var import_node_fs2 = require("node:fs");
 
 // src/utils/files.ts
@@ -96424,7 +97177,7 @@ var listDriveFiles = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
   const drive = await findDrive(client, args.drive);
   const folder = await findFolder(client, drive, args.folderId);
-  const items = await client.findAll(C.DriveResource, { space: drive._id }, { sort: { title: import_core45.SortingOrder.Ascending } });
+  const items = await client.findAll(C.DriveResource, { space: drive._id }, { sort: { title: import_core47.SortingOrder.Ascending } });
   const versions = await client.findAll(C.FileVersion, { space: drive._id });
   const current = new Map(versions.map((v) => [v._id, v]));
   const root = folder?._id ?? IDS.DriveRoot;
@@ -96470,7 +97223,7 @@ var uploadFile = wrapToolHandler(async (args) => {
   if (name2 == null || name2 === "") throw new Error("filename is required with contentBase64.");
   const type = args.mimeType ?? mimeFromName(name2);
   const { wsToken, workspaceUuid } = await getWorkspaceInfo(args.workspace);
-  const uploaded = await uploadBlob(wsToken, workspaceUuid, `${(0, import_core45.generateId)()}-${name2}`, new Blob([bytes], { type }));
+  const uploaded = await uploadBlob(wsToken, workspaceUuid, `${(0, import_core47.generateId)()}-${name2}`, new Blob([bytes], { type }));
   const data = { title: name2, file: uploaded.id, size: uploaded.size, type, lastModified: Date.now() };
   const existing = await client.findOne(C.File, { space: drive._id, parent: parentId, title: name2 });
   if (existing != null && args.newVersion) {
@@ -96480,8 +97233,8 @@ var uploadFile = wrapToolHandler(async (args) => {
     await client.updateDoc(C.File, existing.space, existing._id, { file: versionId2 });
     return `\u2705 **${name2}** updated to version ${String(version3)} (${size(uploaded.size)}) \u2014 \`${String(existing._id)}\`.`;
   }
-  const fileId = (0, import_core45.generateId)();
-  const versionId = (0, import_core45.generateId)();
+  const fileId = (0, import_core47.generateId)();
+  const versionId = (0, import_core47.generateId)();
   await client.createDoc(C.File, drive._id, { title: name2, parent: parentId, path: parent != null ? [parent._id, ...parent.path ?? []] : [], file: versionId, version: 1, versions: 0 }, fileId);
   await client.addCollection(C.FileVersion, drive._id, fileId, C.File, "versions", { ...data, version: 1 }, versionId);
   return `\u2705 **${name2}** uploaded (${size(uploaded.size)}) \u2014 \`${fileId}\`.${existing != null ? " (A file with this name already existed; newVersion=false kept both.)" : ""}`;
@@ -96576,7 +97329,7 @@ var deleteDriveItem = wrapToolHandler(async (args) => {
 var listFileVersions = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
   const file2 = await findItem(client, args.fileId);
-  const versions = await client.findAll(C.FileVersion, { attachedTo: file2._id }, { sort: { version: import_core45.SortingOrder.Descending } });
+  const versions = await client.findAll(C.FileVersion, { attachedTo: file2._id }, { sort: { version: import_core47.SortingOrder.Descending } });
   if (versions.length === 0) return `No versions of "${String(file2.title)}".`;
   const lines = versions.sort((a, b) => b.version - a.version).map((v) => `- v${String(v.version)}${v._id === file2.file ? " (current)" : ""} \u2014 ${size(v.size)}, ${formatDate(v.modifiedOn ?? v.lastModified)} \u2014 \`${String(v._id)}\``);
   return `## Versions of ${String(file2.title)} (${versions.length})
@@ -96611,13 +97364,13 @@ var createDrive = wrapToolHandler(async (args) => {
 });
 
 // src/tools/templates.ts
-var import_tracker19 = __toESM(require_lib11());
+var import_tracker21 = __toESM(require_lib11());
 var import_tags3 = __toESM(require_lib16());
-var import_core46 = __toESM(require_lib4());
-var PRIORITY = { NoPriority: import_tracker19.IssuePriority.NoPriority, Urgent: import_tracker19.IssuePriority.Urgent, High: import_tracker19.IssuePriority.High, Medium: import_tracker19.IssuePriority.Medium, Low: import_tracker19.IssuePriority.Low };
+var import_core48 = __toESM(require_lib4());
+var PRIORITY = { NoPriority: import_tracker21.IssuePriority.NoPriority, Urgent: import_tracker21.IssuePriority.Urgent, High: import_tracker21.IssuePriority.High, Medium: import_tracker21.IssuePriority.Medium, Low: import_tracker21.IssuePriority.Low };
 var PRIORITY_NAME = Object.fromEntries(Object.entries(PRIORITY).map(([k, v]) => [v, k]));
-async function findProject3(client, identifier) {
-  const project = await client.findOne(import_tracker19.default.class.Project, { identifier });
+async function findProject4(client, identifier) {
+  const project = await client.findOne(import_tracker21.default.class.Project, { identifier });
   if (project == null) throw new Error(`Project '${identifier}' not found.`);
   return project;
 }
@@ -96631,18 +97384,18 @@ async function byLabel(client, _class, project, label2, what) {
 async function labelIds(client, names2) {
   const out = [];
   for (const name2 of names2 ?? []) {
-    const tag = await client.findOne(import_tags3.default.class.TagElement, { targetClass: import_tracker19.default.class.Issue, title: name2 });
+    const tag = await client.findOne(import_tags3.default.class.TagElement, { targetClass: import_tracker21.default.class.Issue, title: name2 });
     if (tag == null) throw new Error(`Label '${name2}' not found (create it first with create_label).`);
     out.push(tag._id);
   }
   return out;
 }
 async function findTemplate2(client, ref, projectIdentifier) {
-  const byId = await client.findOne(import_tracker19.default.class.IssueTemplate, { _id: ref });
+  const byId = await client.findOne(import_tracker21.default.class.IssueTemplate, { _id: ref });
   if (byId != null) return byId;
   const query = {};
-  if (projectIdentifier != null) query.space = (await findProject3(client, projectIdentifier))._id;
-  const all = await client.findAll(import_tracker19.default.class.IssueTemplate, query);
+  if (projectIdentifier != null) query.space = (await findProject4(client, projectIdentifier))._id;
+  const all = await client.findAll(import_tracker21.default.class.IssueTemplate, query);
   const hits = all.filter((t) => String(t.title).toLowerCase() === ref.toLowerCase());
   if (hits.length === 1) return hits[0];
   if (hits.length > 1) throw new Error(`Template '${ref}' exists in several projects \u2014 pass projectIdentifier.`);
@@ -96654,15 +97407,15 @@ async function templateData(client, project, t) {
     description: textToMarkup(t.description ?? ""),
     priority: PRIORITY[t.priority ?? "NoPriority"],
     assignee: t.assignee != null ? (await findPerson(client, t.assignee))._id : null,
-    component: await byLabel(client, import_tracker19.default.class.Component, project, t.componentLabel, "Component"),
-    milestone: await byLabel(client, import_tracker19.default.class.Milestone, project, t.milestoneLabel, "Milestone"),
+    component: await byLabel(client, import_tracker21.default.class.Component, project, t.componentLabel, "Component"),
+    milestone: await byLabel(client, import_tracker21.default.class.Milestone, project, t.milestoneLabel, "Milestone"),
     estimation: t.estimation ?? 0,
     labels: await labelIds(client, t.labels)
   };
 }
 async function names(client, t, people) {
-  const component = t.component != null ? (await client.findOne(import_tracker19.default.class.Component, { _id: t.component }))?.label : void 0;
-  const milestone = t.milestone != null ? (await client.findOne(import_tracker19.default.class.Milestone, { _id: t.milestone }))?.label : void 0;
+  const component = t.component != null ? (await client.findOne(import_tracker21.default.class.Component, { _id: t.component }))?.label : void 0;
+  const milestone = t.milestone != null ? (await client.findOne(import_tracker21.default.class.Milestone, { _id: t.milestone }))?.label : void 0;
   const labels = (t.labels ?? []).length > 0 ? await client.findAll(import_tags3.default.class.TagElement, { _id: { $in: t.labels } }) : [];
   return { assignee: t.assignee != null ? people.get(t.assignee) : void 0, component, milestone, labels: labels.map((l) => l.title) };
 }
@@ -96678,10 +97431,10 @@ function describe4(t, n) {
 var listIssueTemplates = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
   const query = {};
-  if (args.projectIdentifier != null) query.space = (await findProject3(client, args.projectIdentifier))._id;
-  const templates = await client.findAll(import_tracker19.default.class.IssueTemplate, query);
+  if (args.projectIdentifier != null) query.space = (await findProject4(client, args.projectIdentifier))._id;
+  const templates = await client.findAll(import_tracker21.default.class.IssueTemplate, query);
   if (templates.length === 0) return "No issue templates.";
-  const projects = await client.findAll(import_tracker19.default.class.Project, {});
+  const projects = await client.findAll(import_tracker21.default.class.Project, {});
   const key = new Map(projects.map((p) => [p._id, p.identifier]));
   return `## Issue templates (${templates.length})
 
@@ -96702,48 +97455,48 @@ var getIssueTemplate = wrapToolHandler(async (args) => {
 });
 var createIssueTemplate = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const project = await findProject3(client, args.projectIdentifier);
-  const existing = await client.findOne(import_tracker19.default.class.IssueTemplate, { space: project._id, title: args.title.trim() });
+  const project = await findProject4(client, args.projectIdentifier);
+  const existing = await client.findOne(import_tracker21.default.class.IssueTemplate, { space: project._id, title: args.title.trim() });
   if (existing != null) return `\u2139\uFE0F Template **${args.title}** already exists in ${args.projectIdentifier} \u2014 \`${String(existing._id)}\`.`;
   const data = await templateData(client, project, args);
   const children = [];
-  for (const c of args.children ?? []) children.push({ id: (0, import_core46.generateId)(), ...await templateData(client, project, c) });
-  const id = await client.createDoc(import_tracker19.default.class.IssueTemplate, project._id, { ...data, children, comments: 0, attachments: 0, relations: [] });
+  for (const c of args.children ?? []) children.push({ id: (0, import_core48.generateId)(), ...await templateData(client, project, c) });
+  const id = await client.createDoc(import_tracker21.default.class.IssueTemplate, project._id, { ...data, children, comments: 0, attachments: 0, relations: [] });
   return `\u2705 Template **${args.title}** created in ${args.projectIdentifier}${children.length > 0 ? ` with ${children.length} sub-issue(s)` : ""} \u2014 \`${String(id)}\`.`;
 });
 var updateIssueTemplate = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
   const t = await findTemplate2(client, args.template, args.projectIdentifier);
-  const project = await client.findOne(import_tracker19.default.class.Project, { _id: t.space });
+  const project = await client.findOne(import_tracker21.default.class.Project, { _id: t.space });
   const update = {};
   if (args.title != null) update.title = args.title.trim();
   if (args.description != null) update.description = textToMarkup(args.description);
   if (args.priority != null) update.priority = PRIORITY[args.priority];
   if (args.assignee !== void 0) update.assignee = args.assignee != null ? (await findPerson(client, args.assignee))._id : null;
-  if (args.componentLabel !== void 0) update.component = await byLabel(client, import_tracker19.default.class.Component, project, args.componentLabel, "Component");
-  if (args.milestoneLabel !== void 0) update.milestone = await byLabel(client, import_tracker19.default.class.Milestone, project, args.milestoneLabel, "Milestone");
+  if (args.componentLabel !== void 0) update.component = await byLabel(client, import_tracker21.default.class.Component, project, args.componentLabel, "Component");
+  if (args.milestoneLabel !== void 0) update.milestone = await byLabel(client, import_tracker21.default.class.Milestone, project, args.milestoneLabel, "Milestone");
   if (args.estimation != null) update.estimation = args.estimation;
   if (args.labels != null) update.labels = await labelIds(client, args.labels);
   if (args.children != null) {
     const children = [];
-    for (const c of args.children) children.push({ id: (0, import_core46.generateId)(), ...await templateData(client, project, c) });
+    for (const c of args.children) children.push({ id: (0, import_core48.generateId)(), ...await templateData(client, project, c) });
     update.children = children;
   }
   if (Object.keys(update).length === 0) throw new Error("Nothing to change.");
-  await client.updateDoc(import_tracker19.default.class.IssueTemplate, t.space, t._id, update);
+  await client.updateDoc(import_tracker21.default.class.IssueTemplate, t.space, t._id, update);
   return `\u2705 Template **${String(update.title ?? t.title)}** updated: ${Object.keys(update).join(", ")}.`;
 });
 var deleteIssueTemplate = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
   const t = await findTemplate2(client, args.template, args.projectIdentifier);
-  await client.removeDoc(import_tracker19.default.class.IssueTemplate, t.space, t._id);
+  await client.removeDoc(import_tracker21.default.class.IssueTemplate, t.space, t._id);
   return `\u2705 Template **${String(t.title)}** deleted.`;
 });
 var text2 = (r) => r.content[0].text;
 var createIssueFromTemplate = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
   const t = await findTemplate2(client, args.template, args.projectIdentifier);
-  const project = await client.findOne(import_tracker19.default.class.Project, { _id: t.space });
+  const project = await client.findOne(import_tracker21.default.class.Project, { _id: t.space });
   const people = await peopleNames(client);
   const top = await names(client, t, people);
   const title = args.title ?? String(t.title);
@@ -96777,366 +97530,15 @@ var createIssueFromTemplate = wrapToolHandler(async (args) => {
   const estimates = [[id, t.estimation ?? 0], ...childIds.map((cid, i) => [cid, t.children[i]?.estimation ?? 0])];
   for (const [iid, est] of estimates) {
     if (est <= 0) continue;
-    const issue2 = await client.findOne(import_tracker19.default.class.Issue, { identifier: iid });
-    if (issue2 != null) await client.updateDoc(import_tracker19.default.class.Issue, issue2.space, issue2._id, { estimation: est });
+    const issue2 = await client.findOne(import_tracker21.default.class.Issue, { identifier: iid });
+    if (issue2 != null) await client.updateDoc(import_tracker21.default.class.Issue, issue2.space, issue2._id, { estimation: est });
   }
   return `\u2705 Created **${id}** "${title}" from template "${String(t.title)}"${(t.children ?? []).length > 0 ? ` with ${String(t.children.length)} sub-issue(s)` : ""}.`;
 });
 
-// src/tools/testing.ts
-var import_core47 = __toESM(require_lib4());
-var TM = {
-  Project: "testManagement:class:TestProject",
-  Suite: "testManagement:class:TestSuite",
-  Case: "testManagement:class:TestCase",
-  Plan: "testManagement:class:TestPlan",
-  PlanItem: "testManagement:class:TestPlanItem",
-  Run: "testManagement:class:TestRun",
-  Result: "testManagement:class:TestResult",
-  NoParent: "testManagement:ids:NoParent",
-  SpaceType: "testManagement:spaceType:DefaultProject",
-  TypeMixin: "testManagement:mixin:DefaultProjectTypeData"
-};
-var CASE_TYPES = ["Functional", "Performance", "Regression", "Security", "Smoke", "Usability"];
-var CASE_PRIORITIES = ["Low", "Medium", "High", "Urgent"];
-var CASE_STATUSES = ["Draft", "ReadyForReview", "FixReviewComments", "Approved", "Rejected"];
-var RESULT_STATUSES = ["Untested", "Blocked", "Passed", "Failed"];
-var idx = (list, v) => list.indexOf(v);
-var name = (list, i) => (i != null ? list[i] : void 0) ?? "\u2014";
-async function findProject4(client, ref) {
-  const all = await client.findAll(TM.Project, {});
-  const hits = all.filter((p) => p._id === ref || String(p.name).toLowerCase() === ref.toLowerCase());
-  if (hits.length === 1) return hits[0];
-  if (hits.length > 1) throw new Error(`Test project '${ref}' is ambiguous: ${hits.map((p) => p._id).join(", ")}.`);
-  throw new Error(`Test project '${ref}' not found. Available: ${all.map((p) => p.name).join(", ") || "none"}.`);
-}
-async function findSuite(client, project, ref) {
-  const suites = await client.findAll(TM.Suite, { space: project._id });
-  const hits = suites.filter((s) => s._id === ref || String(s.name).toLowerCase() === ref.toLowerCase());
-  if (hits.length === 1) return hits[0];
-  if (hits.length > 1) throw new Error(`Suite '${ref}' is ambiguous \u2014 use its id: ${hits.map((s) => s._id).join(", ")}.`);
-  throw new Error(`Suite '${ref}' not found in ${String(project.name)}.`);
-}
-async function findDoc(client, _class, id, what) {
-  const doc = await client.findOne(_class, { _id: id });
-  if (doc == null) throw new Error(`${what} '${id}' not found.`);
-  return doc;
-}
-var listTestProjects = wrapToolHandler(async (args) => {
-  const client = await getConnection(args.workspace);
-  const projects = await client.findAll(TM.Project, { archived: false });
-  if (projects.length === 0) return "No test projects.";
-  const lines = [];
-  for (const p of projects) {
-    const cases = await client.findAll(TM.Case, { space: p._id }, { limit: 1, total: true });
-    const runs = await client.findAll(TM.Run, { space: p._id }, { limit: 1, total: true });
-    lines.push(`- **${String(p.name)}** \u2014 ${String(cases.total ?? cases.length)} case(s), ${String(runs.total ?? runs.length)} run(s) \u2014 \`${String(p._id)}\``);
-  }
-  return `## Test projects (${projects.length})
-
-${lines.join("\n")}`;
-});
-var createTestProject = wrapToolHandler(async (args) => {
-  const client = await getConnection(args.workspace);
-  const existing = await client.findAll(TM.Project, {});
-  const same = existing.find((p) => String(p.name).toLowerCase() === args.name.toLowerCase());
-  if (same != null) return `\u2139\uFE0F Test project **${String(same.name)}** already exists \u2014 \`${String(same._id)}\`.`;
-  const me = await currentAccountUuid(client);
-  const id = await client.createDoc(TM.Project, "core:space:Space", {
-    name: args.name,
-    description: args.description ?? "",
-    private: args.isPrivate,
-    members: [me],
-    owners: [me],
-    archived: false,
-    type: TM.SpaceType
-  });
-  await client.createMixin(id, TM.Project, "core:space:Space", TM.TypeMixin, {});
-  return `\u2705 Test project **${args.name}** created \u2014 \`${String(id)}\`.`;
-});
-var listTestCases = wrapToolHandler(async (args) => {
-  const client = await getConnection(args.workspace);
-  const project = await findProject4(client, args.project);
-  const suites = await client.findAll(TM.Suite, { space: project._id }, { sort: { name: import_core47.SortingOrder.Ascending } });
-  const query = { space: project._id };
-  if (args.status != null) query.status = idx(CASE_STATUSES, args.status);
-  const cases = await client.findAll(TM.Case, query, { sort: { name: import_core47.SortingOrder.Ascending } });
-  const people = await peopleNames(client);
-  const root = args.suite != null ? (await findSuite(client, project, args.suite))._id : TM.NoParent;
-  const lines = [];
-  const walk = (parent, depth) => {
-    for (const s of suites.filter((x) => x.parent === parent)) {
-      lines.push(`${"  ".repeat(depth)}- \u{1F4C2} **${String(s.name)}** \u2014 \`${String(s._id)}\``);
-      for (const c of cases.filter((x) => x.attachedTo === s._id)) {
-        const who = c.assignee != null ? ` \xB7 @${people.get(c.assignee) ?? "?"}` : "";
-        lines.push(`${"  ".repeat(depth + 1)}- ${String(c.name)} [${name(CASE_TYPES, c.type)}, ${name(CASE_PRIORITIES, c.priority)}, ${name(CASE_STATUSES, c.status)}]${who} \u2014 \`${String(c._id)}\``);
-      }
-      if (depth < 20) walk(s._id, depth + 1);
-    }
-  };
-  if (args.suite != null) {
-    const s = suites.find((x) => x._id === root);
-    lines.push(`- \u{1F4C2} **${String(s.name)}** \u2014 \`${String(s._id)}\``);
-    for (const c of cases.filter((x) => x.attachedTo === root)) lines.push(`  - ${String(c.name)} [${name(CASE_TYPES, c.type)}, ${name(CASE_PRIORITIES, c.priority)}, ${name(CASE_STATUSES, c.status)}] \u2014 \`${String(c._id)}\``);
-    walk(root, 1);
-  } else walk(root, 0);
-  if (lines.length === 0) return `No suites in ${String(project.name)} yet \u2014 create one with create_test_suite.`;
-  return `## ${String(project.name)}: ${cases.length} case(s)
-
-${lines.join("\n")}`;
-});
-var createTestSuite = wrapToolHandler(async (args) => {
-  const client = await getConnection(args.workspace);
-  const project = await findProject4(client, args.project);
-  const parent = args.parent != null ? await findSuite(client, project, args.parent) : void 0;
-  const id = await client.createDoc(TM.Suite, project._id, { name: args.name, description: args.description ?? "", parent: parent?._id ?? TM.NoParent });
-  return `\u2705 Suite **${args.name}** created${parent != null ? ` in "${String(parent.name)}"` : ""} \u2014 \`${String(id)}\`.`;
-});
-var getTestCase = wrapToolHandler(async (args) => {
-  const client = await getConnection(args.workspace);
-  const c = await findDoc(client, TM.Case, args.caseId, "Test case");
-  const suite = await client.findOne(TM.Suite, { _id: c.attachedTo });
-  const people = await peopleNames(client);
-  const results = await client.findAll(TM.Result, { testCase: c._id }, { sort: { modifiedOn: import_core47.SortingOrder.Descending }, limit: 5 });
-  const lines = [
-    `## ${String(c.name)}`,
-    "",
-    `**Suite:** ${String(suite?.name ?? "\u2014")} \xB7 **Type:** ${name(CASE_TYPES, c.type)} \xB7 **Priority:** ${name(CASE_PRIORITIES, c.priority)} \xB7 **Status:** ${name(CASE_STATUSES, c.status)}`,
-    `**Assignee:** ${c.assignee != null ? people.get(c.assignee) ?? "?" : "\u2014"} \xB7 **Id:** \`${String(c._id)}\``,
-    "",
-    "### Steps / description",
-    await readMarkup(args.workspace, c.description) || "_(empty)_"
-  ];
-  if (results.length > 0) {
-    lines.push("", "### Latest results");
-    for (const r of results) {
-      const run = await client.findOne(TM.Run, { _id: r.attachedTo });
-      lines.push(`- ${name(RESULT_STATUSES, r.status)} in run "${String(run?.name ?? "?")}" (${formatDate(r.modifiedOn)})`);
-    }
-  }
-  return lines.join("\n");
-});
-var createTestCase = wrapToolHandler(async (args) => {
-  const client = await getConnection(args.workspace);
-  const project = await findProject4(client, args.project);
-  const suite = await findSuite(client, project, args.suite);
-  const assignee = args.assignee != null ? (await findPerson(client, args.assignee))._id : null;
-  const id = await client.addCollection(TM.Case, project._id, suite._id, TM.Suite, "testCases", {
-    name: args.name,
-    description: args.description != null && args.description !== "" ? await writeMarkup(args.workspace, "testcase", args.description) : null,
-    type: idx(CASE_TYPES, args.type ?? "Functional"),
-    priority: idx(CASE_PRIORITIES, args.priority ?? "Medium"),
-    status: idx(CASE_STATUSES, args.status ?? "Draft"),
-    assignee,
-    attachments: 0
-  });
-  return `\u2705 Test case **${args.name}** created in "${String(suite.name)}" \u2014 \`${String(id)}\`.`;
-});
-var updateTestCase = wrapToolHandler(async (args) => {
-  const client = await getConnection(args.workspace);
-  const c = await findDoc(client, TM.Case, args.caseId, "Test case");
-  const update = {};
-  if (args.name != null) update.name = args.name;
-  if (args.description != null) update.description = await writeMarkup(args.workspace, "testcase", args.description);
-  if (args.type != null) update.type = idx(CASE_TYPES, args.type);
-  if (args.priority != null) update.priority = idx(CASE_PRIORITIES, args.priority);
-  if (args.status != null) update.status = idx(CASE_STATUSES, args.status);
-  if (args.assignee !== void 0) update.assignee = args.assignee != null ? (await findPerson(client, args.assignee))._id : null;
-  if (Object.keys(update).length === 0) throw new Error("Nothing to change.");
-  await client.updateCollection(TM.Case, c.space, c._id, c.attachedTo, TM.Suite, "testCases", update);
-  return `\u2705 Test case **${String(args.name ?? c.name)}** updated: ${Object.keys(update).join(", ")}.`;
-});
-var deleteTestCase = wrapToolHandler(async (args) => {
-  const client = await getConnection(args.workspace);
-  const c = await findDoc(client, TM.Case, args.caseId, "Test case");
-  await client.removeCollection(TM.Case, c.space, c._id, c.attachedTo, TM.Suite, "testCases");
-  return `\u2705 Test case **${String(c.name)}** deleted.`;
-});
-async function selectCases(client, project, caseIds, suites) {
-  const out = /* @__PURE__ */ new Map();
-  for (const id of caseIds ?? []) {
-    const c = await findDoc(client, TM.Case, id, "Test case");
-    if (c.space !== project._id) throw new Error(`Test case '${id}' belongs to another project.`);
-    out.set(c._id, c);
-  }
-  if ((suites ?? []).length > 0) {
-    const all = await client.findAll(TM.Suite, { space: project._id });
-    let level = await Promise.all((suites ?? []).map(async (s) => (await findSuite(client, project, s))._id));
-    const ids = new Set(level);
-    while (level.length > 0) {
-      level = all.filter((s) => level.includes(s.parent) && !ids.has(s._id)).map((s) => s._id);
-      for (const l of level) ids.add(l);
-    }
-    const cases = await client.findAll(TM.Case, { space: project._id, attachedTo: { $in: [...ids] } });
-    for (const c of cases) out.set(c._id, c);
-  }
-  return [...out.values()];
-}
-var listTestPlans = wrapToolHandler(async (args) => {
-  const client = await getConnection(args.workspace);
-  const project = await findProject4(client, args.project);
-  const plans = await client.findAll(TM.Plan, { space: project._id });
-  if (plans.length === 0) return `No test plans in ${String(project.name)}.`;
-  const lines = [];
-  for (const p of plans) {
-    const items = await client.findAll(TM.PlanItem, { attachedTo: p._id });
-    lines.push(`- **${String(p.name)}** \u2014 ${items.length} case(s) \u2014 \`${String(p._id)}\``);
-  }
-  return `## Test plans in ${String(project.name)} (${plans.length})
-
-${lines.join("\n")}`;
-});
-var createTestPlan = wrapToolHandler(async (args) => {
-  const client = await getConnection(args.workspace);
-  const project = await findProject4(client, args.project);
-  const cases = await selectCases(client, project, args.caseIds, args.suites);
-  if (cases.length === 0) throw new Error("No test cases selected (caseIds or suites).");
-  const ops = client.apply?.() ?? client;
-  const id = await ops.createDoc(TM.Plan, project._id, { name: args.name, description: null });
-  for (const c of cases) {
-    await ops.addCollection(TM.PlanItem, project._id, id, TM.Plan, "items", { testCase: c._id, testSuite: c.attachedTo, assignee: c.assignee ?? null });
-  }
-  if (ops !== client) await ops.commit();
-  return `\u2705 Test plan **${args.name}** with ${cases.length} case(s) \u2014 \`${String(id)}\`.`;
-});
-var createTestRun = wrapToolHandler(async (args) => {
-  const client = await getConnection(args.workspace);
-  const project = await findProject4(client, args.project);
-  let cases = await selectCases(client, project, args.caseIds, args.suites);
-  if (args.plan != null) {
-    const plans = await client.findAll(TM.Plan, { space: project._id });
-    const plan = plans.find((p) => p._id === args.plan || String(p.name).toLowerCase() === args.plan.toLowerCase());
-    if (plan == null) throw new Error(`Test plan '${args.plan}' not found.`);
-    const items = await client.findAll(TM.PlanItem, { attachedTo: plan._id });
-    const fromPlan = await Promise.all(items.map(async (i) => await client.findOne(TM.Case, { _id: i.testCase })));
-    cases = [...new Map([...cases, ...fromPlan.filter((c) => c != null)].map((c) => [c._id, c])).values()];
-  }
-  if (cases.length === 0) throw new Error("No test cases selected (plan, suites or caseIds).");
-  const dueDate = args.dueDate != null ? new Date(args.dueDate).getTime() : void 0;
-  if (dueDate != null && Number.isNaN(dueDate)) throw new Error(`Invalid dueDate '${args.dueDate}'.`);
-  const ops = client.apply?.() ?? client;
-  const id = await ops.createDoc(TM.Run, project._id, { name: args.name, description: null, ...dueDate != null ? { dueDate } : {} });
-  for (const c of cases) {
-    await ops.addCollection(TM.Result, project._id, id, TM.Run, "results", { name: c.name, testCase: c._id, testSuite: c.attachedTo, description: null, status: idx(RESULT_STATUSES, "Untested"), assignee: c.assignee ?? null });
-  }
-  if (ops !== client) await ops.commit();
-  return `\u2705 Test run **${args.name}** started with ${cases.length} case(s) \u2014 \`${String(id)}\`. Record results with set_test_result.`;
-});
-var listTestRuns = wrapToolHandler(async (args) => {
-  const client = await getConnection(args.workspace);
-  const project = await findProject4(client, args.project);
-  const runs = await client.findAll(TM.Run, { space: project._id }, { sort: { modifiedOn: import_core47.SortingOrder.Descending }, limit: args.limit });
-  if (runs.length === 0) return `No test runs in ${String(project.name)}.`;
-  const lines = [];
-  for (const r of runs) {
-    const results = await client.findAll(TM.Result, { attachedTo: r._id });
-    const counts = RESULT_STATUSES.map((s, i) => [s, results.filter((x) => (x.status ?? 0) === i).length]).filter(([, n]) => n > 0);
-    lines.push(`- **${String(r.name)}** \u2014 ${counts.map(([s, n]) => `${n} ${s}`).join(", ") || "empty"}${r.dueDate != null ? ` \xB7 due ${formatDate(r.dueDate)}` : ""} \u2014 \`${String(r._id)}\``);
-  }
-  return `## Test runs in ${String(project.name)} (${runs.length})
-
-${lines.join("\n")}`;
-});
-var getTestRun = wrapToolHandler(async (args) => {
-  const client = await getConnection(args.workspace);
-  const run = await findDoc(client, TM.Run, args.runId, "Test run");
-  const results = await client.findAll(TM.Result, { attachedTo: run._id });
-  const people = await peopleNames(client);
-  const lines = results.sort((a, b) => String(a.name).localeCompare(String(b.name))).map((r) => `- ${name(RESULT_STATUSES, r.status ?? 0)} \u2014 **${String(r.name)}**${r.assignee != null ? ` \xB7 @${people.get(r.assignee) ?? "?"}` : ""} \u2014 \`${String(r._id)}\``);
-  const done = results.filter((r) => (r.status ?? 0) !== 0).length;
-  return `## Run: ${String(run.name)} (${done}/${results.length} tested)
-
-${lines.join("\n")}`;
-});
-var setTestResult = wrapToolHandler(async (args) => {
-  const client = await getConnection(args.workspace);
-  let result = await client.findOne(TM.Result, { _id: args.result });
-  if (result == null && args.runId != null) {
-    const all = await client.findAll(TM.Result, { attachedTo: args.runId });
-    const hits = all.filter((r) => r.testCase === args.result || String(r.name).toLowerCase() === args.result.toLowerCase());
-    if (hits.length > 1) throw new Error(`'${args.result}' matches several results in this run \u2014 use the result id.`);
-    result = hits[0];
-  }
-  if (result == null) throw new Error(`Test result '${args.result}' not found (pass a result id, or runId plus case id/name).`);
-  const update = { status: idx(RESULT_STATUSES, args.status) };
-  if (args.comment != null) update.description = await writeMarkup(args.workspace, "testresult", args.comment);
-  if (args.assignee !== void 0) update.assignee = args.assignee != null ? (await findPerson(client, args.assignee))._id : null;
-  await client.updateCollection(TM.Result, result.space, result._id, result.attachedTo, TM.Run, "results", update);
-  return `\u2705 **${String(result.name)}**: ${args.status}${args.comment != null ? " (with comment)" : ""}.`;
-});
-var updateTestSuite = wrapToolHandler(async (args) => {
-  const client = await getConnection(args.workspace);
-  const project = await findProject4(client, args.project);
-  const suite = await findSuite(client, project, args.suite);
-  const update = {};
-  if (args.name != null) update.name = args.name;
-  if (args.description != null) update.description = args.description;
-  if (args.parent !== void 0) {
-    if (args.parent == null) update.parent = TM.NoParent;
-    else {
-      const parent = await findSuite(client, project, args.parent);
-      const all = await client.findAll(TM.Suite, { space: project._id });
-      for (let p = parent; p != null; p = all.find((s) => s._id === p.parent)) {
-        if (p._id === suite._id) throw new Error("A suite cannot move into itself or one of its sub-suites.");
-      }
-      update.parent = parent._id;
-    }
-  }
-  if (Object.keys(update).length === 0) throw new Error("Nothing to change.");
-  await client.updateDoc(TM.Suite, suite.space, suite._id, update);
-  return `\u2705 Suite **${String(args.name ?? suite.name)}** updated: ${Object.keys(update).join(", ")}.`;
-});
-var deleteTestSuite = wrapToolHandler(async (args) => {
-  const client = await getConnection(args.workspace);
-  const project = await findProject4(client, args.project);
-  const suite = await findSuite(client, project, args.suite);
-  const all = await client.findAll(TM.Suite, { space: project._id });
-  const ids = [suite._id];
-  for (let i = 0; i < ids.length; i++) ids.push(...all.filter((s) => s.parent === ids[i]).map((s) => s._id));
-  const cases = await client.findAll(TM.Case, { space: project._id, attachedTo: { $in: ids } });
-  if ((ids.length > 1 || cases.length > 0) && args.recursive !== true) throw new Error(`Suite '${String(suite.name)}' holds ${ids.length - 1} sub-suite(s) and ${cases.length} case(s) \u2014 pass recursive: true to delete them too.`);
-  for (const c of cases) await client.removeCollection(TM.Case, c.space, c._id, c.attachedTo, TM.Suite, "testCases");
-  for (const id of ids.reverse()) await client.removeDoc(TM.Suite, project._id, id);
-  return `\u{1F5D1}\uFE0F Suite **${String(suite.name)}** deleted${ids.length > 1 || cases.length > 0 ? ` with ${ids.length - 1} sub-suite(s) and ${cases.length} case(s)` : ""}.`;
-});
-var updateTestRun = wrapToolHandler(async (args) => {
-  const client = await getConnection(args.workspace);
-  const run = await findDoc(client, TM.Run, args.runId, "Test run");
-  const update = {};
-  if (args.name != null) update.name = args.name;
-  if (args.dueDate !== void 0) {
-    const t = args.dueDate != null ? new Date(args.dueDate).getTime() : null;
-    if (t != null && Number.isNaN(t)) throw new Error(`Invalid dueDate '${String(args.dueDate)}'.`);
-    update.dueDate = t;
-  }
-  if (args.description != null) update.description = await writeMarkup(args.workspace, "testrun", args.description);
-  if (Object.keys(update).length === 0) throw new Error("Nothing to change.");
-  await client.updateDoc(TM.Run, run.space, run._id, update);
-  return `\u2705 Run **${String(args.name ?? run.name)}** updated: ${Object.keys(update).join(", ")}.`;
-});
-var deleteTestRun = wrapToolHandler(async (args) => {
-  const client = await getConnection(args.workspace);
-  const run = await findDoc(client, TM.Run, args.runId, "Test run");
-  const results = await client.findAll(TM.Result, { attachedTo: run._id });
-  for (const r of results) await client.removeCollection(TM.Result, r.space, r._id, run._id, TM.Run, "results");
-  await client.removeDoc(TM.Run, run.space, run._id);
-  return `\u{1F5D1}\uFE0F Run **${String(run.name)}** deleted with ${results.length} result(s).`;
-});
-var deleteTestPlan = wrapToolHandler(async (args) => {
-  const client = await getConnection(args.workspace);
-  const project = await findProject4(client, args.project);
-  const plans = await client.findAll(TM.Plan, { space: project._id });
-  const plan = plans.find((p) => p._id === args.plan || String(p.name).toLowerCase() === args.plan.toLowerCase());
-  if (plan == null) throw new Error(`Test plan '${args.plan}' not found.`);
-  const items = await client.findAll(TM.PlanItem, { attachedTo: plan._id });
-  for (const i of items) await client.removeCollection(TM.PlanItem, i.space, i._id, plan._id, TM.Plan, "items");
-  await client.removeDoc(TM.Plan, plan.space, plan._id);
-  return `\u{1F5D1}\uFE0F Test plan **${String(plan.name)}** deleted (${items.length} item(s); runs made from it stay).`;
-});
-
 // src/tools/test-automation.ts
 var import_promises = require("node:fs/promises");
-var import_core48 = __toESM(require_lib4());
+var import_core49 = __toESM(require_lib4());
 
 // src/utils/junit.ts
 var ENT = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'" };
@@ -97213,7 +97615,7 @@ async function importJUnit(o) {
   const cases = parseJUnit(o.xml);
   if (cases.length === 0) throw new Error("The report contains no test cases.");
   const client = await getConnection(o.workspace);
-  const project = await findProject4(client, o.project);
+  const project = await findProject3(client, o.project);
   const parent = o.parentSuite != null ? await findSuite(client, project, o.parentSuite) : void 0;
   const parentId = parent?._id ?? TM.NoParent;
   const create = o.createMissing !== false;
@@ -97267,7 +97669,7 @@ async function importJUnit(o) {
       name: p.c.name,
       testCase: p.caseId,
       testSuite: suiteIds.get(p.c.suite),
-      description: comment != null ? await writeMarkup(o.workspace, `testresult-${(0, import_core48.generateId)()}`, comment) : null,
+      description: comment != null ? await writeMarkup(o.workspace, `testresult-${(0, import_core49.generateId)()}`, comment) : null,
       status: p.c.status === "passed" ? PASSED : p.c.status === "failed" ? FAILED : UNTESTED,
       assignee: null
     });
@@ -97293,8 +97695,8 @@ var importTestResults = wrapToolHandler(async (args) => {
 var SYMBOL = ["\xB7", "\u26D4", "\u2705", "\u274C"];
 var getTestReport = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const project = await findProject4(client, args.project);
-  const runs = (await client.findAll(TM.Run, { space: project._id }, { sort: { createdOn: import_core48.SortingOrder.Descending }, limit: args.runs ?? 10 })).sort((a, b) => Number(a.createdOn ?? 0) - Number(b.createdOn ?? 0));
+  const project = await findProject3(client, args.project);
+  const runs = (await client.findAll(TM.Run, { space: project._id }, { sort: { createdOn: import_core49.SortingOrder.Descending }, limit: args.runs ?? 10 })).sort((a, b) => Number(a.createdOn ?? 0) - Number(b.createdOn ?? 0));
   const cases = await client.findAll(TM.Case, { space: project._id });
   const suites = await client.findAll(TM.Suite, { space: project._id });
   if (cases.length === 0) return `No test cases in ${String(project.name)}.`;
@@ -97375,7 +97777,7 @@ ${args.notes}` : ""
 });
 var createTestCases = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const project = await findProject4(client, args.project);
+  const project = await findProject3(client, args.project);
   let suite;
   try {
     suite = await findSuite(client, project, args.suite);
@@ -97397,7 +97799,7 @@ var createTestCases = wrapToolHandler(async (args) => {
     const assignee = c.assignee != null ? (await findPerson(client, c.assignee))._id : null;
     await client.addCollection(TM.Case, project._id, suite._id, TM.Suite, "testCases", {
       name: c.name,
-      description: c.description != null && c.description !== "" ? await writeMarkup(args.workspace, `testcase-${(0, import_core48.generateId)()}`, c.description) : null,
+      description: c.description != null && c.description !== "" ? await writeMarkup(args.workspace, `testcase-${(0, import_core49.generateId)()}`, c.description) : null,
       type: idx(CASE_TYPES, c.type ?? "Functional"),
       priority: idx(CASE_PRIORITIES, c.priority ?? "Medium"),
       status: 0,
@@ -97410,9 +97812,9 @@ var createTestCases = wrapToolHandler(async (args) => {
 });
 
 // src/tools/overview.ts
-var import_tracker20 = __toESM(require_lib11());
-var import_task6 = __toESM(require_lib14());
-var import_core49 = __toESM(require_lib4());
+var import_tracker22 = __toESM(require_lib11());
+var import_task7 = __toESM(require_lib14());
+var import_core50 = __toESM(require_lib4());
 var DAY2 = 864e5;
 var day = (ts) => new Date(ts).toISOString().slice(0, 10);
 var hm = (ts) => new Date(ts).toISOString().slice(11, 16);
@@ -97434,11 +97836,11 @@ async function myDayText(client, date5, limit) {
   const to = from + DAY2 - 1;
   const [me, uuid3] = await Promise.all([currentPerson(client), currentAccountUuid(client)]);
   const [events, todos, issues, prs, unread] = await Promise.all([
-    client.findAll(C.Event, { date: { $lte: to }, dueDate: { $gte: from } }, { sort: { date: import_core49.SortingOrder.Ascending } }),
-    client.findAll(C.ToDo, { user: me._id, doneOn: null }, { sort: { rank: import_core49.SortingOrder.Ascending } }),
-    client.findAll(import_tracker20.default.class.Issue, { assignee: me._id }),
+    client.findAll(C.Event, { date: { $lte: to }, dueDate: { $gte: from } }, { sort: { date: import_core50.SortingOrder.Ascending } }),
+    client.findAll(C.ToDo, { user: me._id, doneOn: null }, { sort: { rank: import_core50.SortingOrder.Ascending } }),
+    client.findAll(import_tracker22.default.class.Issue, { assignee: me._id }),
     client.findAll(C.PullRequest, { state: 0 }),
-    client.findAll(C.InboxNotification, { user: uuid3, isViewed: false, archived: false }, { sort: { createdOn: import_core49.SortingOrder.Descending }, limit: 500 })
+    client.findAll(C.InboxNotification, { user: uuid3, isViewed: false, archived: false }, { sort: { createdOn: import_core50.SortingOrder.Descending }, limit: 500 })
   ]);
   const out = [`# My day \u2014 ${day(from)} (times UTC)`];
   const mine = events.filter((e) => (e.participants ?? []).includes(me._id) || String(e.calendar ?? "").startsWith(uuid3) || e.user === me._id);
@@ -97460,9 +97862,9 @@ async function myDayText(client, date5, limit) {
   }
   const statuses = issues.length > 0 ? await client.findAll("core:class:Status", { _id: { $in: [...new Set(issues.map((i) => i.status))] } }) : [];
   const st = new Map(statuses.map((s) => [s._id, s]));
-  const closed = /* @__PURE__ */ new Set([import_task6.default.statusCategory.Won, import_task6.default.statusCategory.Lost]);
+  const closed = /* @__PURE__ */ new Set([import_task7.default.statusCategory.Won, import_task7.default.statusCategory.Lost]);
   const open2 = issues.filter((i) => i._class !== C.PullRequest && !closed.has(st.get(i.status)?.category));
-  const active = (i) => st.get(i.status)?.category === import_task6.default.statusCategory.Active ? 0 : 1;
+  const active = (i) => st.get(i.status)?.category === import_task7.default.statusCategory.Active ? 0 : 1;
   open2.sort((a, b) => active(a) - active(b) || (a.dueDate ?? Infinity) - (b.dueDate ?? Infinity) || (a.priority || 9) - (b.priority || 9));
   out.push("", `## My issues (${open2.length} open, ${open2.filter((i) => active(i) === 0).length} in progress)`);
   if (open2.length === 0) out.push("No open issues assigned to you.");
@@ -97494,32 +97896,32 @@ async function myDayText(client, date5, limit) {
 var pct = (part, total) => total === 0 ? "\u2014" : `${Math.round(100 * part / total)}%`;
 var projectReport = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const project = await client.findOne(import_tracker20.default.class.Project, { identifier: args.projectIdentifier });
+  const project = await client.findOne(import_tracker22.default.class.Project, { identifier: args.projectIdentifier });
   if (project == null) throw new Error(`Project '${args.projectIdentifier}' not found.`);
   const since = parseSince(args.since ?? "7d");
   const now = Date.now();
-  const all = await client.findAll(import_tracker20.default.class.Issue, { space: project._id });
+  const all = await client.findAll(import_tracker22.default.class.Issue, { space: project._id });
   const issues = all.filter((i) => i._class !== C.PullRequest);
   const prs = all.filter((i) => i._class === C.PullRequest);
   const ids = issues.map((i) => i._id);
   const [statuses, milestones, reports, statusMsgs] = await Promise.all([
     client.findAll("core:class:Status", { _id: { $in: [...new Set(all.map((i) => i.status))] } }),
-    client.findAll(import_tracker20.default.class.Milestone, { space: project._id }),
-    ids.length > 0 ? client.findAll(import_tracker20.default.class.TimeSpendReport, { attachedTo: { $in: ids } }) : [],
+    client.findAll(import_tracker22.default.class.Milestone, { space: project._id }),
+    ids.length > 0 ? client.findAll(import_tracker22.default.class.TimeSpendReport, { attachedTo: { $in: ids } }) : [],
     ids.length > 0 ? client.findAll(C.DocUpdateMessage, { attachedTo: { $in: ids }, createdOn: { $gte: since } }) : []
   ]);
   const names2 = await peopleNames(client);
   const st = new Map(statuses.map((s) => [s._id, s]));
   const cat = (i) => st.get(i.status)?.category;
-  const won = (i) => cat(i) === import_task6.default.statusCategory.Won;
-  const isOpen = (i) => !won(i) && cat(i) !== import_task6.default.statusCategory.Lost;
+  const won = (i) => cat(i) === import_task7.default.statusCategory.Won;
+  const isOpen = (i) => !won(i) && cat(i) !== import_task7.default.statusCategory.Lost;
   const who = (i) => i.assignee != null ? ` \xB7 ${names2.get(i.assignee) ?? "?"}` : "";
   const line = (i, extra = "") => `- **${String(i.identifier)}** ${String(i.title)}${extra}${who(i)}`;
   const statusChanged = new Set(statusMsgs.filter((m) => m.attributeUpdates?.attrKey === "status").map((m) => m.attachedTo));
   const done = issues.filter((i) => won(i) && statusChanged.has(i._id));
   const created = issues.filter((i) => (i.createdOn ?? 0) >= since);
   const open2 = issues.filter(isOpen);
-  const active = open2.filter((i) => cat(i) === import_task6.default.statusCategory.Active);
+  const active = open2.filter((i) => cat(i) === import_task7.default.statusCategory.Active);
   const openIds = new Set(open2.map((i) => i._id));
   const blocked = open2.filter((i) => (i.blockedBy ?? []).some((b) => openIds.has(b._id ?? b)));
   const overdue = open2.filter((i) => i.dueDate != null && i.dueDate < now);
@@ -97576,9 +97978,9 @@ var standup = wrapToolHandler(async (args) => {
   const idents = await client.findAll("contact:class:SocialIdentity", { attachedTo: me._id });
   const mine = [.../* @__PURE__ */ new Set([client.user, ...idents.map((i) => i._id)])];
   const [updates, comments, reports, doneTodos] = await Promise.all([
-    client.findAll(C.DocUpdateMessage, { createdBy: { $in: mine }, createdOn: { $gte: since } }, { limit: 1e3, sort: { createdOn: import_core49.SortingOrder.Descending } }),
-    client.findAll("chunter:class:ChatMessage", { createdBy: { $in: mine }, createdOn: { $gte: since }, attachedToClass: { $in: [import_tracker20.default.class.Issue, C.PullRequest] } }, { limit: 200 }),
-    client.findAll(import_tracker20.default.class.TimeSpendReport, { employee: me._id, date: { $gte: since } }),
+    client.findAll(C.DocUpdateMessage, { createdBy: { $in: mine }, createdOn: { $gte: since } }, { limit: 1e3, sort: { createdOn: import_core50.SortingOrder.Descending } }),
+    client.findAll("chunter:class:ChatMessage", { createdBy: { $in: mine }, createdOn: { $gte: since }, attachedToClass: { $in: [import_tracker22.default.class.Issue, C.PullRequest] } }, { limit: 200 }),
+    client.findAll(import_tracker22.default.class.TimeSpendReport, { employee: me._id, date: { $gte: since } }),
     client.findAll(C.ToDo, { user: me._id, doneOn: { $gte: since } })
   ]);
   const per = /* @__PURE__ */ new Map();
@@ -97586,7 +97988,7 @@ var standup = wrapToolHandler(async (args) => {
   const statusIds = /* @__PURE__ */ new Set();
   updates.sort((a, b) => (a.createdOn ?? 0) - (b.createdOn ?? 0));
   for (const u of updates) {
-    if (u.objectClass != null && u.objectClass !== import_tracker20.default.class.Issue && u.objectClass !== C.PullRequest && u.attachedToClass !== import_tracker20.default.class.Issue) continue;
+    if (u.objectClass != null && u.objectClass !== import_tracker22.default.class.Issue && u.objectClass !== C.PullRequest && u.attachedToClass !== import_tracker22.default.class.Issue) continue;
     const e = entry(u.attachedTo);
     if (u.action === "create") e.created = true;
     else if (u.attributeUpdates?.attrKey === "status") {
@@ -97598,7 +98000,7 @@ var standup = wrapToolHandler(async (args) => {
   }
   for (const c of comments) entry(c.attachedTo).comments++;
   for (const r of reports) entry(r.attachedTo).hours += r.value ?? 0;
-  const issues = per.size > 0 ? await client.findAll(import_tracker20.default.class.Issue, { _id: { $in: [...per.keys()] } }) : [];
+  const issues = per.size > 0 ? await client.findAll(import_tracker22.default.class.Issue, { _id: { $in: [...per.keys()] } }) : [];
   const stNames = new Map((statusIds.size > 0 ? await client.findAll("core:class:Status", { _id: { $in: [...statusIds] } }) : []).map((s) => [s._id, s.name]));
   const out = [`# Standup \u2014 since ${new Date(since).toISOString().slice(0, 16).replace("T", " ")} UTC`, "", "## Done / worked on"];
   if (updates.length === 1e3) out.push("_Very busy period: only the latest 1000 changes are counted._");
@@ -97632,14 +98034,14 @@ var standup = wrapToolHandler(async (args) => {
   return out.join("\n");
 });
 async function myBlockedIssues(client, me) {
-  const mineOpen = (await client.findAll(import_tracker20.default.class.Issue, { assignee: me })).filter((i) => (i.blockedBy ?? []).length > 0);
+  const mineOpen = (await client.findAll(import_tracker22.default.class.Issue, { assignee: me })).filter((i) => (i.blockedBy ?? []).length > 0);
   if (mineOpen.length === 0) return [];
   const blockerIds = [...new Set(mineOpen.flatMap((i) => i.blockedBy.map((b) => b._id ?? b)))];
   const [blockers, statuses] = await Promise.all([
-    client.findAll(import_tracker20.default.class.Issue, { _id: { $in: blockerIds } }),
+    client.findAll(import_tracker22.default.class.Issue, { _id: { $in: blockerIds } }),
     client.findAll("core:class:Status", {})
   ]);
-  const closed = new Set(statuses.filter((s) => s.category === import_task6.default.statusCategory.Won || s.category === import_task6.default.statusCategory.Lost).map((s) => s._id));
+  const closed = new Set(statuses.filter((s) => s.category === import_task7.default.statusCategory.Won || s.category === import_task7.default.statusCategory.Lost).map((s) => s._id));
   const out = [];
   for (const i of mineOpen) {
     if (closed.has(i.status)) continue;
@@ -97653,7 +98055,7 @@ var triageInbox = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
   const uuid3 = await currentAccountUuid(client);
   const limit = args.limit ?? 10;
-  const unread = await client.findAll(C.InboxNotification, { user: uuid3, isViewed: false, archived: false }, { sort: { createdOn: import_core49.SortingOrder.Descending }, limit: 500 });
+  const unread = await client.findAll(C.InboxNotification, { user: uuid3, isViewed: false, archived: false }, { sort: { createdOn: import_core50.SortingOrder.Descending }, limit: 500 });
   if (unread.length === 0) return "Inbox zero \u2014 nothing unread.";
   const groups = /* @__PURE__ */ new Map();
   for (const n of unread) groups.set(n.docNotifyContext, [...groups.get(n.docNotifyContext) ?? [], n]);
@@ -97671,7 +98073,7 @@ var triageInbox = wrapToolHandler(async (args) => {
     const since = ctx?.lastViewedTimestamp ?? Math.min(...notes.map((n) => n.createdOn ?? Date.now())) - 1;
     const [doc, found] = await Promise.all([
       objectClass != null ? client.findOne(objectClass, { _id: objectId }) : void 0,
-      client.findAll(C.ActivityMessage, { attachedTo: objectId, createdOn: { $gt: since } }, { sort: { createdOn: import_core49.SortingOrder.Descending }, limit: 50 })
+      client.findAll(C.ActivityMessage, { attachedTo: objectId, createdOn: { $gt: since } }, { sort: { createdOn: import_core50.SortingOrder.Descending }, limit: 50 })
     ]);
     const msgs = found.filter((m) => (m.createdOn ?? 0) > since).sort((a, b) => (b.createdOn ?? 0) - (a.createdOn ?? 0));
     const label2 = doc != null ? labelOf2(doc) : objectClass != null ? await loadLabel(client, objectClass, objectId) : "(unknown)";
@@ -97705,12 +98107,12 @@ var triageInbox = wrapToolHandler(async (args) => {
 var FIX = /\b(bug|fix|fixes|fixed|hotfix|regression|crash|security|fehler|bugfix|absturz|stürzt|behoben|reparier\w*|sicherheit)\b/i;
 var releaseNotes = wrapToolHandler(async (args) => {
   const client = await getConnection(args.workspace);
-  const project = await client.findOne(import_tracker20.default.class.Project, { identifier: args.projectIdentifier });
+  const project = await client.findOne(import_tracker22.default.class.Project, { identifier: args.projectIdentifier });
   if (project == null) throw new Error(`Project '${args.projectIdentifier}' not found.`);
-  const milestones = await client.findAll(import_tracker20.default.class.Milestone, { space: project._id });
+  const milestones = await client.findAll(import_tracker22.default.class.Milestone, { space: project._id });
   const ms = milestones.find((m) => String(m.label).toLowerCase() === args.milestoneLabel.trim().toLowerCase());
   if (ms == null) throw new Error(`Milestone '${args.milestoneLabel}' not found. Milestones: ${milestones.map((m) => m.label).join(", ") || "none"}.`);
-  const all = await client.findAll(import_tracker20.default.class.Issue, { space: project._id, milestone: ms._id });
+  const all = await client.findAll(import_tracker22.default.class.Issue, { space: project._id, milestone: ms._id });
   const issues = all.filter((i) => i._class !== C.PullRequest);
   const ids = issues.map((i) => i._id);
   const [statuses, labels, prs] = await Promise.all([
@@ -97719,8 +98121,8 @@ var releaseNotes = wrapToolHandler(async (args) => {
     ids.length > 0 ? client.findAll(C.PullRequest, { attachedTo: { $in: ids } }) : []
   ]);
   const cat = new Map(statuses.map((s) => [s._id, s.category]));
-  const done = issues.filter((i) => cat.get(i.status) === import_task6.default.statusCategory.Won && (i.subIssues ?? 0) === 0);
-  const open2 = issues.filter((i) => cat.get(i.status) !== import_task6.default.statusCategory.Won && cat.get(i.status) !== import_task6.default.statusCategory.Lost);
+  const done = issues.filter((i) => cat.get(i.status) === import_task7.default.statusCategory.Won && (i.subIssues ?? 0) === 0);
+  const open2 = issues.filter((i) => cat.get(i.status) !== import_task7.default.statusCategory.Won && cat.get(i.status) !== import_task7.default.statusCategory.Lost);
   const isFix = (i) => FIX.test(String(i.title)) || labels.some((l) => l.attachedTo === i._id && FIX.test(String(l.title)));
   const pr = (i) => {
     const nums = prs.filter((p) => p.attachedTo === i._id && p.state === 2).map((p) => `#${String(p["github:mixin:GithubIssue"]?.githubNumber ?? p.identifier)}`);
@@ -98872,13 +99274,65 @@ var StartProcessSchema = external_exports.object({ workspace: WorkspaceArg, proc
 var CancelExecutionSchema = external_exports.object({ workspace: WorkspaceArg, execution: external_exports.string().describe("Execution id"), dryRun: external_exports.boolean().optional() });
 var ListSurveysSchema = external_exports.object({ workspace: ReadWorkspaceArg });
 var GetSurveySchema = external_exports.object({ workspace: ReadWorkspaceArg, survey: external_exports.string(), maxTextAnswers: external_exports.number().int().min(0).max(100).optional() });
+var ListModulesSchema = external_exports.object({ workspace: ReadWorkspaceArg });
+var SetModuleSchema = external_exports.object({ workspace: WorkspaceArg, module: external_exports.string().min(1).describe("Module id from list_modules, e.g. hr, lead, drive"), enabled: external_exports.boolean() });
+var UpdateWorkspaceSettingsSchema = external_exports.object({
+  workspace: WorkspaceArg,
+  name: external_exports.string().min(1).optional().describe("Display name (the slug stays)"),
+  readOnlyGuests: external_exports.boolean().optional().describe("Allow read-only guest links"),
+  guestSignUp: external_exports.boolean().optional().describe("Let guests sign up"),
+  passwordAgingDays: external_exports.number().int().min(0).optional().describe("Passwords expire after n days; 0 = never")
+});
+var GetMyProfileSchema = external_exports.object({ workspace: ReadWorkspaceArg });
+var UpdateMyProfileSchema = external_exports.object({
+  workspace: WorkspaceArg,
+  firstName: external_exports.string().min(1).optional(),
+  lastName: external_exports.string().optional(),
+  bio: external_exports.string().optional(),
+  city: external_exports.string().optional(),
+  country: external_exports.string().optional(),
+  website: external_exports.string().optional(),
+  socialLinks: external_exports.record(external_exports.string(), external_exports.string()).optional().describe('e.g. {"github": "https://github.com/me"}'),
+  isPublic: external_exports.boolean().optional().describe("Profile visible to people outside your workspaces")
+});
+var CreateWorkspaceSchema = external_exports.object({ workspace: WorkspaceArg.describe("Any workspace of the account (for the login)"), name: external_exports.string().min(1), region: external_exports.string().optional() });
+var HulyApiSchema = external_exports.object({
+  workspace: WorkspaceArg,
+  method: external_exports.string().min(1).describe("Account-service method, e.g. getWorkspaceMembers, updateWorkspaceName"),
+  params: external_exports.array(external_exports.unknown()).optional().describe("Positional arguments"),
+  dryRun: external_exports.boolean().optional().describe("Write methods: default true")
+});
+var SetupWorkspaceSchema = external_exports.object({
+  workspace: WorkspaceArg,
+  modules: external_exports.strictObject({ enable: external_exports.array(external_exports.string()).optional(), disable: external_exports.array(external_exports.string()).optional() }).optional(),
+  statuses: external_exports.array(external_exports.strictObject({ name: external_exports.string().min(1), category: StatusCategoryEnum, projectIdentifier: external_exports.string().optional() })).optional(),
+  projects: external_exports.array(external_exports.strictObject({
+    identifier: external_exports.string().min(1).max(5).regex(/^[A-Z]+$/),
+    name: external_exports.string().min(1),
+    description: external_exports.string().optional(),
+    components: external_exports.array(external_exports.strictObject({ label: external_exports.string().min(1), description: external_exports.string().optional() })).optional(),
+    milestones: external_exports.array(external_exports.strictObject({ label: external_exports.string().min(1), targetDate: external_exports.string() })).optional()
+  })).optional(),
+  teamspaces: external_exports.array(external_exports.strictObject({ name: external_exports.string().min(1), description: external_exports.string().optional() })).optional(),
+  dryRun: external_exports.boolean().optional().describe("Default true: show the plan")
+});
+var TestCoverageSchema = external_exports.object({ workspace: ReadWorkspaceArg, projectIdentifier: external_exports.string().describe("Project key"), milestoneLabel: external_exports.string().optional(), onlyOpen: external_exports.boolean().optional().describe("Only open issues") });
+var LinkTestCaseSchema = external_exports.object({ workspace: WorkspaceArg, identifier: external_exports.string().describe("Issue id"), testCase: external_exports.string().describe("Test case id or exact name") });
+var ReleaseCheckSchema = external_exports.object({ workspace: ReadWorkspaceArg, projectIdentifier: external_exports.string().describe("Project key"), milestoneLabel: external_exports.string().describe("Milestone name") });
+var TimesheetSchema = external_exports.object({
+  workspace: ReadWorkspaceArg,
+  week: external_exports.string().optional().describe("A date in it; default now"),
+  member: external_exports.string().optional(),
+  everyone: external_exports.boolean().optional().describe("Row per person"),
+  hoursPerDay: external_exports.number().min(0).max(24).optional()
+});
 
 // src/registry.ts
-var TOOLSETS = ["core", "agent", "tracker", "tracker-admin", "documents", "chat", "contacts", "inbox", "activity", "planner", "calendar", "github", "generic", "generic-write", "collaboration", "cards", "fields", "drive", "templates", "testing", "products", "members", "recruiting", "crm", "hr", "inventory", "meetings", "qms", "process", "surveys"];
+var TOOLSETS = ["core", "agent", "tracker", "tracker-admin", "documents", "chat", "contacts", "inbox", "activity", "planner", "calendar", "github", "generic", "generic-write", "collaboration", "cards", "fields", "drive", "templates", "testing", "products", "members", "recruiting", "crm", "hr", "inventory", "meetings", "qms", "process", "surveys", "admin"];
 var DEFAULT_TOOLSETS = ["agent", "tracker", "documents", "chat", "contacts", "inbox", "activity", "planner", "generic"];
 var TOOLS = [
   { name: "list_workspaces", toolset: "core", description: "List accessible workspaces (name, slug, id)", schema: ListWorkspacesSchema, handler: listWorkspaces2 },
-  { name: "undo_changes", toolset: "core", description: "Undo your last changes made through this server: created \u2192 removed, changed \u2192 old values, deleted \u2192 restored. Dry run first", schema: UndoChangesSchema, handler: undoChanges },
+  { name: "undo_changes", toolset: "core", description: "Undo your last changes made through this server (creates, edits, deletes). Dry run first", schema: UndoChangesSchema, handler: undoChanges },
   { name: "check_setup", toolset: "core", description: "Diagnose the setup: version and updates, login, workspaces, front URL, settings (no secrets)", schema: CheckSetupSchema, handler: checkSetup },
   { name: "list_projects", toolset: "tracker", description: "List all projects in a Huly workspace", schema: ListProjectsSchema, handler: listProjects },
   { name: "get_project", toolset: "tracker", description: 'Project by key (e.g. "PROJ"): name, description, issue count, statuses', schema: GetProjectSchema, handler: getProject },
@@ -98898,6 +99352,7 @@ var TOOLS = [
   { name: "update_comment", toolset: "tracker", description: "Edit a comment by id", schema: UpdateCommentSchema, handler: updateComment },
   { name: "log_time", toolset: "tracker", description: "Log hours spent on an issue", schema: LogTimeSchema, handler: logTime },
   { name: "list_time_reports", toolset: "tracker", description: "Logged time for an issue or project, totals per person; person/date filters", schema: ListTimeReportsSchema, handler: listTimeReports },
+  { name: "timesheet", toolset: "tracker", description: "Hours of a week by day and project; gaps marked", schema: TimesheetSchema, handler: timesheet },
   { name: "list_labels", toolset: "tracker", description: "List all labels in the workspace", schema: ListLabelsSchema, handler: listLabels },
   { name: "create_label", toolset: "tracker", description: "Create a workspace-wide label (optional hex color); an existing title is reused. Tag an issue: add_label", schema: CreateLabelSchema, handler: createLabel },
   { name: "add_label", toolset: "tracker", description: "Add label to issue (auto-creates label)", schema: AddLabelSchema, handler: addLabel },
@@ -98924,7 +99379,7 @@ var TOOLS = [
   { name: "create_teamspace", toolset: "documents", description: "Create a document teamspace", schema: CreateTeamspaceSchema, handler: createTeamspace },
   { name: "list_documents", toolset: "documents", description: "List documents in a teamspace", schema: ListDocumentsSchema, handler: listDocuments },
   { name: "get_document", toolset: "documents", description: "Document metadata and content", schema: GetDocumentSchema, handler: getDocument },
-  { name: "create_document", toolset: "documents", description: "Create an empty document in a teamspace, optionally under a parent; returns its id. Write the body with update_document", schema: CreateDocumentSchema, handler: createDocument },
+  { name: "create_document", toolset: "documents", description: "Create an empty document in a teamspace (optionally under a parent); body: update_document", schema: CreateDocumentSchema, handler: createDocument },
   { name: "delete_document", toolset: "documents", description: "Permanently delete a document by its ID", schema: DeleteDocumentSchema, handler: deleteDocument },
   { name: "update_document", toolset: "documents", description: "Replace content (Markdown), rename or move a document", schema: UpdateDocumentSchema, handler: updateDocument },
   { name: "list_document_comments", toolset: "collaboration", description: "Comments on a document", schema: ListDocumentCommentsSchema, handler: listDocumentComments },
@@ -99059,6 +99514,9 @@ var TOOLS = [
   { name: "delete_test_plan", toolset: "testing", description: "Delete a test plan", schema: DeleteTestPlanSchema, handler: deleteTestPlan },
   { name: "import_test_results", toolset: "testing", description: "Import a JUnit XML report as a test run (CI results)", schema: ImportTestResultsSchema, handler: importTestResults },
   { name: "get_test_report", toolset: "testing", description: "Failing, flaky, blocked and never-run cases over recent runs", schema: GetTestReportSchema, handler: getTestReport },
+  { name: "test_coverage", toolset: "testing", description: "Which issues of a project or milestone have test cases, with the latest result of each", schema: TestCoverageSchema, handler: testCoverage },
+  { name: "link_test_case", toolset: "testing", description: "Link a test case to an issue (Related)", schema: LinkTestCaseSchema, handler: linkTestCase },
+  { name: "release_check", toolset: "testing", description: "Is a milestone ready to ship: open and blocked issues, open PRs, failing or missing tests, target date \u2014 with a verdict", schema: ReleaseCheckSchema, handler: releaseCheck },
   { name: "create_issue_from_test_result", toolset: "testing", description: "File a bug from a failed test result (steps + failure, linked)", schema: CreateIssueFromTestResultSchema, handler: createIssueFromTestResult },
   { name: "list_products", toolset: "products", description: "Products with their active versions", schema: ListProductsSchema, handler: listProducts },
   { name: "get_product", toolset: "products", description: "Product with all versions", schema: GetProductSchema, handler: getProduct },
@@ -99066,6 +99524,14 @@ var TOOLS = [
   { name: "create_label_category", toolset: "tracker-admin", description: "Create an issue label category", schema: CreateLabelCategorySchema, handler: createLabelCategory },
   { name: "set_label_category", toolset: "tracker-admin", description: "Move a label into a category", schema: SetLabelCategorySchema, handler: setLabelCategory },
   { name: "list_project_types", toolset: "tracker-admin", description: "Project types with task types and their status workflows", schema: ListProjectTypesSchema, handler: listProjectTypes },
+  { name: "list_modules", toolset: "admin", description: "Workspace modules (apps) and whether they are on", schema: ListModulesSchema, handler: listModules },
+  { name: "set_module", toolset: "admin", description: "Switch a workspace module on or off for everyone (Settings \u2192 Configure)", schema: SetModuleSchema, handler: setModule },
+  { name: "update_workspace_settings", toolset: "admin", description: "Workspace name, guest access, password expiry", schema: UpdateWorkspaceSettingsSchema, handler: updateWorkspaceSettings },
+  { name: "get_my_profile", toolset: "admin", description: "Your name, profile and login identities", schema: GetMyProfileSchema, handler: getMyProfile },
+  { name: "update_my_profile", toolset: "admin", description: "Change your name, bio, city, website, social links", schema: UpdateMyProfileSchema, handler: updateMyProfile },
+  { name: "create_workspace", toolset: "admin", description: "Create a new workspace (you become owner); then setup_workspace", schema: CreateWorkspaceSchema, handler: createWorkspace },
+  { name: "setup_workspace", toolset: "admin", description: "Set a workspace up from a template: modules, statuses, projects with components and milestones, teamspaces. Dry run first; reuses what exists", schema: SetupWorkspaceSchema, handler: setupWorkspace },
+  { name: "huly_api", toolset: "admin", description: "Call an account-service method directly (like gh api): read methods, and writes with dry run. Deletes, logins and secrets are excluded", schema: HulyApiSchema, handler: hulyApi },
   { name: "get_workspace_settings", toolset: "members", description: "Workspace info: your role, members per role, invite defaults, integrations", schema: GetWorkspaceSettingsSchema, handler: getWorkspaceSettings },
   { name: "create_invite_link", toolset: "members", description: "Create an invite link (personal for an e-mail, or with use limit/e-mail mask); sends nothing", schema: CreateInviteLinkSchema, handler: createInviteLink },
   { name: "send_invite", toolset: "members", description: "Send an invitation e-mail to join the workspace", schema: SendInviteSchema, handler: sendInvite },
@@ -99171,9 +99637,13 @@ function audit(path, tool, args, outcome) {
   } catch {
   }
 }
-var RISKY = /* @__PURE__ */ new Set(["undo_changes", "bulk_update_issues", "move_issue", "generic_update", "generic_delete", "revoke_public_link", "restore_file_version", "send_invite", "set_member_role", "cancel_execution"]);
+var RISKY = /* @__PURE__ */ new Set(["set_module", "update_workspace_settings", "create_workspace", "huly_api", "undo_changes", "bulk_update_issues", "move_issue", "generic_update", "generic_delete", "revoke_public_link", "restore_file_version", "send_invite", "set_member_role", "cancel_execution"]);
 function isRisky(name2) {
   return name2.startsWith("delete_") || RISKY.has(name2);
+}
+function needsConfirmation(name2, args) {
+  if (name2 === "huly_api") return args?.dryRun === false && !API_READ.includes(String(args?.method ?? ""));
+  return isRisky(name2) && args?.dryRun !== true;
 }
 function toolAnnotations(tool) {
   const title = tool.name.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
@@ -99223,7 +99693,7 @@ function guard(tool, env = process.env, asker) {
   const confirm = parseConfirmMode(env.HULY_CONFIRM);
   return async (args) => {
     assertWriteAllowed(tool, args, allowed);
-    if (confirm !== "off" && isRisky(tool.name) && args?.dryRun !== true) {
+    if (confirm !== "off" && needsConfirmation(tool.name, args)) {
       const canAsk = asker?.canAsk() === true;
       if (!canAsk && confirm === "strict") {
         audit(auditPath, tool, args, { ok: false, text: "refused: HULY_CONFIRM=strict and the client cannot ask" });
@@ -99268,10 +99738,10 @@ function guard(tool, env = process.env, asker) {
 // src/resources.ts
 var import_fs2 = require("fs");
 var import_path2 = require("path");
-var import_tracker21 = __toESM(require_lib11());
-var import_task7 = __toESM(require_lib14());
-var import_core50 = __toESM(require_lib4());
-var DONE = /* @__PURE__ */ new Set([import_task7.default.statusCategory.Won, import_task7.default.statusCategory.Lost]);
+var import_tracker23 = __toESM(require_lib11());
+var import_task8 = __toESM(require_lib14());
+var import_core51 = __toESM(require_lib4());
+var DONE = /* @__PURE__ */ new Set([import_task8.default.statusCategory.Won, import_task8.default.statusCategory.Lost]);
 async function myOpenIssues(limit = 30) {
   const out = [];
   let workspaces;
@@ -99284,9 +99754,9 @@ async function myOpenIssues(limit = 30) {
     try {
       const client = await getConnection(ws2.url);
       const me = await currentPerson(client);
-      const statuses = await client.findAll(import_tracker21.default.class.IssueStatus, {});
+      const statuses = await client.findAll(import_tracker23.default.class.IssueStatus, {});
       const open2 = statuses.filter((s) => !DONE.has(s.category)).map((s) => s._id);
-      const issues = await client.findAll(import_tracker21.default.class.Issue, { assignee: me._id, status: { $in: open2 } }, { sort: { modifiedOn: import_core50.SortingOrder.Descending }, limit });
+      const issues = await client.findAll(import_tracker23.default.class.Issue, { assignee: me._id, status: { $in: open2 } }, { sort: { modifiedOn: import_core51.SortingOrder.Descending }, limit });
       for (const i of issues) out.push({ uri: `huly://${ws2.url}/issue/${i.identifier}`, name: `${i.identifier}: ${i.title}`, description: `Open issue in ${ws2.name}` });
     } catch {
     }
@@ -99305,7 +99775,7 @@ async function completeWorkspace(prefix) {
 async function completeProject(prefix, workspace) {
   try {
     const client = await getConnection(workspace);
-    const projects = (await client.findAll(import_tracker21.default.class.Project, {})).filter((p) => p.archived !== true);
+    const projects = (await client.findAll(import_tracker23.default.class.Project, {})).filter((p) => p.archived !== true);
     return starts(projects.map((p) => p.identifier).sort(), prefix);
   } catch {
     return [];
@@ -99317,16 +99787,16 @@ async function completeIssue(prefix, workspace) {
     const m = /^([A-Za-z][A-Za-z0-9]*)(?:-(\d*))?$/.exec(prefix.trim());
     if (m == null) {
       const me = await currentPerson(client);
-      const mine = await client.findAll(import_tracker21.default.class.Issue, { assignee: me._id }, { sort: { modifiedOn: import_core50.SortingOrder.Descending }, limit: 50 });
+      const mine = await client.findAll(import_tracker23.default.class.Issue, { assignee: me._id }, { sort: { modifiedOn: import_core51.SortingOrder.Descending }, limit: 50 });
       return mine.map((i) => i.identifier);
     }
     if (m[2] == null) {
       const projects = await completeProject(m[1], workspace);
       return projects.length === 1 ? projects.map((p) => `${p}-`) : projects;
     }
-    const project = await client.findOne(import_tracker21.default.class.Project, { identifier: m[1].toUpperCase() });
+    const project = await client.findOne(import_tracker23.default.class.Project, { identifier: m[1].toUpperCase() });
     if (project == null) return [];
-    const issues = await client.findAll(import_tracker21.default.class.Issue, { space: project._id }, { sort: { modifiedOn: import_core50.SortingOrder.Descending }, limit: 500 });
+    const issues = await client.findAll(import_tracker23.default.class.Issue, { space: project._id }, { sort: { modifiedOn: import_core51.SortingOrder.Descending }, limit: 500 });
     return starts(issues.map((i) => i.identifier), prefix);
   } catch {
     return [];
@@ -99438,33 +99908,60 @@ Look up components and milestones first (list_components, list_milestones) and a
     `Write my stand-up for Huly workspace ${workspace}: call standup once${since != null ? ` with since="${since}"` : ""} \u2014 it already covers what I did, what is in progress, blockers and today. Format: Done / In progress / Blocked / Next \u2014 short bullet points with issue ids.`
   ));
 }
-async function modifiedOn(uri) {
+async function resolveUri(uri) {
   const m = /^huly:\/\/([^/]+)\/(issue|document)\/(.+)$/.exec(uri);
   if (m == null) return void 0;
   try {
-    const client = await getConnection(decodeURIComponent(m[1]));
-    const id = decodeURIComponent(m[3]);
-    const doc = m[2] === "issue" ? await client.findOne(import_tracker21.default.class.Issue, { identifier: id }) : await client.findOne("document:class:Document", { _id: id });
-    return doc?.modifiedOn;
+    const workspace = decodeURIComponent(m[1]);
+    const client = await getConnection(workspace);
+    const ref = decodeURIComponent(m[3]);
+    const doc = m[2] === "issue" ? await client.findOne(import_tracker23.default.class.Issue, { identifier: ref }) : await client.findOne("document:class:Document", { _id: ref });
+    return doc == null ? void 0 : { workspace, id: String(doc._id), modifiedOn: doc.modifiedOn };
   } catch {
     return void 0;
   }
 }
-function registerSubscriptions(server, pollMs = Number(process.env.HULY_SUBSCRIBE_POLL_MS ?? 3e4)) {
+async function modifiedOn(uri) {
+  return (await resolveUri(uri))?.modifiedOn;
+}
+function registerSubscriptions(server, pollMs = Number(process.env.HULY_SUBSCRIBE_POLL_MS ?? 3e5)) {
+  const subs = /* @__PURE__ */ new Map();
   const subscriptions = /* @__PURE__ */ new Map();
+  const listeners = /* @__PURE__ */ new Map();
+  const pending = /* @__PURE__ */ new Map();
   let timer;
   let polling = false;
+  const pushed = (uri) => {
+    if (pending.has(uri)) return;
+    const t = setTimeout(() => {
+      pending.delete(uri);
+      if (subs.has(uri)) void server.server.sendResourceUpdated({ uri }).catch(() => {
+      });
+    }, 750);
+    t.unref();
+    pending.set(uri, t);
+  };
+  const listen = async (workspace) => {
+    if (listeners.has(workspace)) return;
+    const client = await getConnection(workspace);
+    listeners.set(workspace, onTx(client, (tx) => {
+      const ids = touchedIds(tx);
+      for (const [uri, s] of subs) if (s.workspace === workspace && s.id != null && ids.has(s.id)) pushed(uri);
+    }));
+  };
   const poll = async () => {
     if (polling) return;
     polling = true;
     try {
-      for (const [uri, last] of subscriptions) {
+      for (const [uri, s] of subs) {
         const now = await modifiedOn(uri);
-        if (now != null && last != null && now > last) {
+        if (now != null && s.last != null && now > s.last) {
+          s.last = now;
           subscriptions.set(uri, now);
           await server.server.sendResourceUpdated({ uri }).catch(() => {
           });
-        } else if (last == null && now != null) {
+        } else if (s.last == null && now != null) {
+          s.last = now;
           subscriptions.set(uri, now);
         }
       }
@@ -99473,32 +99970,44 @@ function registerSubscriptions(server, pollMs = Number(process.env.HULY_SUBSCRIB
     }
   };
   const sync = () => {
-    if (subscriptions.size > 0 && timer == null) {
+    if (subs.size > 0 && timer == null) {
       timer = setInterval(() => {
         void poll();
       }, Math.max(5e3, pollMs));
       timer.unref();
-    } else if (subscriptions.size === 0 && timer != null) {
+    } else if (subs.size === 0 && timer != null) {
       clearInterval(timer);
       timer = void 0;
+    }
+    for (const [ws2, stop] of listeners) {
+      if (![...subs.values()].some((s) => s.workspace === ws2)) {
+        stop();
+        listeners.delete(ws2);
+      }
     }
   };
   server.server.registerCapabilities({ resources: { subscribe: true, listChanged: true } });
   server.server.setRequestHandler(SubscribeRequestSchema, async (req) => {
-    subscriptions.set(req.params.uri, await modifiedOn(req.params.uri));
+    const r = await resolveUri(req.params.uri);
+    subs.set(req.params.uri, { last: r?.modifiedOn, id: r?.id, workspace: r?.workspace });
+    subscriptions.set(req.params.uri, r?.modifiedOn);
+    if (r != null) await listen(r.workspace).catch(() => {
+    });
     sync();
     return {};
   });
   server.server.setRequestHandler(UnsubscribeRequestSchema, async (req) => {
+    subs.delete(req.params.uri);
     subscriptions.delete(req.params.uri);
     sync();
     return {};
   });
   server.server.onclose = () => {
+    subs.clear();
     subscriptions.clear();
     sync();
   };
-  return { poll, subscriptions };
+  return { poll, subscriptions, pushed };
 }
 
 // src/server.ts
@@ -99692,8 +100201,8 @@ var import_node_child_process = require("node:child_process");
 var import_node_fs4 = require("node:fs");
 var import_node_os = require("node:os");
 var import_node_path2 = require("node:path");
-var import_tracker22 = __toESM(require_lib11());
-var import_task8 = __toESM(require_lib14());
+var import_tracker24 = __toESM(require_lib11());
+var import_task9 = __toESM(require_lib14());
 var DEFAULT_COMMAND = "claude -p {prompt} --mcp-config {mcpConfig} --strict-mcp-config --allowedTools mcp__huly --permission-mode acceptEdits";
 var DEFAULT_PROMPT = [
   'Huly issue {issue} ("{title}") in workspace {workspace} was handed to you ({trigger}).',
@@ -99867,19 +100376,19 @@ function saveState(path, state2) {
   (0, import_node_fs4.writeFileSync)(path, JSON.stringify(state2, null, 2) + "\n");
 }
 async function findCandidates(client, opts, state2) {
-  const projects = await client.findAll(import_tracker22.default.class.Project, opts.projects.length > 0 ? { identifier: { $in: opts.projects } } : {});
+  const projects = await client.findAll(import_tracker24.default.class.Project, opts.projects.length > 0 ? { identifier: { $in: opts.projects } } : {});
   const missing = opts.projects.filter((p) => !projects.some((x) => x.identifier === p));
   if (missing.length > 0) throw new Error(`Project(s) not found: ${missing.join(", ")}.`);
   const spaces = new Set(projects.map((p) => p._id));
-  const statuses = await client.findAll(import_tracker22.default.class.IssueStatus, {});
-  const closed = new Set(statuses.filter((s) => s.category === import_task8.default.statusCategory.Won || s.category === import_task8.default.statusCategory.Lost).map((s) => s._id));
+  const statuses = await client.findAll(import_tracker24.default.class.IssueStatus, {});
+  const closed = new Set(statuses.filter((s) => s.category === import_task9.default.statusCategory.Won || s.category === import_task9.default.statusCategory.Lost).map((s) => s._id));
   const open2 = (i) => spaces.has(i.space) && !closed.has(i.status);
   const found = /* @__PURE__ */ new Map();
   if (opts.label != null) {
     const want = opts.label.toLowerCase();
-    const refs = (await client.findAll("tags:class:TagReference", { attachedToClass: import_tracker22.default.class.Issue })).filter((r) => String(r.title ?? "").toLowerCase() === want);
+    const refs = (await client.findAll("tags:class:TagReference", { attachedToClass: import_tracker24.default.class.Issue })).filter((r) => String(r.title ?? "").toLowerCase() === want);
     if (refs.length > 0) {
-      const issues = await client.findAll(import_tracker22.default.class.Issue, { _id: { $in: refs.map((r) => r.attachedTo) } });
+      const issues = await client.findAll(import_tracker24.default.class.Issue, { _id: { $in: refs.map((r) => r.attachedTo) } });
       for (const issue2 of issues.filter(open2)) {
         const ref = refs.find((r) => r.attachedTo === issue2._id);
         found.set(issue2._id, { issue: issue2, trigger: "label", since: ref?.createdOn ?? ref?.modifiedOn ?? 0 });
@@ -99888,7 +100397,7 @@ async function findCandidates(client, opts, state2) {
   }
   if (opts.assigned) {
     const me = await currentPerson(client);
-    const issues = await client.findAll(import_tracker22.default.class.Issue, { assignee: me._id });
+    const issues = await client.findAll(import_tracker24.default.class.Issue, { assignee: me._id });
     for (const issue2 of issues.filter(open2)) if (!found.has(issue2._id)) found.set(issue2._id, { issue: issue2, trigger: "assigned", since: 0 });
   }
   return [...found.values()].filter((c) => {
@@ -105021,7 +105530,7 @@ async function runCli(argv, io) {
     const checked = tool.schema.safeParse(args);
     if (!checked.success) return fail(explain(tool, checked.error), 2, tool.name);
     const env = { ...io.env };
-    const risky = isRisky(tool.name) && checked.data.dryRun !== true;
+    const risky = needsConfirmation(tool.name, checked.data);
     if (parsed.yes) env.HULY_CONFIRM = "off";
     else if (risky && io.confirm == null && (env.HULY_CONFIRM ?? "auto") !== "off") {
       return fail(`${tool.name} changes data that is hard to undo. Run it in a terminal to confirm, or pass --yes.`, 1, tool.name);
@@ -105073,25 +105582,6 @@ Proceed? [y/N] `, (a) => {
   await closeConnection().catch(() => {
   });
   return code;
-}
-
-// src/utils/redact.ts
-var JWT = /eyJ[\w-]{5,}\.[\w-]{5,}\.[\w-]{5,}/g;
-function redactSecrets(value) {
-  if (typeof value === "string") return value.replace(JWT, "***");
-  if (value instanceof Error) {
-    const copy2 = new Error(redactSecrets(value.message));
-    copy2.stack = value.stack != null ? redactSecrets(value.stack) : void 0;
-    return copy2;
-  }
-  return value;
-}
-function routeConsoleToStderr() {
-  const write = console.error.bind(console);
-  const log = (...args) => {
-    write(...args.map(redactSecrets));
-  };
-  console.log = console.info = console.debug = console.warn = console.error = log;
 }
 
 // src/index.ts

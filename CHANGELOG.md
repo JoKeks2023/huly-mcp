@@ -2,7 +2,9 @@
 
 All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mcp-selfhost). Versions follow [semver](https://semver.org).
 
-### Unreleased
+### 4.0.0 — 2026-11-14
+
+Everything that was left in the backlog, in one release. **Breaking:** Node.js 22 or newer (the Claude Code plugin, the Claude Desktop extension and the Docker image bring their own). Highlights: set a whole workspace up from Claude (`admin`), know whether a release is ready (`release_check`), a weekly timesheet, instant resource subscriptions, components and milestones by partial name.
 
 - **Breaking: Node.js 22 or newer.** Node 20 reached end of life; the package now requires `>=22` (CI tests 22, 24 and 26; the Docker image runs Node 26). `check_setup` warns on older versions. The Claude Desktop extension and the Claude Code plugin use the Node.js their app brings.
 - **`timesheet`** — one week of logged hours by day and project, with totals; past workdays below the expected hours (default 8) are marked as gaps; `everyone` shows a row per person. In the default toolset.
