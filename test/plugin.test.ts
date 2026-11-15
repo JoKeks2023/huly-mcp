@@ -1,7 +1,7 @@
 // 3.2: Claude Code plugin — hook helpers, repo → project lookup, env normalisation, plugin files.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { readFileSync, mkdtempSync, writeFileSync, mkdirSync, readdirSync } from 'node:fs'
+import { readFileSync, mkdtempSync, writeFileSync, mkdirSync, readdirSync, existsSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import tracker from '@hcengineering/tracker'
@@ -103,7 +103,10 @@ test('plugin files: marketplace points to the plugin, MCP env covers every setti
     const data = readFileSync(f)
     assert.ok(data.length <= 256 * 1024, `${f} is over 256 KiB`)
     if (/\.(c|m)?js$/.test(f)) assert.ok(!data.toString('utf8').split('\n').some((l) => l.length > 3000), `${f} looks minified`)
+    // Stdio server only: a spawned command with a computed path is refused (COMMAND_PATH_COMPUTED).
+    if (/\.(c|m)?js$/.test(f)) assert.ok(!/child_process/.test(data.toString('utf8')), `${f} starts processes`)
   }
+  for (const cli of ['watch', 'http', 'cli', 'junit-cli']) assert.ok(!existsSync(`plugin/server/src/${cli}.js`), `plugin/server ships src/${cli}`)
 })
 
 test('hulyRules: a "## Huly" section in CLAUDE.md, .claude/CLAUDE.md, CLAUDE.local.md or AGENTS.md counts as set', () => {
