@@ -4,9 +4,8 @@
 // The plugin directory reads every script a plugin starts and refuses files it cannot read: no
 // downloads (npx), and no script over 256 KiB — the single-file build (dist/index.js, ~4 MB) is
 // too big. So the plugin ships the server as a plain module tree instead:
-//   plugin/server/index.js                   ← two lines: require('./src/index.js')
+//   plugin/server/index.js                   ← two lines: require('./src/plugin.js')
 //   plugin/server/src/…                       ← src/*.ts, each file transpiled on its own (readable)
-//   plugin/server/scripts/setup.js            ← the token wizard, as in the repository
 //   plugin/server/vendor/…                    ← the third-party packages the server uses, as published,
 //                                                except that every literal require()/import() names its file by a
 //                                                fixed relative path (resolved here with Node's own rules)
@@ -27,6 +26,8 @@ const esbuild = require('esbuild')
 const root = path.join(__dirname, '..')
 const target = path.join(root, 'plugin', 'server')
 const MAX_FILE = 256 * 1024
+// Not src/index.ts: the plugin runs only the stdio server, so the CLI, watch (spawns commands), http and setup stay out.
+const ENTRY = path.join(root, 'src', 'plugin.ts')
 const MAX_LINE = 3000
 const OPTIONAL_NATIVE = ['bufferutil', 'utf-8-validate', 'msgpackr-extract', 'fsevents']
 const KEEP = /\.(c|m)?js$|\.json$|^(licen[cs]e|notice)(\.[a-z]+)?$/i
@@ -47,7 +48,7 @@ const destOf = (rel) => rel.replace(/(^|\/)node_modules\//g, '$1vendor/')
 async function generate (out) {
   fs.rmSync(out, { recursive: true, force: true })
   const result = await esbuild.build({
-    entryPoints: [path.join(root, 'src', 'index.ts')],
+    entryPoints: [ENTRY],
     bundle: true, platform: 'node', target: 'node22', format: 'cjs', write: false, metafile: true,
     external: OPTIONAL_NATIVE, logLevel: 'warning', absWorkingDir: root
   })
@@ -77,11 +78,11 @@ async function generate (out) {
   }
   for (const p of [...packages].sort()) collect(path.join(root, p))
 
-  // Only what the server can load: walk the literal require() and import() calls from src/index, and point each
+  // Only what the server can load: walk the literal require() and import() calls from src/plugin, and point each
   // at its file by a fixed relative path, resolved now by Node's own rules from where the file really
   // lives — so nothing is looked up in node_modules at run time. Licence files of used packages go too.
   const reached = new Set()
-  const queue = [path.join(root, 'src', 'index.ts')]
+  const queue = [ENTRY]
   const unresolved = []
   const dynamic = []
   while (queue.length > 0) {
@@ -117,7 +118,7 @@ async function generate (out) {
   if (process.env.PLUGIN_BUNDLE_VERBOSE) console.log(`dynamic require() in: ${dynamic.join(', ') || 'none'}`)
 
   for (const f of files.values()) { fs.mkdirSync(path.dirname(path.join(out, f.dest)), { recursive: true }); fs.writeFileSync(path.join(out, f.dest), f.text) }
-  fs.writeFileSync(path.join(out, 'index.js'), "#!/usr/bin/env node\n'use strict'\n// The Huly MCP server (src/index.ts) — see scripts/plugin-bundle.js in the repository.\nrequire('./src/index.js')\n")
+  fs.writeFileSync(path.join(out, 'index.js'), "#!/usr/bin/env node\n'use strict'\n// The Huly MCP server, stdio only (src/plugin.ts) — see scripts/plugin-bundle.js in the repository.\nrequire('./src/plugin.js')\n")
   fs.chmodSync(path.join(out, 'index.js'), 0o755)
   return { packages: usedPackages.size, files: files.size + 1 }
 }
