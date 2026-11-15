@@ -20,4 +20,4 @@ __export(version_exports, {
   VERSION: () => VERSION
 });
 module.exports = __toCommonJS(version_exports);
-const VERSION = "4.1.0";
+const VERSION = "4.1.1";
