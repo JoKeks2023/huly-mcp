@@ -1,7 +1,7 @@
 // 3.2: Claude Code plugin — hook helpers, repo → project lookup, env normalisation, plugin files.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { readFileSync, mkdtempSync, writeFileSync, mkdirSync, readdirSync, statSync } from 'node:fs'
+import { readFileSync, mkdtempSync, writeFileSync, mkdirSync, readdirSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import tracker from '@hcengineering/tracker'
@@ -100,8 +100,9 @@ test('plugin files: marketplace points to the plugin, MCP env covers every setti
   // The plugin directory refuses scripts it cannot read: none over 256 KiB, no minified files.
   const files = (dir: string): string[] => readdirSync(dir, { withFileTypes: true }).flatMap((e) => e.isDirectory() ? files(join(dir, e.name)) : [join(dir, e.name)])
   for (const f of files('plugin/server')) {
-    assert.ok(statSync(f).size <= 256 * 1024, `${f} is over 256 KiB`)
-    if (/\.(c|m)?js$/.test(f)) assert.ok(!readFileSync(f, 'utf8').split('\n').some((l) => l.length > 3000), `${f} looks minified`)
+    const data = readFileSync(f)
+    assert.ok(data.length <= 256 * 1024, `${f} is over 256 KiB`)
+    if (/\.(c|m)?js$/.test(f)) assert.ok(!data.toString('utf8').split('\n').some((l) => l.length > 3000), `${f} looks minified`)
   }
 })
 

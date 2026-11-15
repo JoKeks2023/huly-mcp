@@ -109,7 +109,7 @@ async function generate (out) {
   }
   if (unresolved.length > 0) throw new Error(`Required but not in the tree:\n${unresolved.slice(0, 20).join('\n')}`)
   const usedPackages = new Set([...reached].map((r) => /^(.*node_modules\/(?:@[^/]+\/)?[^/]+)\//.exec(r)?.[1]).filter(Boolean))
-  for (const [real, f] of [...files]) {
+  for (const real of [...files.keys()]) {
     const pkg = /^(.*node_modules\/(?:@[^/]+\/)?[^/]+)\/([^/]+)$/.exec(real)
     const licence = pkg != null && usedPackages.has(pkg[1]) && /^(licen[cs]e|notice)/i.test(pkg[2])
     if (!reached.has(real) && !licence) files.delete(real)
