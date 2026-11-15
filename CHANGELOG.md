@@ -4,6 +4,8 @@ All notable changes to [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mc
 
 ### Unreleased
 
+- **Claude plugin: the server as a readable module tree.** The plugin directory refuses scripts over 256 KiB it cannot read, and the single-file server was 4.4 MB (blocker COMMAND_PATH_COMPUTED). `plugin/server/` is now `src/` transpiled file by file plus exactly the files of the 113 packages the server loads (`vendor/`, every `require()`/`import()` resolved at build time to a fixed relative path — nothing is looked up or downloaded at run time); 750 files, none over 256 KiB, none minified. `npm run plugin:bundle --check` and a test guard it.
+
 ### 4.1.0 — 2026-11-14
 
 - **Fix: "window is not defined" on Node 25+ (#109).** Node 25 and newer define `localStorage`/`sessionStorage` globally; the Huly client took that for a browser and every workspace connection failed (Docker images run Node 26). The server now hides both at start-up.

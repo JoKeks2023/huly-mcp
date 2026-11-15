@@ -16,7 +16,7 @@ This is a community plugin. It is not made or endorsed by Huly Labs.
 
 ## What it runs
 
-- **MCP server:** `node ${CLAUDE_PLUGIN_ROOT}/server/index.js` — the server of this release, bundled into one readable, unminified file (built with esbuild from `src/` in this repository; the same file as the npm package [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mcp-selfhost)). Nothing is downloaded at start; the release checks that the file matches its own build. It reads the plugin settings as `CLAUDE_PLUGIN_OPTION_HULY_*`.
+- **MCP server:** `node ${CLAUDE_PLUGIN_ROOT}/server/index.js` — the server of this release as a plain, readable module tree: `src/` of this repository transpiled file by file (`server/src/`; `server/index.js` only loads it) plus the open-source packages it uses, unchanged as published (`server/node_modules/`, licence files included; no minified files, none over 256 KiB). The same code as the npm package [huly-mcp-selfhost](https://www.npmjs.com/package/huly-mcp-selfhost). Nothing is downloaded or generated at start; the release checks that the tree matches its own build. It reads the plugin settings as `CLAUDE_PLUGIN_OPTION_HULY_*`.
 - **Hooks** (Node.js, local only, no network):
   - `SessionStart` — reads the git remote and branch name and checks whether `CLAUDE.md`/`CLAUDE.local.md`/`AGENTS.md` has a `## Huly` section, then tells Claude which repo and issue the session is about.
   - `PostToolUse` on Bash — after `gh pr create` / `gh pr merge`, reminds Claude to link the PR to its Huly issue and keep the status current.

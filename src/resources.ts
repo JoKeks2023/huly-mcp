@@ -96,8 +96,8 @@ export function readGuide (name: string): string {
   if (g == null) throw new Error(`Unknown guide: ${name}. Available: ${Object.keys(GUIDES).join(', ')}`)
   let text: string
   try { text = readFileSync(join(__dirname, 'guides', `${name}.md`), 'utf8') } catch {
-    // From source (src/ → plugin/skills) or bundled inside the Claude plugin (plugin/server/ → plugin/skills).
-    const skill = [join(__dirname, '..', 'plugin', 'skills', 'huly', g.file), join(__dirname, '..', 'skills', 'huly', g.file)]
+    // From source (src/ → plugin/skills) or inside the Claude plugin (plugin/server/src/ → plugin/skills).
+    const skill = [join(__dirname, '..', 'plugin', 'skills', 'huly', g.file), join(__dirname, '..', 'skills', 'huly', g.file), join(__dirname, '..', '..', 'skills', 'huly', g.file)]
       .find((f) => existsSync(f)) ?? join(__dirname, '..', 'plugin', 'skills', 'huly', g.file)
     text = readFileSync(skill, 'utf8').replace(/\r\n/g, '\n').replace(/^---\n[\s\S]*?\n---\n+/, '')
   }

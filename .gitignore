@@ -1,8 +1,8 @@
 node_modules/
-dist/
+/dist/
 .env
 .mcpregistry_github_token
 .mcpregistry_registry_token
 .DS_Store
-build/
+/build/
 evals/results/

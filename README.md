@@ -143,7 +143,7 @@ The repo is also a Claude Code plugin marketplace. The plugin bundles the MCP se
 /plugin install huly-remote@huly-mcp
 ```
 
-> **Note:** the plugin brings its own copy of the server (`plugin/server/index.js`, the bundled build of its release — nothing is downloaded at start), so a plugin update brings the matching server. To try a local checkout: `npm run build && npm run plugin:bundle`, then `claude --plugin-dir ./plugin`.
+> **Note:** the plugin brings its own copy of the server (`plugin/server/`: the server of its release as a plain module tree — nothing is downloaded at start), so a plugin update brings the matching server. To try a local checkout: `npm run build && npm run plugin:bundle`, then `claude --plugin-dir ./plugin`.
 
 Claude Code then asks for your Huly settings (e-mail + password or token, and for self-hosted Huly the accounts and front URL; passwords and tokens go to the OS keychain).
 
