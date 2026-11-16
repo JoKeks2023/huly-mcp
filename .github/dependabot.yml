@@ -9,6 +9,10 @@ updates:
       # Types follow the oldest supported Node major (package.json engines), not the newest.
       - dependency-name: '@types/node'
         update-types: ['version-update:semver-major']
+      # Huly is frozen (Nov 2026); 0.7.423 is its last npm release and ships without type
+      # definitions (160 x TS7016, HULY-44). Newer versions, if any appear, are still proposed.
+      - dependency-name: '@hcengineering/*'
+        versions: ['0.7.423']
     groups:
       # Huly's packages move together; one PR per release keeps them consistent.
       huly:
