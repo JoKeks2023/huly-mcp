@@ -97,8 +97,21 @@ jobs:
           cache: npm
       - if: steps.day.outputs.run == 'yes'
         run: npm ci
-      - name: Install the latest Huly packages
+      # Huly is frozen (Nov 2026): 0.7.423 is the last npm release and is known to lack type
+      # definitions (HULY-44). Only check again when something newer is published.
+      - name: Newer than the known final release?
         if: steps.day.outputs.run == 'yes'
+        id: newer
+        run: |
+          latest=$(npm view @hcengineering/core version)
+          if [ "$latest" = "0.7.423" ]; then
+            echo "check=no" >> "$GITHUB_OUTPUT"
+            echo "Latest \`@hcengineering/core\` is still 0.7.423 (known final release without types), skipped." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "check=yes" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Install the latest Huly packages
+        if: steps.day.outputs.run == 'yes' && steps.newer.outputs.check == 'yes'
         id: up
         run: |
           pkgs=$(node -p "Object.keys(require('./package.json').dependencies).filter((n) => n.startsWith('@hcengineering/')).map((n) => n + '@latest').join(' ')")
@@ -108,9 +121,9 @@ jobs:
           after=$(npm ls --depth=0 --json | node -p "const d=JSON.parse(require('fs').readFileSync(0,'utf8')).dependencies; Object.entries(d).filter(([n])=>n.startsWith('@hcengineering/')).map(([n,v])=>n+'@'+v.version).join('\n')")
           { echo '## Huly packages'; echo; echo '```diff'; diff <(echo "$before") <(echo "$after") || true; echo '```'; } > upstream.md
           cat upstream.md >> "$GITHUB_STEP_SUMMARY"
-      - if: steps.day.outputs.run == 'yes'
+      - if: steps.day.outputs.run == 'yes' && steps.newer.outputs.check == 'yes'
         run: npm run build && npm test
-      - if: failure() && steps.day.outputs.run == 'yes'
+      - if: failure() && steps.day.outputs.run == 'yes' && steps.newer.outputs.check == 'yes'
         run: |
           # shellcheck disable=SC2016 # backticks are Markdown here
           { echo 'Build or tests fail with the latest `@hcengineering/*` packages.'; echo; cat upstream.md 2>/dev/null; } > body.md
